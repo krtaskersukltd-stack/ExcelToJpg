@@ -102,7 +102,7 @@ export default function ComparisonMatrix() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: 0.15 }}
-            className="rounded-3xl p-6 sm:p-8 bg-white border-2 border-blue-500/80 shadow-[0_8px_30px_-5px_rgba(37,99,235,0.12)] flex flex-col justify-between relative overflow-hidden"
+            className="rounded-3xl p-6 sm:p-8 bg-white neon-border-glow shadow-[0_12px_36px_rgba(59,130,246,0.16)] flex flex-col justify-between relative overflow-hidden"
           >
             {/* Top right highlight tag */}
             <div className="absolute top-0 right-0 bg-blue-600 text-white text-[10px] font-extrabold uppercase px-4 py-1 rounded-bl-xl tracking-wider">

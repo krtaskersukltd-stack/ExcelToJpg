@@ -78,7 +78,7 @@ export default function HeroSection() {
           initial={{ opacity: 0, y: 25 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.1 }}
-          className="mt-8 max-w-3xl mx-auto"
+          className="mt-8 max-w-5xl mx-auto"
         >
           <div
             onDragOver={handleDragOver}
@@ -91,7 +91,7 @@ export default function HeroSection() {
             }`}
           >
             {/* Spreadsheet Grid Rectangles inside Dropzone */}
-            <div className="absolute inset-4 sm:inset-6 grid grid-cols-6 grid-rows-4 gap-2.5 pointer-events-none rounded-2xl overflow-hidden opacity-90">
+            <div className="absolute inset-4 sm:inset-6 p-4 grid grid-cols-6 grid-rows-4 gap-2.5 pointer-events-none rounded-2xl overflow-hidden opacity-90">
               {Array.from({ length: 24 }).map((_, i) => (
                 <div 
                   key={i} 

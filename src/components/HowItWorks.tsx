@@ -64,7 +64,7 @@ export default function HowItWorks() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: idx * 0.15 }}
-              className="relative group rounded-3xl p-7 bg-[#F9FBFE] hover:bg-[#F2F7FD] border border-blue-100/80 shadow-[0_4px_20px_-4px_rgba(37,99,235,0.05)] hover:shadow-xl hover:shadow-blue-500/10 transition-all duration-300 flex flex-col justify-between"
+              className="relative group rounded-3xl p-7 bg-white neon-border-glow shadow-[0_4px_20px_-4px_rgba(37,99,235,0.08)] hover:shadow-xl hover:shadow-blue-500/15 transition-all duration-300 flex flex-col justify-between"
             >
               <div>
                 {/* Top Number & Icon Bar */}

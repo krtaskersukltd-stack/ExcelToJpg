@@ -14,10 +14,8 @@ export default function CtaBanner({ onScrollToUpload }: { onScrollToUpload?: () 
   };
 
   return (
-    <section className="py-16 bg-[#2563EB] text-white relative overflow-hidden">
-      {/* Background ambient lighting */}
-      <div className="absolute top-0 right-0 w-96 h-96 bg-white/10 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-0 left-0 w-96 h-96 bg-indigo-900/30 rounded-full blur-3xl pointer-events-none" />
+    <section className="py-16 bg-blue-500 text-white relative overflow-hidden">
+     
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 text-center relative z-10 space-y-6">
         <motion.div

@@ -157,7 +157,7 @@ export default function Navbar({ onOpenUploadModal }: { onOpenUploadModal?: () =
         <div className="hidden lg:flex items-center gap-3">
           
           {/* Right Floating Pill: Pricing + Login */}
-          <div className="flex items-center gap-1.5 p-4 bg-white/75 backdrop-blur-xl rounded-full border border-blue-200/70 shadow-[0_4px_24px_rgba(59,130,246,0.12)]">
+          <div className="flex items-center gap-1.5 p-4 bg-white/85 backdrop-blur-xl rounded-full neon-border-glow shadow-[0_4px_24px_rgba(59,130,246,0.12)]">
             {/* Pricing with Diamond / Crystal Icon */}
             <Link 
               href="#pricing" 

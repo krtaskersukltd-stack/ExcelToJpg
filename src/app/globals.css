@@ -1,4 +1,4 @@
-@import url('https://api.fontshare.com/v2/css?f[]=satoshi@900,800,700,600,500,400&display=swap');
+@import url("https://api.fontshare.com/v2/css?f[]=satoshi@900,800,700,600,500,400&display=swap");
 @import "tailwindcss";
 
 @theme {
@@ -20,10 +20,6 @@ h1, h2, h3, h4, h5, h6, .font-heading {
   font-family: "Satoshi", var(--font-sans), sans-serif;
   letter-spacing: -0.025em;
   font-weight: 600 !important;
-}
-
-section {
-  background-color: white !important;
 }
 
 p {
@@ -68,6 +64,70 @@ body, p, span, a, button, input, select, textarea, table, .font-sans {
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05), 0 2px 6px -1px rgba(15, 23, 42, 0.02);
+}
+
+/* ==========================================================================
+   2 Opposite Sides Infinite Rotating Neon Beams
+   ========================================================================== */
+@property --border-angle {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+
+@keyframes infiniteBorderRotate {
+  0% {
+    --border-angle: 0deg;
+  }
+  100% {
+    --border-angle: 360deg;
+  }
+}
+
+.neon-border-glow,
+.infinite-border-glow {
+  position: relative;
+  background-clip: padding-box;
+}
+
+/* 2 Opposite Beams (Top-Left & Bottom-Right) rotating endlessly */
+.neon-border-glow::before,
+.infinite-border-glow::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1.5px;
+  background: conic-gradient(
+    from var(--border-angle, 0deg),
+    /* Beam 1 */
+    transparent 0deg,
+    #2563eb 20deg,
+    #60a5fa 35deg,
+    #e0e7ff 45deg,
+    #2563eb 55deg,
+    transparent 75deg,
+
+    /* Gap */
+    transparent 180deg,
+
+    /* Beam 2 (Directly Opposite) */
+    #2563eb 200deg,
+    #60a5fa 215deg,
+    #e0e7ff 225deg,
+    #2563eb 235deg,
+    transparent 255deg,
+
+    /* Gap back to 360 */
+    transparent 360deg
+  );
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  animation: infiniteBorderRotate 4s linear infinite;
+  pointer-events: none;
+  z-index: 10;
+  filter: drop-shadow(0 0 6px rgba(59, 130, 246, 0.5));
 }
 
 /* Custom Animations */

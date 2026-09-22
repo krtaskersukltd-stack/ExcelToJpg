@@ -2,7 +2,6 @@
 
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronDown, Plus, Minus, Check, HelpCircle } from "lucide-react";
 
 interface FaqItem {
   id: string;
@@ -16,7 +15,7 @@ export default function FaqSection() {
       id: "faq-1",
       question: "What is an Excel to JPG converter?",
       answer:
-        "An Excel to JPG converter is a tool or feature that turns a Microsoft Excel spreadsheet (.xls or .xlsx) into a high-quality JPEG image.",
+        "An Excel to JPG converter is a tool or feature that turns a Microsoft Excel spreadsheet (.xls or .xlsx) into a high-quality JPEG image",
     },
     {
       id: "faq-2",
@@ -52,70 +51,105 @@ export default function FaqSection() {
   };
 
   return (
-    <section id="faq" className="py-20 bg-[#FAFBFD] relative">
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section id="faq" className="py-20 sm:py-24 bg-[#FAFBFD] relative overflow-hidden">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Section Heading */}
-        <div className="text-center space-y-3 mb-14">
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+        <div className="text-center space-y-2.5 mb-14 sm:mb-16">
+          <h2 className="text-3xl sm:text-4xl lg:text-[40px] font-extrabold text-[#0F172A] tracking-tight">
             Frequently Asked Questions
           </h2>
-          <p className="text-sm sm:text-base text-slate-600">
+          <p className="text-sm sm:text-base text-slate-500 font-normal">
             Everything you need to know about Excel to JPG conversion.
           </p>
         </div>
 
-        {/* FAQ Accordion List */}
-        <div className="space-y-4">
+        {/* FAQ List */}
+        <div className="space-y-3 sm:space-y-4">
           {faqs.map((faq) => {
             const isOpen = openId === faq.id;
+
             return (
               <motion.div
                 key={faq.id}
-                initial={{ opacity: 0, y: 15 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                className={`rounded-2xl transition-all duration-200 overflow-hidden ${
+                initial={false}
+                animate={{
+                  backgroundColor: isOpen ? "#FFFFFF" : "rgba(255, 255, 255, 0)",
+                }}
+                className={`rounded-[20px] sm:rounded-2xl transition-all duration-300 ${
                   isOpen
-                    ? "bg-white border-2 border-blue-500 shadow-md shadow-blue-500/10"
-                    : "bg-white border border-slate-200/90 hover:border-slate-300 shadow-xs"
+                    ? "bg-white shadow-[0_12px_36px_rgba(59,130,246,0.18),0_2px_8px_rgba(0,0,0,0.02)] border border-indigo-100/90"
+                    : "hover:bg-white/60"
                 }`}
               >
                 <button
+                  type="button"
                   onClick={() => toggleFaq(faq.id)}
-                  className="w-full text-left p-5 sm:p-6 flex items-center justify-between gap-4"
+                  className="w-full text-left p-5 sm:p-6 flex items-start justify-between gap-4 cursor-pointer select-none group"
                 >
-                  <span className={`text-base sm:text-lg font-bold transition-colors ${isOpen ? "text-slate-900" : "text-slate-800"}`}>
-                    {faq.question}
-                  </span>
+                  <div className="flex-1 pr-2">
+                    <span className="text-base sm:text-[19px] font-bold text-[#0F172A] tracking-tight block leading-snug">
+                      {faq.question}
+                    </span>
 
+                    {/* Expanded Answer Content */}
+                    <AnimatePresence initial={false}>
+                      {isOpen && (
+                        <motion.div
+                          key="content"
+                          initial={{ opacity: 0, height: 0, marginTop: 0 }}
+                          animate={{ opacity: 1, height: "auto", marginTop: 12 }}
+                          exit={{ opacity: 0, height: 0, marginTop: 0 }}
+                          transition={{ duration: 0.25, ease: "easeOut" }}
+                          className="overflow-hidden"
+                        >
+                          <p className="text-sm sm:text-[15px] text-slate-600 leading-relaxed max-w-2xl font-normal">
+                            {faq.answer}
+                          </p>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+
+                  {/* Circular Arrow Button */}
                   <div
-                    className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 transition-colors ${
-                      isOpen ? "bg-blue-600 text-white" : "bg-blue-50 text-blue-600 border border-blue-200/60"
+                    className={`w-10 h-10 sm:w-11 sm:h-11 rounded-full flex items-center justify-center shrink-0 transition-all duration-300 ${
+                      isOpen
+                        ? "bg-[#3B66FF] shadow-lg shadow-blue-500/35"
+                        : "bg-white shadow-[0_4px_16px_rgba(59,130,246,0.22)] border border-blue-100 group-hover:scale-105 group-hover:shadow-[0_6px_20px_rgba(59,130,246,0.3)]"
                     }`}
                   >
                     {isOpen ? (
-                      <Check className="w-4 h-4 stroke-[2.5]" />
+                      /* Active Down-Left Arrow (White) */
+                      <svg
+                        viewBox="0 0 24 24"
+                        className="w-5 h-5 text-white"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <path d="M17 7L7 17" />
+                        <path d="M17 17H7V7" />
+                      </svg>
                     ) : (
-                      <ChevronDown className="w-4 h-4" />
+                      /* Inactive Up-Right Arrow (Blue) */
+                      <svg
+                        viewBox="0 0 24 24"
+                        className="w-5 h-5 text-[#3B66FF]"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <path d="M7 17L17 7" />
+                        <path d="M7 7H17V17" />
+                      </svg>
                     )}
                   </div>
                 </button>
-
-                <AnimatePresence>
-                  {isOpen && (
-                    <motion.div
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: "auto", opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.25 }}
-                    >
-                      <div className="px-5 sm:px-6 pb-6 text-sm text-slate-600 leading-relaxed border-t border-slate-100 pt-3">
-                        {faq.answer}
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
               </motion.div>
             );
           })}
