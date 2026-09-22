@@ -43,30 +43,26 @@ export default function Navbar({ onOpenUploadModal }: { onOpenUploadModal?: () =
 
   return (
     <header 
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        isScrolled 
-          ? "bg-white/85 backdrop-blur-xl border-b border-slate-100 shadow-[0_4px_25px_-5px_rgba(0,0,0,0.03)] py-3" 
-          : "bg-transparent py-4 sm:py-5"
-      }`}
+      className={`top-0 left-0 right-0 z-50 transition-all duration-300 py-4 sm:py-5`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
         
         {/* Brand Logo matching user's /logo.png */}
         <Link href="/" className="group inline-flex items-center">
-          <div className="relative h-16 sm:h-14 w-auto flex items-center transition-transform duration-200 group-hover:scale-105">
+          <div className="relative h-24 sm:h-14 w-auto flex items-center transition-transform duration-200 group-hover:scale-105">
             <Image
               src="/logo.png"
               alt="Excel To JPG"
               width={176}
               height={217}
               priority
-              className="h-12 sm:h-13 w-auto object-contain drop-shadow-xs"
+              className="h-24 sm:h-18 w-auto object-contain drop-shadow-xs"
             />
           </div>
         </Link>
 
         {/* Center Floating Pill Navigation Bar (Desktop) */}
-        <nav className="hidden lg:flex items-center gap-1 p-4 bg-white/75 backdrop-blur-xl rounded-full border border-blue-200/70 shadow-[0_4px_24px_rgba(59,130,246,0.12)]">
+        <nav className="hidden lg:flex items-center gap-1 p-4 backdrop-blur-xl rounded-full border">
           {/* Active Image To Text Button */}
           <Link 
             href="#tools"
@@ -143,7 +139,7 @@ export default function Navbar({ onOpenUploadModal }: { onOpenUploadModal?: () =
                           <div className="flex items-center gap-1.5">
                             <span className="text-xs font-semibold text-slate-900">{item.name}</span>
                             {item.highlight && (
-                              <span className="text-[10px] bg-blue-600 text-white font-bold px-1.5 py-0.2 rounded-full">AI</span>
+                              <span className="text-[10px] text-white font-bold px-1.5 py-0.2 rounded-full">AI</span>
                             )}
                           </div>
                           <p className="text-[11px] text-slate-500 truncate">{item.desc}</p>

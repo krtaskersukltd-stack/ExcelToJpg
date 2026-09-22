@@ -114,11 +114,11 @@ export default function SpreadsheetShowcase() {
                   <span className="text-[10px] text-blue-600 font-mono">LIVE CHART</span>
                 </div>
                 {/* Visual Bar representation */}
-                <div className="grid grid-cols-4 gap-2 pt-1">
-                  <div className="h-8 bg-blue-500 rounded-md"></div>
-                  <div className="h-6 bg-blue-400 rounded-md mt-2"></div>
-                  <div className="h-10 bg-blue-600 rounded-md -mt-2"></div>
-                  <div className="h-5 bg-blue-300 rounded-md mt-3"></div>
+                <div className="grid grid-cols-4 gap-2 pt-1 relative">
+                  <div className="h-8 bg-blue-100 rounded-md"></div>
+                  <div className="h-12 bg-blue-200 rounded-md mt-2"></div>
+                  <div className="h-16 bg-blue-300 rounded-md -mt-2"></div>
+                  <div className="h-22 bg-blue-400 rounded-md mt-3"></div>
                 </div>
               </div>
             </div>
