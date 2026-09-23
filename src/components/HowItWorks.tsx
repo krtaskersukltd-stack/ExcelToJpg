@@ -2,139 +2,143 @@
 
 import React from "react";
 import { motion } from "framer-motion";
-import { Upload, Cpu, Download, FileSpreadsheet, Sparkles, Check, ArrowUpRight } from "lucide-react";
+import { FileText, RefreshCw, Image as ImageIcon, FileUp, Check } from "lucide-react";
 
 export default function HowItWorks() {
-  const steps = [
-    {
-      number: "01",
-      title: "Upload Excel",
-      description: "Select your .xls, .xlsx, or .csv document from your device or drag it directly onto the upload zone.",
-      icon: Upload,
-      preview: {
-        type: "upload",
-        name: "Annual_Q4_Summary.xlsx",
-        detail: "1.4 MB • Ready",
-      }
-    },
-    {
-      number: "02",
-      title: "Convert Your Sheet",
-      description: "Our render engine parses fonts, custom styles, merged cells, and graphics into razor sharp JPG pixels.",
-      icon: Cpu,
-      preview: {
-        type: "rendering",
-        name: "Rendering Canvas",
-        detail: "300 DPI",
-      }
-    },
-    {
-      number: "03",
-      title: "Download JPG",
-      description: "Instantly download individual sheet images or grab all worksheets bundled into a clean ZIP file.",
-      icon: Download,
-      preview: {
-        type: "download",
-        name: "Sheet_1_Export.jpg",
-        detail: "Save",
-      }
-    },
-  ];
-
   return (
-    <section className="py-20 relative bg-white border-y border-slate-100">
+    <section className="py-20 relative bg-[#FAFBFD]">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Section Header */}
-        <div className="text-center space-y-3 mb-16">
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
-            How to Convert <span className="text-blue-600">JPG</span> to Excel?
+        <div className="text-center space-y-3 mb-14">
+          <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 tracking-tight">
+            How to Convert <span className="text-[#355BFF]">JPG</span> to Excel?
           </h2>
-          <p className="text-sm sm:text-base text-slate-600 max-w-2xl mx-auto">
+          <p className="text-sm sm:text-base text-slate-500 max-w-2xl mx-auto">
             The process is very simple, just follow these steps and get your JPG converted into Excel instantly.
           </p>
         </div>
 
-        {/* 3 Step Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative">
-          {steps.map((step, idx) => (
-            <motion.div
-              key={step.number}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: idx * 0.15 }}
-              className="relative group rounded-3xl p-7 bg-white neon-border-glow shadow-[0_4px_20px_-4px_rgba(37,99,235,0.08)] hover:shadow-xl hover:shadow-blue-500/15 transition-all duration-300 flex flex-col justify-between"
-            >
+        {/* Large Single White Container Card Holding All 3 Steps */}
+        <motion.div
+          initial={{ opacity: 0, y: 25 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5 }}
+          className="rounded-[28px] sm:rounded-[36px] bg-white border border-slate-200/80 p-6 sm:p-10 lg:p-12 shadow-[0_12px_45px_rgba(53,91,255,0.06)]"
+        >
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-10">
+            
+            {/* Step 01: Upload Excel */}
+            <div className="flex flex-col justify-between">
               <div>
-                {/* Top Number & Icon Bar */}
-                <div className="flex items-center justify-between mb-6">
-                  <span className="text-3xl font-extrabold text-slate-900 tracking-tight group-hover:text-blue-600 transition-colors">
-                    {step.number}
+                {/* Number & Top-Right Icon */}
+                <div className="flex items-center justify-between mb-4">
+                  <span className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+                    01
                   </span>
-                  <div className="w-10 h-10 rounded-2xl bg-white border border-blue-100 flex items-center justify-center text-blue-600 shadow-xs group-hover:scale-110 transition-transform">
-                    <step.icon className="w-5 h-5" />
+                  <div className="w-8 h-8 rounded-full bg-[#EEF4FF] flex items-center justify-center text-[#355BFF]">
+                    <FileUp className="w-4 h-4 stroke-[2.2]" />
                   </div>
                 </div>
 
-                {/* Card Title & Description */}
-                <h3 className="text-xl font-bold text-slate-900 mb-3 tracking-tight">
-                  {step.title}
+                {/* Title */}
+                <h3 className="text-lg sm:text-xl font-bold text-[#355BFF] mb-2 tracking-tight">
+                  Upload Excel
                 </h3>
-                <p className="text-sm text-slate-600 leading-relaxed">
-                  {step.description}
+
+                {/* Description */}
+                <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                  Select your .xls, .xlsx, or .csv document from your device or drag it directly onto the upload zone.
                 </p>
               </div>
 
-              {/* Bottom Interactive Mini Preview Mockup */}
-              <div className="mt-8 pt-5 border-t border-slate-200/60">
-                {step.preview.type === "upload" && (
-                  <div className="flex items-center justify-between p-3 rounded-2xl bg-white border border-slate-200/80 shadow-xs">
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      <div className="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
-                        <FileSpreadsheet className="w-4 h-4" />
-                      </div>
-                      <div className="truncate">
-                        <p className="text-xs font-bold text-slate-800 truncate">{step.preview.name}</p>
-                        <p className="text-[11px] text-slate-400">{step.preview.detail}</p>
-                      </div>
-                    </div>
-                    <div className="w-5 h-5 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0">
-                      <Check className="w-3 h-3" />
-                    </div>
-                  </div>
-                )}
+              {/* Bottom Preview Pill Card */}
+              <div className="mt-8 p-3 bg-white rounded-2xl border border-blue-200/80 shadow-[0_4px_16px_rgba(53,91,255,0.12)] flex items-center gap-3">
+                <div className="w-8 h-8 rounded-xl bg-[#DEE7FF] text-[#355BFF] flex items-center justify-center shrink-0">
+                  <FileText className="w-4 h-4 stroke-[2.2]" />
+                </div>
+                <div className="truncate">
+                  <p className="text-xs font-semibold text-slate-800 truncate">Annual_Q4_Summary.xlsx</p>
+                  <p className="text-[10px] text-slate-400 font-medium">1.4 MB • Ready</p>
+                </div>
+              </div>
+            </div>
 
-                {step.preview.type === "rendering" && (
-                  <div className="flex items-center justify-between p-3 rounded-2xl bg-white border border-slate-200/80 shadow-xs">
-                    <div className="flex items-center gap-2">
-                      <span className="w-2.5 h-2.5 rounded-full bg-blue-600 animate-ping"></span>
-                      <span className="text-xs font-bold text-slate-800">{step.preview.name}</span>
-                    </div>
-                    <span className="text-xs font-mono font-bold px-2.5 py-1 rounded-md bg-blue-50 text-blue-700 border border-blue-200/60">
-                      {step.preview.detail}
-                    </span>
+            {/* Step 02: Convert Your Sheet */}
+            <div className="flex flex-col justify-between">
+              <div>
+                {/* Number & Top-Right Icon */}
+                <div className="flex items-center justify-between mb-4">
+                  <span className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+                    02
+                  </span>
+                  <div className="w-8 h-8 rounded-full bg-[#EEF4FF] flex items-center justify-center text-[#355BFF]">
+                    <RefreshCw className="w-4 h-4 stroke-[2.2]" />
                   </div>
-                )}
+                </div>
 
-                {step.preview.type === "download" && (
-                  <div className="flex items-center justify-between p-3 rounded-2xl bg-white border border-slate-200/80 shadow-xs">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <div className="w-7 h-7 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center shrink-0">
-                        <Sparkles className="w-4 h-4" />
-                      </div>
-                      <span className="text-xs font-bold text-slate-800 truncate">{step.preview.name}</span>
-                    </div>
-                    <button className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg shadow-sm transition-all">
-                      {step.preview.detail}
-                    </button>
-                  </div>
-                )}
+                {/* Title */}
+                <h3 className="text-lg sm:text-xl font-bold text-[#355BFF] mb-2 tracking-tight">
+                  Convert Your Sheet
+                </h3>
+
+                {/* Description */}
+                <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                  Our render engine parses fonts, custom styles, merged cells, and graphics into razor sharp JPG pixels.
+                </p>
               </div>
 
-            </motion.div>
-          ))}
-        </div>
+              {/* Bottom Preview Pill Card */}
+              <div className="mt-8 p-3.5 bg-white rounded-2xl border-2 border-[#355BFF] shadow-[0_4px_16px_rgba(53,91,255,0.15)] flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-[#355BFF]"></span>
+                  <span className="text-xs font-semibold text-slate-800">Rendering Canvas</span>
+                </div>
+                <span className="text-xs font-bold text-[#355BFF]">
+                  300 DPI
+                </span>
+              </div>
+            </div>
+
+            {/* Step 03: Download JPG */}
+            <div className="flex flex-col justify-between">
+              <div>
+                {/* Number & Top-Right Icon */}
+                <div className="flex items-center justify-between mb-4">
+                  <span className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+                    03
+                  </span>
+                  <div className="w-8 h-8 rounded-full bg-[#EEF4FF] flex items-center justify-center text-[#355BFF]">
+                    <ImageIcon className="w-4 h-4 stroke-[2.2]" />
+                  </div>
+                </div>
+
+                {/* Title */}
+                <h3 className="text-lg sm:text-xl font-bold text-[#355BFF] mb-2 tracking-tight">
+                  Download JPG
+                </h3>
+
+                {/* Description */}
+                <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                  Instantly download individual sheet images or grab all worksheets bundled into a clean ZIP file.
+                </p>
+              </div>
+
+              {/* Bottom Preview Pill Card */}
+              <div className="mt-8 p-3 bg-white rounded-2xl border border-blue-200/80 shadow-[0_4px_16px_rgba(53,91,255,0.12)] flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2 truncate">
+                  <Check className="w-4 h-4 text-[#355BFF] stroke-[2.5] shrink-0" />
+                  <span className="text-xs font-semibold text-slate-800 truncate">Sheet_1_Export.jpg</span>
+                </div>
+                <button className="bg-[#355BFF] hover:bg-blue-700 text-white text-[11px] font-semibold px-4 py-1.5 rounded-full shadow-xs transition-colors shrink-0 cursor-pointer">
+                  Save
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </motion.div>
 
       </div>
     </section>

@@ -1,7 +1,14 @@
 "use client";
 
-import React, { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import React, { useRef, useState } from "react";
+import { 
+  motion, 
+  useMotionValue, 
+  useTransform, 
+  useSpring, 
+  MotionValue, 
+  AnimatePresence 
+} from "framer-motion";
 
 interface ProductItem {
   id: string;
@@ -186,8 +193,82 @@ const products: ProductItem[] = [
   { id: "jpg", name: "JPG to Excel", component: JpgFileIcon },
 ];
 
+/* Mac Dock Individual Animated Item */
+function MacDockItem({
+  item,
+  mouseX,
+  hoveredId,
+  setHoveredId,
+}: {
+  item: ProductItem;
+  mouseX: MotionValue<number>;
+  hoveredId: string | null;
+  setHoveredId: (id: string | null) => void;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+
+  // Distance from mouse to center of this icon
+  const distance = useTransform(mouseX, (val) => {
+    const bounds = ref.current?.getBoundingClientRect() ?? { x: 0, width: 0 };
+    return val - bounds.x - bounds.width / 2;
+  });
+
+  // Authentic macOS fisheye magnification mapping:
+  // Direct target scales highest, adjacent neighbors scale smoothly, outer icons stay default
+  const widthSync = useTransform(distance, [-160, -80, 0, 80, 160], [52, 68, 86, 68, 52]);
+  const ySync = useTransform(distance, [-160, -80, 0, 80, 160], [0, -10, -22, -10, 0]);
+
+  // High performance spring physics
+  const width = useSpring(widthSync, { mass: 0.1, stiffness: 220, damping: 15 });
+  const y = useSpring(ySync, { mass: 0.1, stiffness: 220, damping: 15 });
+
+  const isHovered = hoveredId === item.id;
+  const IconComponent = item.component;
+
+  return (
+    <div
+      ref={ref}
+      className="relative flex flex-col items-center justify-end"
+      onMouseEnter={() => setHoveredId(item.id)}
+      onMouseLeave={() => setHoveredId(null)}
+    >
+      {/* Tooltip on Hover */}
+      <AnimatePresence>
+        {isHovered && (
+          <motion.div
+            initial={{ opacity: 0, y: 8, scale: 0.92 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 6, scale: 0.92 }}
+            transition={{ duration: 0.15, ease: "easeOut" }}
+            className="absolute -top-12 left-1/2 -translate-x-1/2 pointer-events-none z-40 whitespace-nowrap"
+          >
+            <div className="relative px-3.5 py-1.5 rounded-xl bg-white border border-indigo-200/90 shadow-[0_4px_20px_rgba(99,102,241,0.18),0_2px_6px_rgba(0,0,0,0.04)] text-[12px] sm:text-[13px] font-semibold text-slate-800">
+              {item.name}
+              {/* Tooltip triangle indicator */}
+              <div className="absolute -bottom-[5px] left-1/2 -translate-x-1/2 w-2.5 h-2.5 bg-white border-b border-r border-indigo-200/90 rotate-45" />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Animated Scale & Rise Icon */}
+      <motion.button
+        type="button"
+        aria-label={item.name}
+        style={{ width, y }}
+        className="focus:outline-none cursor-pointer select-none origin-bottom flex items-center justify-center p-1"
+      >
+        <div className="w-full aspect-[54/68] flex items-center justify-center drop-shadow-[0_4px_10px_rgba(0,0,0,0.08)] transition-transform">
+          <IconComponent className="w-full h-full object-contain" />
+        </div>
+      </motion.button>
+    </div>
+  );
+}
+
 export default function ProductsRibbon() {
-  const [hoveredId, setHoveredId] = useState<string | null>("formula");
+  const [hoveredId, setHoveredId] = useState<string | null>(null);
+  const mouseX = useMotionValue(Infinity);
 
   return (
     <section id="products" className="py-14 sm:py-20 relative bg-[#FAFBFD] overflow-visible">
@@ -195,72 +276,38 @@ export default function ProductsRibbon() {
         
         {/* Section Heading */}
         <div className="space-y-3 mb-10 text-center">
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
-            Excel To <span className="text-blue-600">JPG</span> Products
+          <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 tracking-tight">
+            Excel To <span className="text-[#355BFF]">JPG</span> Products
           </h2>
-          <p className="text-sm sm:text-base text-slate-600 max-w-xl mx-auto">
+          <p className="text-sm sm:text-base text-slate-500 max-w-xl mx-auto">
             Explore more of our file conversion tools to seamlessly switch between Excel, PDF, and CSV formats.
           </p>
         </div>
 
-        {/* Floating Dock Capsule */}
-        <div className="relative pt-10 pb-2">
-          {/* Glass Dock Container */}
-          <div className="relative px-6 sm:px-10 py-3.5 sm:py-4 rounded-2xl sm:rounded-3xl bg-white/90 backdrop-blur-md border border-indigo-200/70 shadow-[0_12px_36px_-6px_rgba(99,102,241,0.14),0_2px_10px_rgba(0,0,0,0.03)] flex items-center justify-center gap-3.5 sm:gap-6">
-            
+        {/* Mac Dock Container */}
+        <div className="relative pt-8 pb-4">
+          <motion.div
+            onMouseMove={(e) => mouseX.set(e.pageX)}
+            onMouseLeave={() => {
+              mouseX.set(Infinity);
+              setHoveredId(null);
+            }}
+            className="relative px-6 sm:px-8 py-3 rounded-2xl sm:rounded-3xl bg-white/90 backdrop-blur-md border border-indigo-200/70 shadow-[0_12px_36px_-6px_rgba(99,102,241,0.14),0_2px_10px_rgba(0,0,0,0.03)] flex items-end justify-center gap-3 sm:gap-4"
+          >
             {/* Ambient left & right subtle neon glows */}
             <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-10 bg-indigo-400/40 rounded-r-full blur-[2px]" />
             <div className="absolute right-0 top-1/2 -translate-y-1/2 w-1.5 h-10 bg-indigo-400/40 rounded-l-full blur-[2px]" />
 
-            {products.map((item) => {
-              const isHovered = hoveredId === item.id;
-              const IconComponent = item.component;
-
-              return (
-                <div
-                  key={item.id}
-                  className="relative flex flex-col items-center"
-                  onMouseEnter={() => setHoveredId(item.id)}
-                  onMouseLeave={() => setHoveredId(null)}
-                >
-                  {/* Tooltip on Hover (Above the icon) */}
-                  <AnimatePresence>
-                    {isHovered && (
-                      <motion.div
-                        initial={{ opacity: 0, y: 6, scale: 0.95 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: 4, scale: 0.95 }}
-                        transition={{ duration: 0.15, ease: "easeOut" }}
-                        className="absolute -top-12 left-1/2 -translate-x-1/2 pointer-events-none z-30 whitespace-nowrap"
-                      >
-                        <div className="relative px-3.5 py-1.5 rounded-xl bg-white border border-indigo-200/90 shadow-[0_4px_20px_rgba(99,102,241,0.18),0_2px_6px_rgba(0,0,0,0.04)] text-[12px] sm:text-[13px] font-semibold text-slate-800">
-                          {item.name}
-                          {/* Speech bubble down arrow */}
-                          <div className="absolute -bottom-[5px] left-1/2 -translate-x-1/2 w-2.5 h-2.5 bg-white border-b border-r border-indigo-200/90 rotate-45" />
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-
-                  {/* Icon Card */}
-                  <motion.button
-                    type="button"
-                    aria-label={item.name}
-                    animate={{
-                      y: isHovered ? -16 : 0,
-                      scale: isHovered ? 1.12 : 1,
-                    }}
-                    transition={{ type: "spring", stiffness: 450, damping: 25 }}
-                    className="focus:outline-none cursor-pointer select-none"
-                  >
-                    <div className="w-11 h-14 sm:w-14 sm:h-18 flex items-center justify-center transition-all duration-200 drop-shadow-[0_4px_10px_rgba(0,0,0,0.08)]">
-                      <IconComponent className="w-full h-full object-contain" />
-                    </div>
-                  </motion.button>
-                </div>
-              );
-            })}
-          </div>
+            {products.map((item) => (
+              <MacDockItem
+                key={item.id}
+                item={item}
+                mouseX={mouseX}
+                hoveredId={hoveredId}
+                setHoveredId={setHoveredId}
+              />
+            ))}
+          </motion.div>
         </div>
 
       </div>
