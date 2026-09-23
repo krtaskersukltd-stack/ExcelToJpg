@@ -14,8 +14,8 @@ export default function CtaBanner({ onScrollToUpload }: { onScrollToUpload?: () 
   };
 
   return (
-    <section className="py-16 bg-blue-500 text-white relative overflow-hidden">
-     
+    <section className="py-20 bg-[#355BFF] text-white relative overflow-hidden">
+
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 text-center relative z-10 space-y-6">
         <motion.div

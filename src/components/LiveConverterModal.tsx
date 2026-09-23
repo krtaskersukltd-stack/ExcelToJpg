@@ -2,17 +2,17 @@
 
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { 
-  X, 
-  Check, 
-  Download, 
-  Sparkles, 
-  FileSpreadsheet, 
-  Image as ImageIcon, 
-  RefreshCw, 
-  Sliders, 
-  ZoomIn, 
-  Eye, 
+import {
+  X,
+  Check,
+  Download,
+  Sparkles,
+  FileSpreadsheet,
+  Image as ImageIcon,
+  RefreshCw,
+  Sliders,
+  ZoomIn,
+  Eye,
   CheckCircle2,
   FileArchive,
   Layers,
@@ -173,11 +173,10 @@ export default function LiveConverterModal({
                     <button
                       key={sheet}
                       onClick={() => setActiveSheet(sheet)}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap ${
-                        activeSheet === sheet 
-                          ? "bg-blue-600 text-white shadow-sm" 
+                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap ${activeSheet === sheet
+                          ? "bg-blue-600 text-white shadow-sm"
                           : "bg-white text-slate-600 hover:bg-slate-100 border border-slate-200/70"
-                      }`}
+                        }`}
                     >
                       {sheet}
                     </button>
@@ -192,9 +191,8 @@ export default function LiveConverterModal({
                       <button
                         key={val}
                         onClick={() => setDpi(val)}
-                        className={`px-2 py-1 rounded text-xs font-bold transition-all ${
-                          dpi === val ? "bg-slate-900 text-white" : "bg-white text-slate-600 hover:bg-slate-200 border border-slate-200"
-                        }`}
+                        className={`px-2 py-1 rounded text-xs font-bold transition-all ${dpi === val ? "bg-slate-900 text-white" : "bg-white text-slate-600 hover:bg-slate-200 border border-slate-200"
+                          }`}
                       >
                         {val}
                       </button>

@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 import LiveConverterModal from "./LiveConverterModal";
+import CloudImportModal, { GoogleDriveIcon, DropboxIcon } from "./CloudImportModal";
 
 /* Exact Cloud Upload Icon matching user's uploaded icon */
 function CustomCloudUploadIcon({ className = "w-7 h-7 text-[#355BFF]" }: { className?: string }) {
@@ -36,6 +37,8 @@ function CustomCloudUploadIcon({ className = "w-7 h-7 text-[#355BFF]" }: { class
 export default function HeroSection() {
   const [isDragging, setIsDragging] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
+  const [cloudModalOpen, setCloudModalOpen] = useState(false);
+  const [cloudTab, setCloudTab] = useState<"gdrive" | "dropbox" | "link">("gdrive");
   const [selectedFileName, setSelectedFileName] = useState("Annual_Q4_Summary.xlsx");
   const [selectedFileSize, setSelectedFileSize] = useState("1.4 MB");
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -69,7 +72,12 @@ export default function HeroSection() {
     }
   };
 
-  const triggerSampleConversion = (name: string, size: string) => {
+  const openCloudModal = (tab: "gdrive" | "dropbox" | "link") => {
+    setCloudTab(tab);
+    setCloudModalOpen(true);
+  };
+
+  const handleCloudImportSuccess = (name: string, size: string) => {
     setSelectedFileName(name);
     setSelectedFileSize(size);
     setModalOpen(true);
@@ -168,26 +176,21 @@ export default function HeroSection() {
 
                   {/* Google Drive Integration */}
                   <button 
-                    onClick={() => triggerSampleConversion("Q3_Financial_Analysis_Gdrive.xlsx", "2.1 MB")}
+                    onClick={() => openCloudModal("gdrive")}
                     className="flex flex-col items-center justify-center p-1.5 hover:bg-white/80 rounded-xl transition-colors group cursor-pointer"
+                    title="Import from Google Drive"
                   >
-                    <svg className="w-6 h-6 group-hover:scale-110 transition-transform" viewBox="0 0 87.3 78" fill="none">
-                      <path d="M6.6 66.85l3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8H0c0 1.55.4 3.1 1.2 4.5l5.4 9.35z" fill="#0066DA"/>
-                      <path d="M43.65 25L29.9 1.2C28.5.4 26.95 0 25.4 0H8.3C6.75 0 5.2.4 3.8 1.2L17.55 25h26.1z" fill="#00AC47"/>
-                      <path d="M73.55 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75 5.4-9.35c.8-1.4 1.2-2.95 1.2-4.5h-27.5l5.5 9.5 10.5 10.4z" fill="#EA4335"/>
-                      <path d="M43.65 25L57.4 1.2C56 .4 54.45 0 52.9 0H35.8c-1.55 0-3.1.4-4.5 1.2L45 25h-1.35z" fill="#00832D"/>
-                      <path d="M59.8 53H32.3L18.55 76.8c1.4.8 2.95 1.2 4.5 1.2h41.45c1.55 0 3.1-.4 4.5-1.2L59.8 53z" fill="#2684FC"/>
-                      <path d="M73.4 26.5l-13.6-23.5c-1.4-.8-2.95-1.2-4.5-1.2L41.55 25l13.75 23.8h27.5c0-1.55-.4-3.1-1.2-4.5l-8.2-17.8z" fill="#FFBA00"/>
-                    </svg>
+                    <GoogleDriveIcon className="w-6 h-6 group-hover:scale-110 transition-transform" />
                     <span className="text-[10px] font-medium text-slate-700 mt-0.5">Google Drive</span>
                   </button>
 
                   {/* Dropbox Integration */}
                   <button 
-                    onClick={() => triggerSampleConversion("Dropbox_Inventory_Matrix.xlsx", "980 KB")}
+                    onClick={() => openCloudModal("dropbox")}
                     className="flex flex-col items-center justify-center p-1.5 hover:bg-white/80 rounded-xl transition-colors group cursor-pointer"
+                    title="Import from Dropbox"
                   >
-                    <div className="w-6 h-6 rounded-sm bg-[#0061FF] flex items-center justify-center text-white shadow-xs group-hover:scale-110 transition-transform">
+                    <div className="w-6 h-6 rounded-[6px] bg-[#0061FF] flex items-center justify-center text-white shadow-xs group-hover:scale-110 transition-transform">
                       <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
                         <path d="M6 2l6 4-6 4-6-4 6-4zm12 0l6 4-6 4-6-4 6-4zM0 10l6 4-6 4-6-4 6-4zm24 0l-6 4 6 4 6-4-6-4zM6 18l6-4 6 4-6 4-6-4z"/>
                       </svg>
@@ -195,11 +198,11 @@ export default function HeroSection() {
                     <span className="text-[10px] font-medium text-slate-700 mt-0.5">Dropbox</span>
                   </button>
 
-                  {/* Direct Link Chain Icon */}
+                  {/* Direct Link Chain Icon (Allows entering Google Drive / URL link) */}
                   <button 
-                    onClick={() => triggerSampleConversion("Web_Export_Data.xlsx", "3.2 MB")}
+                    onClick={() => openCloudModal("link")}
                     className="p-2 hover:bg-white/80 text-[#355BFF] hover:text-blue-700 rounded-xl transition-all group cursor-pointer"
-                    title="Upload from URL"
+                    title="Enter Google Drive link or file URL"
                   >
                     <Link2 className="w-6 h-6 group-hover:scale-110 -rotate-45 stroke-[2.5]" />
                   </button>
@@ -242,6 +245,14 @@ export default function HeroSection() {
         </motion.div>
 
       </div>
+
+      {/* Cloud Import Modal (Google Drive, Dropbox, URL / Drive Link) */}
+      <CloudImportModal
+        isOpen={cloudModalOpen}
+        onClose={() => setCloudModalOpen(false)}
+        initialTab={cloudTab}
+        onImportSuccess={handleCloudImportSuccess}
+      />
 
       {/* Interactive Live Converter Modal */}
       <LiveConverterModal

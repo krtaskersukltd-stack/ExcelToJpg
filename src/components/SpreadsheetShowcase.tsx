@@ -37,7 +37,7 @@ export default function SpreadsheetShowcase() {
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5 }}
-            className="w-full lg:w-[48%] bg-white rounded-2xl sm:rounded-[22px] neon-border-glow shadow-[0_10px_30px_rgba(59,130,246,0.1)] overflow-hidden"
+            className="w-full lg:w-[48%] bg-white rounded-2xl sm:rounded-[22px] border border-slate-200/80 neon-border-glow shadow-[0_10px_30px_rgba(59,130,246,0.08)] hover:shadow-[0_16px_40px_rgba(59,130,246,0.18)] transition-all overflow-hidden"
           >
             {/* Window Top Bar */}
             <div className="px-4 py-3 bg-[#F1F3F9] border-b border-slate-200/70 flex items-center justify-between">
@@ -147,7 +147,7 @@ export default function SpreadsheetShowcase() {
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5 }}
-            className="w-full lg:w-[48%] bg-white rounded-2xl sm:rounded-[22px] neon-border-glow shadow-[0_10px_30px_rgba(59,130,246,0.1)] p-5 flex flex-col justify-between min-h-[380px]"
+            className="w-full lg:w-[48%] bg-white rounded-2xl sm:rounded-[22px] border border-slate-200/80 neon-border-glow shadow-[0_10px_30px_rgba(59,130,246,0.08)] hover:shadow-[0_16px_40px_rgba(59,130,246,0.18)] p-5 flex flex-col justify-between min-h-[380px] transition-all"
           >
             {/* Top Bar */}
             <div className="flex items-center justify-between border-b border-slate-100 pb-4">
