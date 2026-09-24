@@ -35,7 +35,7 @@ export default function Navbar({ onOpenUploadModal }: { onOpenUploadModal?: () =
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   return (
-    <header className="top-0 left-0 right-0 z-50 transition-all duration-300 py-4 sm:py-5">
+    <header className="relative z-50 top-0 left-0 right-0 transition-all duration-300 py-4 sm:py-5">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
 
         {/* Brand Logo matching user's /logo.png */}
