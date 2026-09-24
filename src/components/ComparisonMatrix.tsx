@@ -30,26 +30,26 @@ export default function ComparisonMatrix() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5 }}
-            className="rounded-[28px] sm:rounded-[36px] p-6 sm:p-8 bg-white border-2 border-blue-400/50 shadow-[0_12px_45px_rgba(53,91,255,0.12)] flex flex-col justify-between"
+            className="rounded-[24px] sm:rounded-[36px] p-4 sm:p-8 bg-white border-2 border-blue-400/50 shadow-[0_12px_45px_rgba(53,91,255,0.12)] flex flex-col justify-between"
           >
             <div>
               {/* Top Capsule Pill Header Bar */}
-              <div className="p-1 sm:p-1.5 bg-white rounded-full border border-blue-200/70 shadow-[0_2px_12px_rgba(59,130,246,0.06)] flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2 sm:gap-3">
-                  <span className="px-3.5 py-1 bg-[#355BFF] text-white text-[11px] font-bold rounded-full uppercase tracking-wider">
+              <div className="p-1.5 sm:p-1.5 bg-white rounded-2xl sm:rounded-full border border-blue-200/70 shadow-[0_2px_12px_rgba(59,130,246,0.06)] flex flex-wrap sm:flex-nowrap items-center justify-between gap-1.5 sm:gap-2">
+                <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                  <span className="shrink-0 px-2.5 sm:px-3.5 py-1 bg-[#355BFF] text-white text-[10px] sm:text-[11px] font-bold rounded-full uppercase tracking-wider">
                     {t.comparison.sourceBadge}
                   </span>
-                  <span className="text-sm sm:text-base font-bold text-slate-900">
+                  <span className="text-xs sm:text-base font-bold text-slate-900 truncate">
                     {t.comparison.sourceTitle}
                   </span>
                 </div>
-                <span className="text-[11px] sm:text-xs text-slate-400 font-medium px-3 truncate">
+                <span className="text-[10px] sm:text-xs text-slate-400 font-medium px-2 sm:px-3 shrink-0">
                   {t.comparison.sourceNote}
                 </span>
               </div>
 
               {/* Inner Data Card Container */}
-              <div className="rounded-2xl border border-slate-200/80 bg-white shadow-[0_4px_20px_rgba(0,0,0,0.03)] p-5 sm:p-6 my-6">
+              <div className="rounded-2xl border border-slate-200/80 bg-white shadow-[0_4px_20px_rgba(0,0,0,0.03)] p-4 sm:p-6 my-4 sm:my-6">
                 {/* Card Top Row Header */}
                 <div className="flex items-center justify-between text-xs pb-1">
                   <span className="font-semibold text-slate-800">{t.comparison.sourceCell}</span>
@@ -60,23 +60,23 @@ export default function ComparisonMatrix() {
                 <div className="h-[1.5px] bg-[#355BFF] w-full my-3" />
 
                 {/* Table Data Grid: 3 Columns */}
-                <div className="space-y-3 pt-1 text-xs">
-                  <div className="grid grid-cols-12 items-center">
-                    <span className="col-span-5 text-slate-600 font-medium">2024 Revenue</span>
+                <div className="space-y-2.5 sm:space-y-3 pt-1 text-xs">
+                  <div className="grid grid-cols-12 items-center gap-1 text-[11px] sm:text-xs">
+                    <span className="col-span-5 text-slate-600 font-medium truncate">2024 Revenue</span>
                     <span className="col-span-4 font-bold text-slate-900">$1,450,000</span>
-                    <span className="col-span-3 text-right font-bold text-[#355BFF]">Target Met</span>
+                    <span className="col-span-3 text-right font-bold text-[#355BFF] whitespace-nowrap">Target Met</span>
                   </div>
 
-                  <div className="grid grid-cols-12 items-center">
-                    <span className="col-span-5 text-slate-600 font-medium">Operating Exp</span>
+                  <div className="grid grid-cols-12 items-center gap-1 text-[11px] sm:text-xs">
+                    <span className="col-span-5 text-slate-600 font-medium truncate">Operating Exp</span>
                     <span className="col-span-4 font-bold text-slate-900">$820,000</span>
-                    <span className="col-span-3 text-right font-medium text-slate-600">Variance 4%</span>
+                    <span className="col-span-3 text-right font-medium text-slate-600 whitespace-nowrap">Variance 4%</span>
                   </div>
 
-                  <div className="grid grid-cols-12 items-center">
-                    <span className="col-span-5 text-slate-600 font-medium">Net Margin</span>
+                  <div className="grid grid-cols-12 items-center gap-1 text-[11px] sm:text-xs">
+                    <span className="col-span-5 text-slate-600 font-medium truncate">Net Margin</span>
                     <span className="col-span-4 font-bold text-slate-900">$630,000</span>
-                    <span className="col-span-3 text-right font-bold text-[#355BFF]">43.4%</span>
+                    <span className="col-span-3 text-right font-bold text-[#355BFF] whitespace-nowrap">43.4%</span>
                   </div>
                 </div>
               </div>
@@ -101,26 +101,26 @@ export default function ComparisonMatrix() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: 0.1 }}
-            className="rounded-[28px] sm:rounded-[36px] p-6 sm:p-8 bg-white border-2 border-blue-400/50 shadow-[0_12px_45px_rgba(53,91,255,0.12)] flex flex-col justify-between"
+            className="rounded-[24px] sm:rounded-[36px] p-4 sm:p-8 bg-white border-2 border-blue-400/50 shadow-[0_12px_45px_rgba(53,91,255,0.12)] flex flex-col justify-between"
           >
             <div>
               {/* Top Capsule Pill Header Bar */}
-              <div className="p-1 sm:p-1.5 bg-white rounded-full border border-blue-200/70 shadow-[0_2px_12px_rgba(59,130,246,0.06)] flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2 sm:gap-3">
-                  <span className="px-3.5 py-1 bg-[#355BFF] text-white text-[11px] font-bold rounded-full uppercase tracking-wider">
+              <div className="p-1.5 sm:p-1.5 bg-white rounded-2xl sm:rounded-full border border-blue-200/70 shadow-[0_2px_12px_rgba(59,130,246,0.06)] flex flex-wrap sm:flex-nowrap items-center justify-between gap-1.5 sm:gap-2">
+                <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                  <span className="shrink-0 px-2.5 sm:px-3.5 py-1 bg-[#355BFF] text-white text-[10px] sm:text-[11px] font-bold rounded-full uppercase tracking-wider">
                     {t.comparison.outputBadge}
                   </span>
-                  <span className="text-sm sm:text-base font-bold text-slate-900">
+                  <span className="text-xs sm:text-base font-bold text-slate-900 truncate">
                     {t.comparison.outputTitle}
                   </span>
                 </div>
-                <span className="text-[11px] sm:text-xs text-slate-400 font-medium px-3 truncate">
+                <span className="text-[10px] sm:text-xs text-slate-400 font-medium px-2 sm:px-3 shrink-0">
                   {t.comparison.outputNote}
                 </span>
               </div>
 
               {/* Inner Data Card Container */}
-              <div className="rounded-2xl border border-slate-200/80 bg-white shadow-[0_4px_20px_rgba(0,0,0,0.03)] p-5 sm:p-6 my-6">
+              <div className="rounded-2xl border border-slate-200/80 bg-white shadow-[0_4px_20px_rgba(0,0,0,0.03)] p-4 sm:p-6 my-4 sm:my-6">
                 {/* Card Top Row Header */}
                 <div className="flex items-center justify-between text-xs pb-1">
                   <span className="font-semibold text-slate-800">{t.comparison.watermarkFree}</span>
@@ -131,23 +131,23 @@ export default function ComparisonMatrix() {
                 <div className="h-[1.5px] bg-[#355BFF] w-full my-3" />
 
                 {/* Table Data Grid: 3 Columns */}
-                <div className="space-y-3 pt-1 text-xs">
-                  <div className="grid grid-cols-12 items-center">
-                    <span className="col-span-5 text-slate-600 font-medium">2024 Revenue</span>
+                <div className="space-y-2.5 sm:space-y-3 pt-1 text-xs">
+                  <div className="grid grid-cols-12 items-center gap-1 text-[11px] sm:text-xs">
+                    <span className="col-span-5 text-slate-600 font-medium truncate">2024 Revenue</span>
                     <span className="col-span-4 font-bold text-slate-900">$1,450,000</span>
-                    <span className="col-span-3 text-right font-bold text-[#355BFF]">Target Met</span>
+                    <span className="col-span-3 text-right font-bold text-[#355BFF] whitespace-nowrap">Target Met</span>
                   </div>
 
-                  <div className="grid grid-cols-12 items-center">
-                    <span className="col-span-5 text-slate-600 font-medium">Operating Exp</span>
+                  <div className="grid grid-cols-12 items-center gap-1 text-[11px] sm:text-xs">
+                    <span className="col-span-5 text-slate-600 font-medium truncate">Operating Exp</span>
                     <span className="col-span-4 font-bold text-slate-900">$820,000</span>
-                    <span className="col-span-3 text-right font-medium text-slate-600">Variance 4%</span>
+                    <span className="col-span-3 text-right font-medium text-slate-600 whitespace-nowrap">Variance 4%</span>
                   </div>
 
-                  <div className="grid grid-cols-12 items-center">
-                    <span className="col-span-5 text-slate-600 font-medium">Net Margin</span>
+                  <div className="grid grid-cols-12 items-center gap-1 text-[11px] sm:text-xs">
+                    <span className="col-span-5 text-slate-600 font-medium truncate">Net Margin</span>
                     <span className="col-span-4 font-bold text-slate-900">$630,000</span>
-                    <span className="col-span-3 text-right font-bold text-[#355BFF]">43.4%</span>
+                    <span className="col-span-3 text-right font-bold text-[#355BFF] whitespace-nowrap">43.4%</span>
                   </div>
                 </div>
               </div>

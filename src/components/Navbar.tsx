@@ -41,14 +41,14 @@ export default function Navbar({ onOpenUploadModal, onSelectTool }: { onOpenUplo
 
         {/* Brand Logo matching user's /logo.png */}
         <Link href="/" className="group inline-flex items-center">
-          <div className="relative h-24 sm:h-14 w-auto flex items-center transition-transform duration-200 group-hover:scale-105">
+          <div className="relative h-14 sm:h-14 w-auto flex items-center transition-transform duration-200 group-hover:scale-105">
             <Image
               src="/logo.png"
               alt="Excel To JPG"
               width={176}
               height={217}
               priority
-              className="h-24 sm:h-18 w-auto object-contain drop-shadow-xs"
+              className="h-12 sm:h-16 w-auto object-contain drop-shadow-xs"
             />
           </div>
         </Link>

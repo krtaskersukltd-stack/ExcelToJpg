@@ -19,6 +19,7 @@ from docx import Document
 from fpdf import FPDF, XPos, YPos
 from openpyxl import Workbook
 from pypdf import PdfReader
+from pydantic import BaseModel
 
 try:
     from rapidocr_onnxruntime import RapidOCR
@@ -48,8 +49,13 @@ os.makedirs(input_dir, exist_ok=True)
 os.makedirs(output_dir, exist_ok=True)
 
 
-def cleanup_expired_files(max_age_seconds=6 * 60 * 60):
-    """Remove abandoned inputs and expired conversion results."""
+TEMP_FILE_TTL_SECONDS = int(os.getenv("TEMP_FILE_TTL_SECONDS", "600"))  # Default 10 minutes temporary storage
+
+
+def cleanup_expired_files(max_age_seconds=None):
+    """Remove abandoned inputs and expired conversion results (temporary storage only)."""
+    if max_age_seconds is None:
+        max_age_seconds = TEMP_FILE_TTL_SECONDS
     cutoff = time.time() - max_age_seconds
     for directory in (input_dir, output_dir):
         for entry in Path(directory).iterdir():
@@ -244,6 +250,22 @@ def safe_stem(value):
     return cleaned.strip("_")[:60] or "sheet"
 
 
+def extract_sheet_data(workbook_sheets, max_rows=500):
+    sheet_data = {}
+    for sheet_name, df in workbook_sheets:
+        clean_cols = [str(c) for c in df.columns]
+        clean_rows = [
+            [str(val) if pd.notna(val) else "" for val in row]
+            for row in df.values.tolist()[:max_rows]
+        ]
+        sheet_data[sheet_name] = {
+            "columns": clean_cols,
+            "rows": clean_rows,
+            "total_rows": len(df),
+        }
+    return sheet_data
+
+
 async def excel_to_image_no_borders(excel_path, image_extension, dpi=300, max_rows_per_image=100):
     job_id = uuid.uuid4().hex[:12]
     workbook_sheets = load_workbook_sheets(excel_path)
@@ -315,6 +337,8 @@ async def excel_to_image_no_borders(excel_path, image_extension, dpi=300, max_ro
         for image_path in images:
             zipf.write(image_path, arcname=os.path.basename(image_path))
 
+    sheet_data = extract_sheet_data(workbook_sheets)
+
     # Return the basename cleanly for both Windows and Unix
     return {
         "zip_file_name": zip_filename,
@@ -322,6 +346,7 @@ async def excel_to_image_no_borders(excel_path, image_extension, dpi=300, max_ro
         "total_parts": len(images),
         "sheets": sheet_names,
         "outputs": outputs,
+        "sheet_data": sheet_data,
     }
 
 
@@ -384,6 +409,7 @@ async def save_file_url(url: str):
 async def excel_to_docx_func(file_path, image_extension):
     num = random.randint(1, 10000)
     workbook_sheets = load_workbook_sheets(file_path)
+    sheet_data = extract_sheet_data(workbook_sheets)
     sheet_name = workbook_sheets[0][0] if workbook_sheets else "Sheet1"
 
     doc = Document()
@@ -405,7 +431,7 @@ async def excel_to_docx_func(file_path, image_extension):
     output_filename = f"output_{sheet_name}_{num}.{image_extension}"
     output_f = os.path.join(output_dir, output_filename)
     doc.save(output_f)
-    return output_filename
+    return {"filename": output_filename, "sheet_data": sheet_data}
 
 
 class PDF(FPDF):
@@ -459,6 +485,7 @@ class PDF(FPDF):
 async def excel_to_pdf(file_path, image_extension):
     num = random.randint(1, 10000)
     workbook_sheets = load_workbook_sheets(file_path)
+    sheet_data = extract_sheet_data(workbook_sheets)
     sheet_name = workbook_sheets[0][0] if workbook_sheets else "Sheet1"
 
     pdf = PDF()
@@ -476,24 +503,165 @@ async def excel_to_pdf(file_path, image_extension):
     output_filename = f"output_{sheet_name}_{num}.{image_extension}"
     output_f = os.path.join(output_dir, output_filename)
     pdf.output(output_f)
-    return output_filename
+    return {"filename": output_filename, "sheet_data": sheet_data}
 
 
 async def excel_to_csv_func(file_path):
     job_id = uuid.uuid4().hex[:12]
+    workbook_sheets = load_workbook_sheets(file_path)
+    sheet_data = extract_sheet_data(workbook_sheets)
     csv_files = []
-    for sheet_name, dataframe in load_workbook_sheets(file_path):
+    for sheet_name, dataframe in workbook_sheets:
         csv_name = f"{job_id}_{safe_stem(sheet_name)}.csv"
         csv_path = os.path.join(output_dir, csv_name)
         dataframe.to_csv(csv_path, index=False, encoding="utf-8-sig")
         csv_files.append(csv_path)
     if len(csv_files) == 1:
-        return {"filename": os.path.basename(csv_files[0]), "type": "csv"}
+        return {"filename": os.path.basename(csv_files[0]), "type": "csv", "sheet_data": sheet_data}
     zip_name = f"conversion_{job_id}_csv.zip"
     with zipfile.ZipFile(os.path.join(output_dir, zip_name), "w", zipfile.ZIP_DEFLATED) as archive:
         for csv_path in csv_files:
             archive.write(csv_path, arcname=os.path.basename(csv_path))
-    return {"filename": zip_name, "type": "zip"}
+    return {"filename": zip_name, "type": "zip", "sheet_data": sheet_data}
+
+
+def render_dataframe_to_outputs(df: pd.DataFrame, sheet_name: str, image_extension: str, dpi: int = 300, max_rows_per_image: int = 100):
+    job_id = uuid.uuid4().hex[:12]
+    clean_sheet = safe_stem(sheet_name)
+    img_ext = image_extension.lower().replace(".", "").strip()
+
+    if img_ext in ["jpg", "jpeg", "png"]:
+        df_chunks = split_dataframe(df, max_rows_per_image)
+        images = []
+        outputs = []
+        for idx, df_chunk in enumerate(df_chunks):
+            output_filename = f"{job_id}_{clean_sheet}_{idx + 1}.{img_ext}"
+            output_image_path = os.path.join(output_dir, output_filename)
+
+            img = render_dataframe_to_pil(
+                df_chunk,
+                title=f"{sheet_name} — Part {idx + 1}",
+                dpi=dpi,
+            )
+            if img_ext in ["jpg", "jpeg"]:
+                img = img.convert("RGB")
+            img.save(output_image_path, quality=95)
+            images.append(output_image_path)
+            outputs.append({"filename": output_filename, "sheet": sheet_name, "part": idx + 1})
+
+        if len(images) > 1:
+            zip_filename = f"conversion_{job_id}.zip"
+            zip_file_path = os.path.join(output_dir, zip_filename)
+            with zipfile.ZipFile(zip_file_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
+                for image_path in images:
+                    zipf.write(image_path, arcname=os.path.basename(image_path))
+            target_file = zip_filename
+            out_type = "zip"
+        else:
+            target_file = outputs[0]["filename"] if outputs else f"{job_id}.{img_ext}"
+            out_type = img_ext
+
+        return {
+            "status": "success",
+            "conv": target_file,
+            "filename": target_file,
+            "type": out_type,
+            "first_image": outputs[0]["filename"] if outputs else None,
+            "total_parts": len(images),
+            "sheets": [sheet_name],
+            "outputs": outputs,
+            "sheet_data": {
+                sheet_name: {
+                    "columns": [str(c) for c in df.columns],
+                    "rows": [[str(val) if pd.notna(val) else "" for val in row] for row in df.values.tolist()[:500]],
+                    "total_rows": len(df),
+                }
+            },
+        }
+
+    elif img_ext == "pdf":
+        pdf = PDF()
+        pdf.set_auto_page_break(auto=True, margin=15)
+        pdf.add_page()
+        pdf.set_font("Helvetica", 'B', 11)
+        pdf.set_text_color(15, 23, 42)
+        pdf.cell(0, 8, f'Sheet: {sheet_name}', new_x=XPos.LMARGIN, new_y=YPos.NEXT, align='L')
+        pdf.ln(2)
+        pdf.add_table(df)
+        pdf.ln(5)
+        output_filename = f"output_{clean_sheet}_{job_id}.pdf"
+        pdf.output(os.path.join(output_dir, output_filename))
+        return {
+            "status": "success",
+            "conv": output_filename,
+            "filename": output_filename,
+            "type": "pdf",
+            "total_parts": 1,
+            "sheets": [sheet_name],
+            "outputs": [],
+            "sheet_data": {
+                sheet_name: {
+                    "columns": [str(c) for c in df.columns],
+                    "rows": [[str(val) if pd.notna(val) else "" for val in row] for row in df.values.tolist()[:500]],
+                    "total_rows": len(df),
+                }
+            },
+        }
+
+    elif img_ext == "docx":
+        doc = Document()
+        doc.add_heading(f'Sheet: {sheet_name}', level=1)
+        if not df.empty:
+            table = doc.add_table(rows=1, cols=len(df.columns))
+            hdr_cells = table.rows[0].cells
+            for idx, col_name in enumerate(df.columns):
+                hdr_cells[idx].text = str(col_name)
+            for _, row in df.iterrows():
+                row_cells = table.add_row().cells
+                for idx, value in enumerate(row):
+                    row_cells[idx].text = "" if pd.isna(value) else str(value)
+        output_filename = f"output_{clean_sheet}_{job_id}.docx"
+        doc.save(os.path.join(output_dir, output_filename))
+        return {
+            "status": "success",
+            "conv": output_filename,
+            "filename": output_filename,
+            "type": "docx",
+            "total_parts": 1,
+            "sheets": [sheet_name],
+            "outputs": [],
+            "sheet_data": {
+                sheet_name: {
+                    "columns": [str(c) for c in df.columns],
+                    "rows": [[str(val) if pd.notna(val) else "" for val in row] for row in df.values.tolist()[:500]],
+                    "total_rows": len(df),
+                }
+            },
+        }
+
+    elif img_ext == "csv":
+        csv_name = f"{job_id}_{clean_sheet}.csv"
+        csv_path = os.path.join(output_dir, csv_name)
+        df.to_csv(csv_path, index=False, encoding="utf-8-sig")
+        return {
+            "status": "success",
+            "conv": csv_name,
+            "filename": csv_name,
+            "type": "csv",
+            "total_parts": 1,
+            "sheets": [sheet_name],
+            "outputs": [],
+            "sheet_data": {
+                sheet_name: {
+                    "columns": [str(c) for c in df.columns],
+                    "rows": [[str(val) if pd.notna(val) else "" for val in row] for row in df.values.tolist()[:500]],
+                    "total_rows": len(df),
+                }
+            },
+        }
+
+    else:
+        raise HTTPException(status_code=400, detail="Unsupported output format")
 
 
 def ocr_rows_from_image(file_path):
@@ -626,10 +794,11 @@ async def excel_to_image_func(
             conv_res = await excel_to_docx_func(file_path, img_ext)
             return JSONResponse(
                 content={
-                    "conv": conv_res,
-                    "filename": conv_res,
+                    "conv": conv_res["filename"],
+                    "filename": conv_res["filename"],
                     "status": "success",
-                    "type": "docx"
+                    "type": "docx",
+                    "sheet_data": conv_res.get("sheet_data", {}),
                 },
                 status_code=200
             )
@@ -638,10 +807,11 @@ async def excel_to_image_func(
             conv_res = await excel_to_pdf(file_path, img_ext)
             return JSONResponse(
                 content={
-                    "conv": conv_res,
-                    "filename": conv_res,
+                    "conv": conv_res["filename"],
+                    "filename": conv_res["filename"],
                     "status": "success",
-                    "type": "pdf"
+                    "type": "pdf",
+                    "sheet_data": conv_res.get("sheet_data", {}),
                 },
                 status_code=200
             )
@@ -649,7 +819,13 @@ async def excel_to_image_func(
         elif img_ext == "csv":
             conv_res = await excel_to_csv_func(file_path)
             return JSONResponse(
-                content={"conv": conv_res["filename"], "filename": conv_res["filename"], "status": "success", "type": conv_res["type"]},
+                content={
+                    "conv": conv_res["filename"],
+                    "filename": conv_res["filename"],
+                    "status": "success",
+                    "type": conv_res["type"],
+                    "sheet_data": conv_res.get("sheet_data", {}),
+                },
                 status_code=200,
             )
 
@@ -665,6 +841,7 @@ async def excel_to_image_func(
                     "total_parts": conv_res.get("total_parts", 1),
                     "sheets": conv_res.get("sheets", []),
                     "outputs": conv_res.get("outputs", []),
+                    "sheet_data": conv_res.get("sheet_data", {}),
                 },
                 status_code=200
             )
@@ -706,10 +883,11 @@ async def excel_to_url_func(
             conv_res = await excel_to_docx_func(file_path, img_ext)
             return JSONResponse(
                 content={
-                    "conv": conv_res,
-                    "filename": conv_res,
+                    "conv": conv_res["filename"],
+                    "filename": conv_res["filename"],
                     "status": "success",
-                    "type": "docx"
+                    "type": "docx",
+                    "sheet_data": conv_res.get("sheet_data", {}),
                 },
                 status_code=200
             )
@@ -718,10 +896,11 @@ async def excel_to_url_func(
             conv_res = await excel_to_pdf(file_path, img_ext)
             return JSONResponse(
                 content={
-                    "conv": conv_res,
-                    "filename": conv_res,
+                    "conv": conv_res["filename"],
+                    "filename": conv_res["filename"],
                     "status": "success",
-                    "type": "pdf"
+                    "type": "pdf",
+                    "sheet_data": conv_res.get("sheet_data", {}),
                 },
                 status_code=200
             )
@@ -729,7 +908,13 @@ async def excel_to_url_func(
         elif img_ext == "csv":
             conv_res = await excel_to_csv_func(file_path)
             return JSONResponse(
-                content={"conv": conv_res["filename"], "filename": conv_res["filename"], "status": "success", "type": conv_res["type"]},
+                content={
+                    "conv": conv_res["filename"],
+                    "filename": conv_res["filename"],
+                    "status": "success",
+                    "type": conv_res["type"],
+                    "sheet_data": conv_res.get("sheet_data", {}),
+                },
                 status_code=200,
             )
 
@@ -745,6 +930,7 @@ async def excel_to_url_func(
                     "total_parts": conv_res.get("total_parts", 1),
                     "sheets": conv_res.get("sheets", []),
                     "outputs": conv_res.get("outputs", []),
+                    "sheet_data": conv_res.get("sheet_data", {}),
                 },
                 status_code=200
             )
@@ -762,6 +948,38 @@ async def excel_to_url_func(
                 os.remove(file_path)
             except OSError:
                 pass
+
+
+class RenderEditedTableRequest(BaseModel):
+    sheet_name: str = "Sheet1"
+    columns: list[str]
+    rows: list[list[str]]
+    format: str = "jpg"
+    dpi: int = 300
+
+
+@app.post("/api/render_edited_table")
+async def render_edited_table_endpoint(payload: RenderEditedTableRequest):
+    img_ext = payload.format.lower().replace(".", "").strip()
+    if img_ext not in ALLOWED_OUTPUT_EXTENSIONS:
+        raise HTTPException(status_code=400, detail="Unsupported output format")
+    if payload.dpi not in {150, 300, 600}:
+        raise HTTPException(status_code=400, detail="DPI must be 150, 300, or 600")
+    if not payload.columns:
+        raise HTTPException(status_code=400, detail="Table must contain at least one column")
+
+    cleanup_expired_files()
+    try:
+        df = pd.DataFrame(data=payload.rows, columns=payload.columns)
+        res = render_dataframe_to_outputs(
+            df=df,
+            sheet_name=payload.sheet_name or "Sheet1",
+            image_extension=img_ext,
+            dpi=payload.dpi,
+        )
+        return JSONResponse(content=res, status_code=200)
+    except Exception as e:
+        return JSONResponse(content={"status": "error", "error": str(e)}, status_code=400)
 
 
 @app.get("/download_file")

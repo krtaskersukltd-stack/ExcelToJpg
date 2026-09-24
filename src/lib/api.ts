@@ -10,6 +10,12 @@ export interface ConvertedPart {
   part: number;
 }
 
+export interface SheetData {
+  columns: string[];
+  rows: string[][];
+  total_rows?: number;
+}
+
 export interface ConvertSuccessResponse {
   status: "success";
   conv: string;
@@ -19,6 +25,7 @@ export interface ConvertSuccessResponse {
   total_parts?: number;
   sheets?: string[];
   outputs?: ConvertedPart[];
+  sheet_data?: Record<string, SheetData>;
 }
 
 export interface ConvertErrorResponse {
@@ -107,6 +114,7 @@ export async function convertExcelFile(
       total_parts: data.total_parts || 1,
       sheets: data.sheets || [],
       outputs: data.outputs || [],
+      sheet_data: data.sheet_data,
     };
   } catch (err: any) {
     if (err?.name === "AbortError") throw err;
@@ -158,6 +166,7 @@ export async function convertExcelUrl(
       total_parts: data.total_parts || 1,
       sheets: data.sheets || [],
       outputs: data.outputs || [],
+      sheet_data: data.sheet_data,
     };
   } catch (err: any) {
     if (err?.name === "AbortError") throw err;
@@ -204,5 +213,49 @@ export async function triggerFileDownload(filename: string, suggestedName?: stri
     window.URL.revokeObjectURL(blobUrl);
   } catch (error) {
     throw error instanceof Error ? error : new Error("Download failed");
+  }
+}
+
+/**
+ * Re-render document/image with user-edited table data and typos corrected
+ */
+export async function renderEditedTable(payload: {
+  sheet_name: string;
+  columns: string[];
+  rows: string[][];
+  format: string;
+  dpi: string;
+}, signal?: AbortSignal): Promise<ConvertResult> {
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/render_edited_table`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+      signal,
+    });
+    const data = await res.json();
+    if (!res.ok || data.status === "error") {
+      return {
+        status: "error",
+        error: data.error || data.detail || `Re-rendering failed (HTTP ${res.status})`,
+      };
+    }
+    return {
+      status: "success",
+      conv: data.conv || data.filename,
+      filename: data.filename || data.conv,
+      type: data.type || (payload.format.includes("doc") ? "docx" : payload.format === "pdf" ? "pdf" : "zip"),
+      first_image: data.first_image,
+      total_parts: data.total_parts || 1,
+      sheets: data.sheets || [payload.sheet_name],
+      outputs: data.outputs || [],
+      sheet_data: data.sheet_data,
+    };
+  } catch (err: any) {
+    if (err?.name === "AbortError") throw err;
+    return {
+      status: "error",
+      error: err?.message || "Failed to update table rendering",
+    };
   }
 }

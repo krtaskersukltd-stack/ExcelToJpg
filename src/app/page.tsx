@@ -25,9 +25,9 @@ export default function Home() {
   };
 
   return (
-    <main className="min-h-screen flex flex-col bg-[#FAFBFD] text-slate-900 selection:bg-blue-600 selection:text-white">
+    <main className="min-h-screen flex flex-col bg-[#FAFBFD] text-slate-900 selection:bg-blue-600 selection:text-white w-full max-w-full overflow-x-hidden">
       {/* Top Main Content Layer (Scrolls over the footer) */}
-      <div className="relative z-20 bg-[#FAFBFD] shadow-[0_30px_70px_-15px_rgba(15,23,42,0.22)]">
+      <div className="relative z-20 bg-[#FAFBFD] shadow-[0_30px_70px_-15px_rgba(15,23,42,0.22)] w-full max-w-full overflow-x-hidden">
         {/* Top Navbar */}
         <Navbar onOpenUploadModal={() => setActiveTool("excel-jpg")} onSelectTool={setActiveTool} />
 

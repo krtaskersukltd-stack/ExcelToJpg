@@ -123,7 +123,7 @@ export default function HeroSection() {
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
-            className={`relative rounded-[28px] sm:rounded-[36px] p-5 sm:p-8 transition-all duration-300 bg-white border-2 overflow-hidden ${
+            className={`relative rounded-[24px] sm:rounded-[36px] p-4 sm:p-8 transition-all duration-300 bg-white border-2 overflow-hidden ${
               isDragging
                 ? "border-[#355BFF] shadow-[0_12px_45px_rgba(53,91,255,0.25)] scale-[1.01]"
                 : "border-blue-400/50 shadow-[0_12px_45px_rgba(53,91,255,0.12)]"
@@ -236,7 +236,7 @@ export default function HeroSection() {
             </div>
 
             {/* Bottom Row Guarantees (Clean separate footer bar) */}
-            <div className="pt-4 mt-2 border-t border-slate-100 flex flex-wrap items-center justify-center sm:justify-between gap-3 text-xs text-slate-600 relative z-10 bg-white">
+            <div className="pt-4 mt-2 border-t border-slate-100 flex flex-wrap items-center justify-center sm:justify-between gap-2.5 sm:gap-3 text-xs text-slate-600 relative z-10 bg-white">
               <div className="flex items-center gap-1.5">
                 <ShieldCheck className="w-4 h-4 text-[#355BFF]" />
                 <span>{t.hero.maxFileSize}</span>

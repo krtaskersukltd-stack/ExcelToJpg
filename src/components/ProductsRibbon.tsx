@@ -260,7 +260,7 @@ function MacDockItem({
         style={{ scale, y }}
         className="focus:outline-none cursor-pointer select-none origin-bottom flex items-center justify-center w-full h-full p-0.5"
       >
-        <div className="w-11 sm:w-13 aspect-[54/68] flex items-center justify-center drop-shadow-[0_4px_10px_rgba(0,0,0,0.08)]">
+        <div className="w-8.5 sm:w-13 aspect-[54/68] flex items-center justify-center drop-shadow-[0_4px_10px_rgba(0,0,0,0.08)]">
           <IconComponent className="w-full h-full object-contain" />
         </div>
       </motion.button>
@@ -290,15 +290,15 @@ export default function ProductsRibbon({ onSelectTool }: { onSelectTool?: (tool:
           </p>
         </div>
 
-        {/* Stable Sized Mac Dock Container with Increased Gap */}
-        <div className="relative pt-6 pb-2">
+        {/* Stable Sized Mac Dock Container */}
+        <div className="w-full flex justify-center pt-6 pb-2 px-1">
           <motion.div
             onMouseMove={(e) => mouseX.set(e.pageX)}
             onMouseLeave={() => {
               mouseX.set(Infinity);
               setHoveredId(null);
             }}
-            className="relative px-7 sm:px-10 py-3.5 sm:py-4 rounded-2xl sm:rounded-3xl bg-white/90 backdrop-blur-md border border-indigo-200/70 neon-border-glow shadow-[0_10px_30px_-5px_rgba(99,102,241,0.12),0_2px_8px_rgba(0,0,0,0.02)] hover:shadow-[0_14px_36px_-5px_rgba(99,102,241,0.22)] transition-all flex items-center justify-center gap-4 sm:gap-6"
+            className="relative max-w-full px-3.5 sm:px-10 py-3 sm:py-4 rounded-2xl sm:rounded-3xl bg-white/90 backdrop-blur-md border border-indigo-200/70 neon-border-glow shadow-[0_10px_30px_-5px_rgba(99,102,241,0.12),0_2px_8px_rgba(0,0,0,0.02)] hover:shadow-[0_14px_36px_-5px_rgba(99,102,241,0.22)] transition-all flex items-center justify-center gap-2 sm:gap-6"
           >
             
 

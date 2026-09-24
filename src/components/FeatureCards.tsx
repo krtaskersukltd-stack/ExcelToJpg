@@ -26,28 +26,28 @@ export default function FeatureCards() {
         </svg>
       ),
       graphic: (
-        <div className="w-full bg-white rounded-2xl p-5 border border-slate-100 shadow-[0_4px_20px_rgba(59,130,246,0.06)] space-y-3">
+        <div className="w-full bg-white rounded-2xl p-4 sm:p-5 border border-slate-100 shadow-[0_4px_20px_rgba(59,130,246,0.06)] space-y-3">
           <div className="flex items-center justify-between gap-2">
-            <span className="inline-flex items-center px-4 py-1.5 rounded-full bg-[#3B66FF] text-white text-[12px] font-semibold tracking-tight shadow-sm">
+            <span className="inline-flex items-center px-2.5 sm:px-4 py-1 sm:py-1.5 rounded-full bg-[#3B66FF] text-white text-[11px] sm:text-[12px] font-semibold tracking-tight shadow-sm">
               {c0?.tag1 || "Project Name"}
             </span>
-            <span className="inline-flex items-center px-4 py-1.5 rounded-full bg-white border border-slate-200/90 text-slate-800 text-[12px] font-semibold tracking-tight shadow-xs">
+            <span className="inline-flex items-center px-2.5 sm:px-4 py-1 sm:py-1.5 rounded-full bg-white border border-slate-200/90 text-slate-800 text-[11px] sm:text-[12px] font-semibold tracking-tight shadow-xs">
               KR Tasker Digital
             </span>
           </div>
           <div className="flex items-center justify-between gap-2">
-            <span className="inline-flex items-center px-4 py-1.5 rounded-full bg-[#3B66FF] text-white text-[12px] font-semibold tracking-tight shadow-sm">
+            <span className="inline-flex items-center px-2.5 sm:px-4 py-1 sm:py-1.5 rounded-full bg-[#3B66FF] text-white text-[11px] sm:text-[12px] font-semibold tracking-tight shadow-sm">
               {c0?.tag2 || "Date Issued"}
             </span>
-            <span className="inline-flex items-center px-4 py-1.5 rounded-full bg-white border border-slate-200/90 text-slate-800 text-[12px] font-semibold tracking-tight shadow-xs">
+            <span className="inline-flex items-center px-2.5 sm:px-4 py-1 sm:py-1.5 rounded-full bg-white border border-slate-200/90 text-slate-800 text-[11px] sm:text-[12px] font-semibold tracking-tight shadow-xs">
               Oct, 06, 2025
             </span>
           </div>
           <div className="flex items-center justify-between gap-2">
-            <span className="inline-flex items-center px-4 py-1.5 rounded-full bg-[#3B66FF] text-white text-[12px] font-semibold tracking-tight shadow-sm">
+            <span className="inline-flex items-center px-2.5 sm:px-4 py-1 sm:py-1.5 rounded-full bg-[#3B66FF] text-white text-[11px] sm:text-[12px] font-semibold tracking-tight shadow-sm">
               {c0?.tag3 || "Prepared By"}
             </span>
-            <span className="inline-flex items-center px-4 py-1.5 rounded-full bg-white border border-slate-200/90 text-slate-800 text-[12px] font-semibold tracking-tight shadow-xs">
+            <span className="inline-flex items-center px-2.5 sm:px-4 py-1 sm:py-1.5 rounded-full bg-white border border-slate-200/90 text-slate-800 text-[11px] sm:text-[12px] font-semibold tracking-tight shadow-xs">
               Alex Zuckerberg
             </span>
           </div>
