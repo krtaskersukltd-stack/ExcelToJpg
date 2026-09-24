@@ -2,6 +2,14 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Getting Started
 
+Start the Python conversion service in one terminal:
+
+```powershell
+npm run backend
+```
+
+The Windows launcher uses `uv` when available and installs the isolated Python requirements automatically. Then start Next.js in a second terminal:
+
 First, run the development server:
 
 ```bash
@@ -15,6 +23,8 @@ bun dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+
+The browser calls the same-origin `/api/py` proxy. Set `CONVERTER_API_URL` when the Python service is hosted somewhere other than `http://127.0.0.1:8000`. JPG, PNG, PDF, and DOCX output are supported for XLS, XLSX, XLSM, and CSV input.
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 

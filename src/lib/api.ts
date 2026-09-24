@@ -2,15 +2,23 @@
  * Backend API Client for Excel To JPG / PDF / DOCX Converter
  */
 
-export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
+export const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || "/api/py").replace(/\/$/, "");
+
+export interface ConvertedPart {
+  filename: string;
+  sheet: string;
+  part: number;
+}
 
 export interface ConvertSuccessResponse {
   status: "success";
   conv: string;
   filename: string;
-  type?: "zip" | "pdf" | "docx";
+  type?: "zip" | "pdf" | "docx" | "csv" | "xlsx";
   first_image?: string;
   total_parts?: number;
+  sheets?: string[];
+  outputs?: ConvertedPart[];
 }
 
 export interface ConvertErrorResponse {
@@ -19,6 +27,23 @@ export interface ConvertErrorResponse {
 }
 
 export type ConvertResult = ConvertSuccessResponse | ConvertErrorResponse;
+
+export type ExcelSourceKind = "jpg" | "png" | "pdf" | "csv";
+
+export async function convertFileToExcel(file: File, sourceKind: ExcelSourceKind, signal?: AbortSignal): Promise<ConvertResult> {
+  const formData = new FormData();
+  formData.append("source_file", file);
+  formData.append("source_kind", sourceKind);
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/file_to_excel`, { method: "POST", body: formData, signal });
+    const data = await response.json();
+    if (!response.ok || data.status === "error") return { status: "error", error: data.error || data.detail || `Conversion failed (HTTP ${response.status})` };
+    return { status: "success", conv: data.conv || data.filename, filename: data.filename || data.conv, type: "xlsx", total_parts: data.rows || 1 };
+  } catch (error: any) {
+    if (error?.name === "AbortError") throw error;
+    return { status: "error", error: error?.message || "Network error occurred during conversion" };
+  }
+}
 
 /**
  * Check if the Python FastAPI backend is currently online and accessible
@@ -49,16 +74,20 @@ export async function checkBackendHealth(): Promise<{ online: boolean; message?:
  */
 export async function convertExcelFile(
   file: File,
-  extension: string = "jpg"
+  extension: string = "jpg",
+  dpi: string = "300",
+  signal?: AbortSignal,
 ): Promise<ConvertResult> {
   const formData = new FormData();
   formData.append("excel_file", file);
   formData.append("image_extension", extension.toLowerCase().replace(".", ""));
+  formData.append("dpi", dpi);
 
   try {
     const res = await fetch(`${API_BASE_URL}/api/excel_to_img`, {
       method: "POST",
       body: formData,
+      signal,
     });
 
     const data = await res.json();
@@ -76,8 +105,11 @@ export async function convertExcelFile(
       type: data.type || (extension.includes("doc") ? "docx" : extension === "pdf" ? "pdf" : "zip"),
       first_image: data.first_image,
       total_parts: data.total_parts || 1,
+      sheets: data.sheets || [],
+      outputs: data.outputs || [],
     };
   } catch (err: any) {
+    if (err?.name === "AbortError") throw err;
     return {
       status: "error",
       error:
@@ -93,16 +125,20 @@ export async function convertExcelFile(
  */
 export async function convertExcelUrl(
   url: string,
-  extension: string = "jpg"
+  extension: string = "jpg",
+  dpi: string = "300",
+  signal?: AbortSignal,
 ): Promise<ConvertResult> {
   const formData = new FormData();
   formData.append("url", url);
   formData.append("image_extension", extension.toLowerCase().replace(".", ""));
+  formData.append("dpi", dpi);
 
   try {
     const res = await fetch(`${API_BASE_URL}/api/excel_url`, {
       method: "POST",
       body: formData,
+      signal,
     });
 
     const data = await res.json();
@@ -120,8 +156,11 @@ export async function convertExcelUrl(
       type: data.type || (extension.includes("doc") ? "docx" : extension === "pdf" ? "pdf" : "zip"),
       first_image: data.first_image,
       total_parts: data.total_parts || 1,
+      sheets: data.sheets || [],
+      outputs: data.outputs || [],
     };
   } catch (err: any) {
+    if (err?.name === "AbortError") throw err;
     return {
       status: "error",
       error:
@@ -137,6 +176,10 @@ export async function convertExcelUrl(
  */
 export function getDownloadUrl(filename: string): string {
   return `${API_BASE_URL}/download_file?filename=${encodeURIComponent(filename)}`;
+}
+
+export function getPreviewUrl(filename: string): string {
+  return `${API_BASE_URL}/preview_file?filename=${encodeURIComponent(filename)}`;
 }
 
 /**
@@ -159,8 +202,7 @@ export async function triggerFileDownload(filename: string, suggestedName?: stri
     link.click();
     document.body.removeChild(link);
     window.URL.revokeObjectURL(blobUrl);
-  } catch (e) {
-    // Fallback direct window navigation
-    window.open(downloadUrl, "_blank");
+  } catch (error) {
+    throw error instanceof Error ? error : new Error("Download failed");
   }
 }

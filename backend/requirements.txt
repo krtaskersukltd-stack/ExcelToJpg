@@ -4,7 +4,10 @@ fastapi
 uvicorn
 imgkit
 openpyxl
+xlrd
 python-multipart
 python-docx
 fpdf2
 requests
+pypdf
+rapidocr_onnxruntime

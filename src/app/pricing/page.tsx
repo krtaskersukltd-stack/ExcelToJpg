@@ -11,6 +11,9 @@ import CtaBanner from "@/components/CtaBanner";
 import Footer from "@/components/Footer";
 import LiveConverterModal from "@/components/LiveConverterModal";
 import { useLanguage } from "@/context/LanguageContext";
+import FileToExcelModal from "@/components/FileToExcelModal";
+import FormulaGeneratorModal from "@/components/FormulaGeneratorModal";
+import { ConverterToolId, FORWARD_FORMATS, REVERSE_SOURCES, TOOL_LABELS } from "@/lib/converter-tools";
 
 function PaymentStatusNotification() {
   const { t } = useLanguage();
@@ -88,19 +91,13 @@ function PaymentStatusNotification() {
 }
 
 export default function PricingPage() {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [customFileName, setCustomFileName] = useState("Annual_Q4_Summary.xlsx");
-
-  const handleOpenConverter = (fileName?: string) => {
-    if (fileName) setCustomFileName(fileName);
-    setIsModalOpen(true);
-  };
+  const [activeTool, setActiveTool] = useState<ConverterToolId | null>(null);
 
   return (
     <div className="min-h-screen bg-[#FAFBFD] flex flex-col justify-between">
       <div>
         {/* Top Navbar */}
-        <Navbar onOpenUploadModal={() => handleOpenConverter()} />
+        <Navbar onOpenUploadModal={() => setActiveTool("excel-jpg")} onSelectTool={setActiveTool} />
 
         {/* Payment Confirmation Banner (if redirected from Stripe) */}
         <Suspense fallback={null}>
@@ -116,7 +113,7 @@ export default function PricingPage() {
         <FaqSection />
 
         {/* Call to Action Banner */}
-        <CtaBanner onScrollToUpload={() => handleOpenConverter()} />
+        <CtaBanner onScrollToUpload={() => setActiveTool("excel-jpg")} />
       </div>
 
       {/* Global Footer */}
@@ -124,11 +121,14 @@ export default function PricingPage() {
 
       {/* Live Converter Modal */}
       <LiveConverterModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        fileName={customFileName}
-        fileSize="1.4 MB"
+        isOpen={Boolean(activeTool && FORWARD_FORMATS[activeTool])}
+        onClose={() => setActiveTool(null)}
+        initialFormat={(activeTool && FORWARD_FORMATS[activeTool]) || "jpg"}
+        toolTitle={activeTool ? TOOL_LABELS[activeTool] : undefined}
+        lockFormat
       />
+      {activeTool && REVERSE_SOURCES[activeTool] && <FileToExcelModal isOpen onClose={() => setActiveTool(null)} sourceKind={REVERSE_SOURCES[activeTool]!} />}
+      <FormulaGeneratorModal isOpen={activeTool === "formula"} onClose={() => setActiveTool(null)} />
     </div>
   );
 }

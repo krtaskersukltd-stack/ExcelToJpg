@@ -13,23 +13,12 @@ import FaqSection from "@/components/FaqSection";
 import CtaBanner from "@/components/CtaBanner";
 import Footer from "@/components/Footer";
 import LiveConverterModal from "@/components/LiveConverterModal";
+import FileToExcelModal from "@/components/FileToExcelModal";
+import FormulaGeneratorModal from "@/components/FormulaGeneratorModal";
+import { ConverterToolId, FORWARD_FORMATS, REVERSE_SOURCES, TOOL_LABELS } from "@/lib/converter-tools";
 
 export default function Home() {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [customFileName, setCustomFileName] = useState("Annual_Q4_Summary.xlsx");
-  const [customFileSize, setCustomFileSize] = useState("1.4 MB");
-  const [modalFormat, setModalFormat] = useState<"jpg" | "png" | "pdf" | "docx">("jpg");
-
-  const handleOpenConverter = (fileName?: string, format?: "jpg" | "png" | "pdf" | "docx") => {
-    if (fileName) {
-      setCustomFileName(fileName);
-      setCustomFileSize("2.4 MB");
-    }
-    if (format) {
-      setModalFormat(format);
-    }
-    setIsModalOpen(true);
-  };
+  const [activeTool, setActiveTool] = useState<ConverterToolId | null>(null);
 
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -40,13 +29,13 @@ export default function Home() {
       {/* Top Main Content Layer (Scrolls over the footer) */}
       <div className="relative z-20 bg-[#FAFBFD] shadow-[0_30px_70px_-15px_rgba(15,23,42,0.22)]">
         {/* Top Navbar */}
-        <Navbar onOpenUploadModal={() => handleOpenConverter()} />
+        <Navbar onOpenUploadModal={() => setActiveTool("excel-jpg")} onSelectTool={setActiveTool} />
 
         {/* Hero Section */}
         <HeroSection />
 
         {/* Products Ribbon & Dock */}
-        <ProductsRibbon />
+        <ProductsRibbon onSelectTool={setActiveTool} />
 
         {/* How To Convert / Step-by-Step Flow */}
         <HowItWorks />
@@ -61,19 +50,7 @@ export default function Home() {
         <ComparisonMatrix />
 
         {/* Related Conversion Utilities Grid */}
-        <RelatedUtilities
-          onSelectTool={(toolName) => {
-            const lower = toolName.toLowerCase();
-            const fmt = lower.includes("png")
-              ? "png"
-              : lower.includes("pdf")
-              ? "pdf"
-              : lower.includes("docx") || lower.includes("doc")
-              ? "docx"
-              : "jpg";
-            handleOpenConverter(`${toolName.replace(/\s+/g, "_")}.xlsx`, fmt);
-          }}
-        />
+        <RelatedUtilities onSelectTool={setActiveTool} />
 
         {/* FAQ Accordion Section */}
         <FaqSection />
@@ -89,12 +66,14 @@ export default function Home() {
 
       {/* Global Interactive Converter Modal */}
       <LiveConverterModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        fileName={customFileName}
-        fileSize={customFileSize}
-        initialFormat={modalFormat}
+        isOpen={Boolean(activeTool && FORWARD_FORMATS[activeTool])}
+        onClose={() => setActiveTool(null)}
+        initialFormat={(activeTool && FORWARD_FORMATS[activeTool]) || "jpg"}
+        toolTitle={activeTool ? TOOL_LABELS[activeTool] : undefined}
+        lockFormat
       />
+      {activeTool && REVERSE_SOURCES[activeTool] && <FileToExcelModal isOpen onClose={() => setActiveTool(null)} sourceKind={REVERSE_SOURCES[activeTool]!} />}
+      <FormulaGeneratorModal isOpen={activeTool === "formula"} onClose={() => setActiveTool(null)} />
     </main>
   );
 }

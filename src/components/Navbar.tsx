@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import {
@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLanguage } from "@/context/LanguageContext";
+import { ConverterToolId, NAV_TOOL_IDS } from "@/lib/converter-tools";
 
 const toolIcons = [
   ImageIcon,
@@ -28,7 +29,7 @@ const toolIcons = [
   Sparkles,
 ];
 
-export default function Navbar({ onOpenUploadModal }: { onOpenUploadModal?: () => void }) {
+export default function Navbar({ onOpenUploadModal, onSelectTool }: { onOpenUploadModal?: () => void; onSelectTool?: (tool: ConverterToolId) => void }) {
   const { language, setLanguage, t, languages } = useLanguage();
   const [isToolsOpen, setIsToolsOpen] = useState(false);
   const [isLangOpen, setIsLangOpen] = useState(false);
@@ -36,7 +37,7 @@ export default function Navbar({ onOpenUploadModal }: { onOpenUploadModal?: () =
 
   return (
     <header className="relative z-50 top-0 left-0 right-0 transition-all duration-300 py-4 sm:py-5">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
 
         {/* Brand Logo matching user's /logo.png */}
         <Link href="/" className="group inline-flex items-center">
@@ -53,28 +54,28 @@ export default function Navbar({ onOpenUploadModal }: { onOpenUploadModal?: () =
         </Link>
 
         {/* Center Floating Pill Navigation Bar (Desktop) */}
-        <nav className="hidden lg:flex items-center gap-1 p-4 bg-white/85 backdrop-blur-xl rounded-full border border-slate-200/80 neon-border-glow shadow-xs hover:shadow-[0_4px_24px_rgba(59,130,246,0.18)] transition-all">
+        <nav className="hidden lg:flex absolute left-1/2 -translate-x-1/2 items-center gap-1 p-4 bg-white/85 backdrop-blur-xl rounded-full border border-slate-200/80 neon-border-glow shadow-xs hover:shadow-[0_4px_24px_rgba(59,130,246,0.18)] transition-all">
           {/* Active Image To Text Button */}
-          <Link
-            href="#tools"
+          <button
+            onClick={() => onSelectTool?.("excel-jpg")}
             className="px-5 py-2 text-xs font-semibold rounded-full bg-[#355BFF] text-white shadow-xs hover:bg-blue-700 transition-all duration-150"
           >
             {t.nav.excelToJpg}
-          </Link>
+          </button>
 
-          <Link
-            href="#related-tools"
+          <button
+            onClick={() => onSelectTool?.("excel-png")}
             className="px-4 py-2 text-xs font-medium text-slate-700 hover:text-blue-600 hover:bg-slate-50/70 rounded-full transition-colors"
           >
             {t.nav.excelToPng}
-          </Link>
+          </button>
 
-          <Link
-            href="#related-tools"
+          <button
+            onClick={() => onSelectTool?.("excel-csv")}
             className="px-4 py-2 text-xs font-medium text-slate-700 hover:text-blue-600 hover:bg-slate-50/70 rounded-full transition-colors"
           >
             {t.nav.excelToCsv}
-          </Link>
+          </button>
 
           {/* Tools Dropdown */}
           <div className="relative">
@@ -113,11 +114,10 @@ export default function Navbar({ onOpenUploadModal }: { onOpenUploadModal?: () =
                       const isHighlight = idx === t.nav.toolsList.length - 1;
                       const isCurrent = idx === 0;
                       return (
-                        <Link
+                        <button
                           key={item.name}
-                          href={isHighlight ? "#products" : isCurrent ? "#" : "#related-tools"}
-                          onClick={() => setIsToolsOpen(false)}
-                          className={`flex items-start gap-3 p-2.5 rounded-xl transition-all ${
+                          onClick={() => { setIsToolsOpen(false); onSelectTool?.(NAV_TOOL_IDS[idx]); }}
+                          className={`flex w-full items-start gap-3 p-2.5 text-left rounded-xl transition-all ${
                             isHighlight
                               ? "bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100/60"
                               : isCurrent
@@ -141,7 +141,7 @@ export default function Navbar({ onOpenUploadModal }: { onOpenUploadModal?: () =
                             </div>
                             <p className="text-[11px] text-slate-500 truncate">{item.desc}</p>
                           </div>
-                        </Link>
+                        </button>
                       );
                     })}
                   </div>
@@ -152,7 +152,7 @@ export default function Navbar({ onOpenUploadModal }: { onOpenUploadModal?: () =
         </nav>
 
         {/* Right Section: Actions Pill & Language Selector (Desktop) */}
-        <div className="hidden lg:flex items-center gap-3">
+        <div className="hidden lg:flex items-stretch gap-3 ml-auto">
 
           {/* Right Floating Pill: Pricing + Login */}
           <div className="flex items-center gap-1.5 p-4 bg-white/85 backdrop-blur-xl rounded-full border border-slate-200/80 neon-border-glow shadow-xs hover:shadow-[0_4px_24px_rgba(59,130,246,0.18)] transition-all">
@@ -179,10 +179,10 @@ export default function Navbar({ onOpenUploadModal }: { onOpenUploadModal?: () =
           </div>
 
           {/* Language Selector */}
-          <div className="relative">
+          <div className="relative flex">
             <button
               onClick={() => setIsLangOpen(!isLangOpen)}
-              className="flex items-center gap-1.5 text-xs font-semibold text-slate-800 hover:text-blue-600 px-3 py-2 rounded-full border border-slate-200/80 bg-white/90 hover:bg-white transition-all shadow-xs cursor-pointer"
+              className="flex h-[66px] items-center gap-1.5 text-xs font-semibold text-slate-800 hover:text-blue-600 px-4 rounded-full border border-slate-200/80 bg-white/90 hover:bg-white transition-all shadow-xs cursor-pointer"
             >
               <Globe className="w-3.5 h-3.5 text-blue-600" />
               <span>{language}</span>
@@ -282,27 +282,24 @@ export default function Navbar({ onOpenUploadModal }: { onOpenUploadModal?: () =
             className="lg:hidden border-b border-slate-200 bg-white/95 backdrop-blur-xl px-4 pt-3 pb-6 shadow-xl"
           >
             <div className="flex flex-col gap-2 pt-2">
-              <Link
-                href="#tools"
-                onClick={() => setIsMobileMenuOpen(false)}
+              <button
+                onClick={() => { setIsMobileMenuOpen(false); onSelectTool?.("excel-jpg"); }}
                 className="px-3.5 py-2 text-xs font-semibold text-white bg-[#355BFF] rounded-xl text-center"
               >
                 {t.nav.excelToJpg}
-              </Link>
-              <Link
-                href="#related-tools"
-                onClick={() => setIsMobileMenuOpen(false)}
+              </button>
+              <button
+                onClick={() => { setIsMobileMenuOpen(false); onSelectTool?.("excel-png"); }}
                 className="px-3.5 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 rounded-xl"
               >
                 {t.nav.excelToPng}
-              </Link>
-              <Link
-                href="#related-tools"
-                onClick={() => setIsMobileMenuOpen(false)}
+              </button>
+              <button
+                onClick={() => { setIsMobileMenuOpen(false); onSelectTool?.("excel-csv"); }}
                 className="px-3.5 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 rounded-xl"
               >
                 {t.nav.excelToCsv}
-              </Link>
+              </button>
               <Link
                 href="/pricing"
                 onClick={() => setIsMobileMenuOpen(false)}
@@ -320,15 +317,14 @@ export default function Navbar({ onOpenUploadModal }: { onOpenUploadModal?: () =
                 {t.nav.toolsList.map((tool, idx) => {
                   const Icon = toolIcons[idx] || ImageIcon;
                   return (
-                    <Link
+                    <button
                       key={tool.name}
-                      href={idx === 0 ? "#" : "#related-tools"}
-                      onClick={() => setIsMobileMenuOpen(false)}
-                      className="flex items-center gap-2 px-3 py-2 text-xs text-slate-600 hover:bg-slate-50 rounded-lg"
+                      onClick={() => { setIsMobileMenuOpen(false); onSelectTool?.(NAV_TOOL_IDS[idx]); }}
+                      className="flex w-full items-center gap-2 px-3 py-2 text-left text-xs text-slate-600 hover:bg-slate-50 rounded-lg"
                     >
                       <Icon className="w-4 h-4 text-blue-600" />
                       <span>{tool.name}</span>
-                    </Link>
+                    </button>
                   );
                 })}
               </div>

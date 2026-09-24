@@ -185,28 +185,30 @@ export default function HeroSection() {
                   </button>
 
                   {/* Google Drive Integration */}
-                  <button 
-                    onClick={() => openCloudModal("gdrive")}
-                    className="flex flex-col items-center justify-center p-1.5 hover:bg-white/80 rounded-xl transition-colors group cursor-pointer"
-                    title={t.hero.googleDrive}
+                  <a
+                    href="https://drive.google.com/drive/my-drive"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex flex-col items-center justify-center p-1.5 hover:bg-white/80 rounded-xl transition-colors group cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#355BFF] focus-visible:ring-offset-2"
+                    title={`${t.hero.googleDrive} — open in a new tab`}
+                    aria-label={`${t.hero.googleDrive} — open in a new tab`}
                   >
                     <GoogleDriveIcon className="w-6 h-6 group-hover:scale-110 transition-transform" />
                     <span className="text-[10px] font-medium text-slate-700 mt-0.5">{t.hero.googleDrive}</span>
-                  </button>
+                  </a>
 
                   {/* Dropbox Integration */}
-                  <button 
-                    onClick={() => openCloudModal("dropbox")}
-                    className="flex flex-col items-center justify-center p-1.5 hover:bg-white/80 rounded-xl transition-colors group cursor-pointer"
-                    title={t.hero.dropbox}
+                  <a
+                    href="https://www.dropbox.com/home"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex flex-col items-center justify-center p-1.5 hover:bg-white/80 rounded-xl transition-colors group cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0061FF] focus-visible:ring-offset-2"
+                    title={`${t.hero.dropbox} — open in a new tab`}
+                    aria-label={`${t.hero.dropbox} — open in a new tab`}
                   >
-                    <div className="w-6 h-6 rounded-[6px] bg-[#0061FF] flex items-center justify-center text-white shadow-xs group-hover:scale-110 transition-transform">
-                      <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M6 2l6 4-6 4-6-4 6-4zm12 0l6 4-6 4-6-4 6-4zM0 10l6 4-6 4-6-4 6-4zm24 0l-6 4 6 4 6-4-6-4zM6 18l6-4 6 4-6 4-6-4z"/>
-                      </svg>
-                    </div>
+                    <DropboxIcon className="w-6 h-6 group-hover:scale-110 transition-transform" />
                     <span className="text-[10px] font-medium text-slate-700 mt-0.5">{t.hero.dropbox}</span>
-                  </button>
+                  </a>
 
                   {/* Direct Link Chain Icon (Allows entering Google Drive / URL link) */}
                   <button 
@@ -257,12 +259,15 @@ export default function HeroSection() {
       </div>
 
       {/* Cloud Import Modal (Google Drive, Dropbox, URL / Drive Link) */}
-      <CloudImportModal
-        isOpen={cloudModalOpen}
-        onClose={() => setCloudModalOpen(false)}
-        initialTab={cloudTab}
-        onImportSuccess={handleCloudImportSuccess}
-      />
+      {cloudModalOpen && (
+        <CloudImportModal
+          key={cloudTab}
+          isOpen
+          onClose={() => setCloudModalOpen(false)}
+          initialTab={cloudTab}
+          onImportSuccess={handleCloudImportSuccess}
+        />
+      )}
 
       {/* Interactive Live Converter Modal */}
       <LiveConverterModal

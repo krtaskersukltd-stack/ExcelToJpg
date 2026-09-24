@@ -1,9 +1,14 @@
 import os
 import random
-import shutil
 import tempfile
 import time
 import zipfile
+import ipaddress
+import socket
+import uuid
+import re
+from pathlib import Path
+from urllib.parse import urlparse
 import requests
 import pandas as pd
 from PIL import Image, ImageDraw, ImageFont
@@ -12,6 +17,14 @@ from fastapi.responses import JSONResponse, FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from docx import Document
 from fpdf import FPDF, XPos, YPos
+from openpyxl import Workbook
+from pypdf import PdfReader
+
+try:
+    from rapidocr_onnxruntime import RapidOCR
+    OCR_ENGINE = RapidOCR()
+except Exception:
+    OCR_ENGINE = None
 
 # Try to import imgkit (optional binary dependency)
 try:
@@ -22,6 +35,10 @@ except ImportError:
 
 app = FastAPI(title="Excel to Image & Document Converter API", version="1.0.0")
 
+ALLOWED_INPUT_EXTENSIONS = {"xlsx", "xlsm", "xls", "csv"}
+ALLOWED_OUTPUT_EXTENSIONS = {"jpg", "jpeg", "png", "pdf", "docx", "csv"}
+MAX_UPLOAD_BYTES = int(os.getenv("MAX_UPLOAD_BYTES", str(25 * 1024 * 1024)))
+
 project_dir = os.path.dirname(os.path.abspath(__file__))
 upload_dir = os.path.join(project_dir, "upload")
 input_dir = os.path.join(upload_dir, "input")
@@ -30,11 +47,27 @@ output_dir = os.path.join(upload_dir, "output")
 os.makedirs(input_dir, exist_ok=True)
 os.makedirs(output_dir, exist_ok=True)
 
+
+def cleanup_expired_files(max_age_seconds=6 * 60 * 60):
+    """Remove abandoned inputs and expired conversion results."""
+    cutoff = time.time() - max_age_seconds
+    for directory in (input_dir, output_dir):
+        for entry in Path(directory).iterdir():
+            if entry.name == ".gitkeep" or not entry.is_file():
+                continue
+            try:
+                if entry.stat().st_mtime < cutoff:
+                    entry.unlink()
+            except OSError:
+                pass
+
 # Configure CORS settings for frontend connection
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
+    allow_origins=[origin.strip() for origin in os.getenv(
+        "FRONTEND_ORIGINS", "http://localhost:3000,http://127.0.0.1:3000"
+    ).split(",") if origin.strip()],
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -48,7 +81,8 @@ async def health_check():
         "status": "online",
         "service": "Excel Converter API",
         "version": "1.0.0",
-        "supported_formats": ["jpg", "jpeg", "png", "pdf", "docx", "doc"]
+        "supported_formats": sorted(ALLOWED_OUTPUT_EXTENSIONS),
+        "max_upload_bytes": MAX_UPLOAD_BYTES,
     }
 
 
@@ -59,12 +93,12 @@ def split_dataframe(df, chunk_size):
     return [df.iloc[i:i + chunk_size] for i in range(0, len(df), chunk_size)]
 
 
-def render_dataframe_to_pil(df_chunk, title="Excel Data Preview"):
+def render_dataframe_to_pil(df_chunk, title="Excel Data Preview", dpi=300):
     """
     High-fidelity pure Pillow fallback table renderer.
     Guarantees crisp, high-resolution rendering without requiring external wkhtmltoimage binaries.
     """
-    scale = 2  # High-DPI scaling factor for ultra-sharp text
+    scale = max(1, min(4, round(dpi / 150)))
     padding_x = 16 * scale
     padding_y = 12 * scale
     header_height = 42 * scale
@@ -197,97 +231,114 @@ def render_dataframe_to_pil(df_chunk, title="Excel Data Preview"):
     return image
 
 
-async def excel_to_image_no_borders(excel_path, image_extension, max_rows_per_image=100):
-    output_image_prefix = "image"
-    timestamp = time.strftime("%Y%m%d-%H%M%S")
-    output_folder = os.path.join(input_dir, f"{output_image_prefix}_{timestamp}")
-    os.makedirs(output_folder, exist_ok=True)
+def load_workbook_sheets(excel_path):
+    """Return every sheet as (name, dataframe), including CSV as a single sheet."""
+    if excel_path.lower().endswith(".csv"):
+        return [("CSV Data", pd.read_csv(excel_path))]
+    with pd.ExcelFile(excel_path) as workbook:
+        return [(name, workbook.parse(name)) for name in workbook.sheet_names]
 
-    # Read the Excel or CSV file
-    try:
-        if excel_path.endswith('.csv'):
-            df = pd.read_csv(excel_path)
-        else:
-            df = pd.read_excel(excel_path)
-    except Exception as e:
-        df = pd.read_excel(excel_path, engine='openpyxl')
 
-    df_chunks = split_dataframe(df, max_rows_per_image)
+def safe_stem(value):
+    cleaned = "".join(char if char.isalnum() or char in "-_" else "_" for char in str(value))
+    return cleaned.strip("_")[:60] or "sheet"
 
+
+async def excel_to_image_no_borders(excel_path, image_extension, dpi=300, max_rows_per_image=100):
+    job_id = uuid.uuid4().hex[:12]
+    workbook_sheets = load_workbook_sheets(excel_path)
     images = []
-    for idx, df_chunk in enumerate(df_chunks):
-        output_image_path = os.path.join(
-            output_folder,
-            f"{output_image_prefix}_part_{idx + 1}.{image_extension}"
-        )
-        converted_via_imgkit = False
+    outputs = []
+    sheet_names = [name for name, _ in workbook_sheets]
 
-        # Attempt imgkit if available
-        if IMGKIT_AVAILABLE:
-            try:
-                with tempfile.NamedTemporaryFile(suffix=".html", delete=False, mode="w", encoding="utf-8") as html_file:
-                    custom_css = """
-                    <style>
-                        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; background-color: #fafbfd; padding: 20px; }
-                        table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 13px; background: white; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-                        th { background-color: #355BFF; color: white; text-align: left; padding: 12px 16px; font-weight: 600; }
-                        td { text-align: left; padding: 10px 16px; border-bottom: 1px solid #e2e8f0; color: #334155; }
-                        tr:nth-child(even) { background-color: #f8fafc; }
-                    </style>
-                    """
-                    table_html = df_chunk.to_html(border=0, index=False)
-                    html_content = f"<!DOCTYPE html><html><head><meta charset='utf-8'>{custom_css}</head><body>{table_html}</body></html>"
-                    html_file.write(html_content)
-                    html_file_path = html_file.name
+    for sheet_name, df in workbook_sheets:
+        df_chunks = split_dataframe(df, max_rows_per_image)
+        for idx, df_chunk in enumerate(df_chunks):
+            output_filename = f"{job_id}_{safe_stem(sheet_name)}_{idx + 1}.{image_extension}"
+            output_image_path = os.path.join(output_dir, output_filename)
+            converted_via_imgkit = False
 
-                with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as temp_img:
-                    temp_img_path = temp_img.name
+            # Attempt imgkit if available.
+            if IMGKIT_AVAILABLE:
+                try:
+                    with tempfile.NamedTemporaryFile(suffix=".html", delete=False, mode="w", encoding="utf-8") as html_file:
+                        custom_css = """
+                        <style>
+                            body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; background-color: #fafbfd; padding: 20px; }
+                            table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 13px; background: white; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+                            th { background-color: #355BFF; color: white; text-align: left; padding: 12px 16px; font-weight: 600; }
+                            td { text-align: left; padding: 10px 16px; border-bottom: 1px solid #e2e8f0; color: #334155; }
+                            tr:nth-child(even) { background-color: #f8fafc; }
+                        </style>
+                        """
+                        table_html = df_chunk.to_html(border=0, index=False)
+                        html_content = f"<!DOCTYPE html><html><head><meta charset='utf-8'>{custom_css}</head><body>{table_html}</body></html>"
+                        html_file.write(html_content)
+                        html_file_path = html_file.name
 
-                imgkit.from_file(html_file_path, temp_img_path)
-                img = Image.open(temp_img_path)
+                    with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as temp_img:
+                        temp_img_path = temp_img.name
+
+                    imgkit.from_file(html_file_path, temp_img_path)
+                    img = Image.open(temp_img_path)
+                    if image_extension.lower() in ["jpg", "jpeg"]:
+                        img = img.convert("RGB")
+                    img.save(output_image_path, quality=95)
+                    images.append(output_image_path)
+                    converted_via_imgkit = True
+
+                    if os.path.exists(temp_img_path):
+                        os.remove(temp_img_path)
+                    if os.path.exists(html_file_path):
+                        os.remove(html_file_path)
+                except Exception as e:
+                    print(f"[imgkit fallback to PIL renderer]: {e}")
+                    converted_via_imgkit = False
+
+            # Fallback to high-res PIL renderer.
+            if not converted_via_imgkit:
+                img = render_dataframe_to_pil(
+                    df_chunk,
+                    title=f"{sheet_name} — Part {idx + 1}",
+                    dpi=dpi,
+                )
                 if image_extension.lower() in ["jpg", "jpeg"]:
                     img = img.convert("RGB")
                 img.save(output_image_path, quality=95)
                 images.append(output_image_path)
-                converted_via_imgkit = True
+            outputs.append({"filename": output_filename, "sheet": sheet_name, "part": idx + 1})
 
-                if os.path.exists(temp_img_path):
-                    os.remove(temp_img_path)
-                if os.path.exists(html_file_path):
-                    os.remove(html_file_path)
-            except Exception as e:
-                print(f"[imgkit fallback to PIL renderer]: {e}")
-                converted_via_imgkit = False
-
-        # Fallback to high-res PIL renderer
-        if not converted_via_imgkit:
-            img = render_dataframe_to_pil(df_chunk, title=f"Dataset Part {idx + 1}")
-            if image_extension.lower() in ["jpg", "jpeg"]:
-                img = img.convert("RGB")
-            img.save(output_image_path, quality=95)
-            images.append(output_image_path)
-
-    # Create a ZIP file of the output folder
-    zip_filename = f"output_{timestamp}.zip"
+    zip_filename = f"conversion_{job_id}.zip"
     zip_file_path = os.path.join(output_dir, zip_filename)
 
     with zipfile.ZipFile(zip_file_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
-        for root, dirs, files in os.walk(output_folder):
-            for file in files:
-                zipf.write(os.path.join(root, file), arcname=file)
+        for image_path in images:
+            zipf.write(image_path, arcname=os.path.basename(image_path))
 
     # Return the basename cleanly for both Windows and Unix
     return {
         "zip_file_name": zip_filename,
         "first_image": os.path.basename(images[0]) if images else None,
-        "total_parts": len(images)
+        "total_parts": len(images),
+        "sheets": sheet_names,
+        "outputs": outputs,
     }
 
 
 async def save_file_url(url: str):
+    parsed_url = urlparse(url)
+    if parsed_url.scheme not in {"http", "https"} or not parsed_url.hostname:
+        raise HTTPException(status_code=400, detail="Only public HTTP(S) spreadsheet links are supported")
+    try:
+        for address in socket.getaddrinfo(parsed_url.hostname, None):
+            ip = ipaddress.ip_address(address[4][0])
+            if ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_reserved:
+                raise HTTPException(status_code=400, detail="Private or local network URLs are not allowed")
+    except socket.gaierror:
+        raise HTTPException(status_code=400, detail="The link hostname could not be resolved")
     url_clean = url.split("?")[0].strip()
     file_extension = url_clean.split(".")[-1].lower() if "." in url_clean else "xlsx"
-    valid_extensions = ['xlsx', 'xlsm', 'xls', 'csv']
+    valid_extensions = ALLOWED_INPUT_EXTENSIONS
 
     # Auto convert Google Sheets export URL to XLSX if needed
     if "docs.google.com/spreadsheets" in url:
@@ -314,10 +365,15 @@ async def save_file_url(url: str):
     }
 
     try:
-        response = requests.get(url, headers=headers, stream=True, verify=False, timeout=30)
+        response = requests.get(url, headers=headers, stream=True, timeout=30, allow_redirects=True)
         if response.status_code == 200:
             with open(file_path, 'wb') as f:
-                shutil.copyfileobj(response.raw, f)
+                downloaded = 0
+                for chunk in response.iter_content(chunk_size=1024 * 1024):
+                    downloaded += len(chunk)
+                    if downloaded > MAX_UPLOAD_BYTES:
+                        raise HTTPException(status_code=413, detail="Remote file exceeds the upload limit")
+                    f.write(chunk)
             return file_path
         else:
             raise HTTPException(status_code=400, detail=f"Failed to download file from URL (HTTP {response.status_code})")
@@ -326,14 +382,13 @@ async def save_file_url(url: str):
 
 
 async def excel_to_docx_func(file_path, image_extension):
-    excel_data = pd.ExcelFile(file_path)
     num = random.randint(1, 10000)
-    sheet_name = excel_data.sheet_names[0] if excel_data.sheet_names else "Sheet1"
+    workbook_sheets = load_workbook_sheets(file_path)
+    sheet_name = workbook_sheets[0][0] if workbook_sheets else "Sheet1"
 
     doc = Document()
 
-    for s_name in excel_data.sheet_names:
-        df = excel_data.parse(s_name)
+    for s_name, df in workbook_sheets:
         doc.add_heading(f'Sheet: {s_name}', level=1)
 
         if not df.empty:
@@ -402,16 +457,15 @@ class PDF(FPDF):
 
 
 async def excel_to_pdf(file_path, image_extension):
-    excel_data = pd.ExcelFile(file_path)
     num = random.randint(1, 10000)
-    sheet_name = excel_data.sheet_names[0] if excel_data.sheet_names else "Sheet1"
+    workbook_sheets = load_workbook_sheets(file_path)
+    sheet_name = workbook_sheets[0][0] if workbook_sheets else "Sheet1"
 
     pdf = PDF()
     pdf.set_auto_page_break(auto=True, margin=15)
     pdf.add_page()
 
-    for s_name in excel_data.sheet_names:
-        df = excel_data.parse(s_name)
+    for s_name, df in workbook_sheets:
         pdf.set_font("Helvetica", 'B', 11)
         pdf.set_text_color(15, 23, 42)
         pdf.cell(0, 8, f'Sheet: {s_name}', new_x=XPos.LMARGIN, new_y=YPos.NEXT, align='L')
@@ -425,17 +479,142 @@ async def excel_to_pdf(file_path, image_extension):
     return output_filename
 
 
+async def excel_to_csv_func(file_path):
+    job_id = uuid.uuid4().hex[:12]
+    csv_files = []
+    for sheet_name, dataframe in load_workbook_sheets(file_path):
+        csv_name = f"{job_id}_{safe_stem(sheet_name)}.csv"
+        csv_path = os.path.join(output_dir, csv_name)
+        dataframe.to_csv(csv_path, index=False, encoding="utf-8-sig")
+        csv_files.append(csv_path)
+    if len(csv_files) == 1:
+        return {"filename": os.path.basename(csv_files[0]), "type": "csv"}
+    zip_name = f"conversion_{job_id}_csv.zip"
+    with zipfile.ZipFile(os.path.join(output_dir, zip_name), "w", zipfile.ZIP_DEFLATED) as archive:
+        for csv_path in csv_files:
+            archive.write(csv_path, arcname=os.path.basename(csv_path))
+    return {"filename": zip_name, "type": "zip"}
+
+
+def ocr_rows_from_image(file_path):
+    if OCR_ENGINE is None:
+        raise HTTPException(status_code=503, detail="OCR engine is not installed on the backend")
+    result, _ = OCR_ENGINE(file_path)
+    if not result:
+        raise HTTPException(status_code=422, detail="No readable table text was found in the image")
+    words = []
+    for box, text, score in result:
+        if score < 0.35 or not str(text).strip():
+            continue
+        center_x = sum(point[0] for point in box) / len(box)
+        center_y = sum(point[1] for point in box) / len(box)
+        height = max(point[1] for point in box) - min(point[1] for point in box)
+        words.append((center_y, center_x, max(height, 10), str(text).strip()))
+    words.sort(key=lambda item: (item[0], item[1]))
+    rows = []
+    for center_y, center_x, height, text in words:
+        if not rows or abs(rows[-1]["y"] - center_y) > max(height, rows[-1]["height"]) * 0.65:
+            rows.append({"y": center_y, "height": height, "cells": [(center_x, text)]})
+        else:
+            rows[-1]["cells"].append((center_x, text))
+    return [[text for _, text in sorted(row["cells"])] for row in rows]
+
+
+def pdf_rows(file_path):
+    rows = []
+    for page in PdfReader(file_path).pages:
+        for line in (page.extract_text() or "").splitlines():
+            cells = [cell.strip() for cell in re.split(r"\t+|\s{2,}", line) if cell.strip()]
+            if cells:
+                rows.append(cells)
+    if not rows:
+        raise HTTPException(status_code=422, detail="No extractable table text was found in this PDF")
+    return rows
+
+
+def rows_to_xlsx(rows, source_name):
+    job_id = uuid.uuid4().hex[:12]
+    output_name = f"{safe_stem(Path(source_name).stem)}_{job_id}.xlsx"
+    workbook = Workbook()
+    sheet = workbook.active
+    sheet.title = "Extracted Data"
+    for row in rows:
+        sheet.append(list(row))
+    workbook.save(os.path.join(output_dir, output_name))
+    return output_name
+
+
+@app.post("/api/file_to_excel")
+async def file_to_excel(source_file: UploadFile = File(...), source_kind: str = Form(...)):
+    kind = source_kind.lower().strip()
+    expected_extensions = {
+        "jpg": {"jpg", "jpeg"},
+        "png": {"png"},
+        "pdf": {"pdf"},
+        "csv": {"csv"},
+    }
+    if kind not in expected_extensions:
+        raise HTTPException(status_code=400, detail="Unsupported source converter")
+    original_name = source_file.filename or f"upload.{kind}"
+    extension = Path(original_name).suffix.lower().lstrip(".")
+    if extension not in expected_extensions[kind]:
+        raise HTTPException(status_code=400, detail=f"Please upload a valid {kind.upper()} file")
+    content = await source_file.read()
+    if not content:
+        raise HTTPException(status_code=400, detail="The uploaded file is empty")
+    if len(content) > MAX_UPLOAD_BYTES:
+        raise HTTPException(status_code=413, detail="File exceeds the upload limit")
+    cleanup_expired_files()
+    input_path = os.path.join(input_dir, f"{uuid.uuid4().hex}.{extension}")
+    try:
+        with open(input_path, "wb") as handle:
+            handle.write(content)
+        if kind == "csv":
+            dataframe = pd.read_csv(input_path)
+            rows = [list(dataframe.columns)] + dataframe.fillna("").values.tolist()
+        elif kind == "pdf":
+            rows = pdf_rows(input_path)
+        else:
+            rows = ocr_rows_from_image(input_path)
+        output_name = rows_to_xlsx(rows, original_name)
+        return {"status": "success", "filename": output_name, "conv": output_name, "type": "xlsx", "rows": len(rows)}
+    except HTTPException:
+        raise
+    except Exception as error:
+        return JSONResponse(content={"status": "error", "error": str(error)}, status_code=400)
+    finally:
+        if os.path.isfile(input_path):
+            try:
+                os.remove(input_path)
+            except OSError:
+                pass
+
+
 @app.post("/api/excel_to_img")
-async def excel_to_image_func(excel_file: UploadFile = File(...), image_extension: str = Form("jpg")):
+async def excel_to_image_func(
+    excel_file: UploadFile = File(...),
+    image_extension: str = Form("jpg"),
+    dpi: int = Form(300),
+):
     img_ext = image_extension.lower().replace(".", "").strip()
 
-    if img_ext not in ["jpg", "jpeg", "png", "pdf", "docx", "doc", "webp"]:
-        raise HTTPException(status_code=400, detail="Invalid image extension. Supported: jpg, jpeg, png, pdf, docx, doc, webp")
+    if img_ext not in ALLOWED_OUTPUT_EXTENSIONS:
+        raise HTTPException(status_code=400, detail="Unsupported output format")
+    if dpi not in {150, 300, 600}:
+        raise HTTPException(status_code=400, detail="DPI must be 150, 300, or 600")
 
+    file_path = None
+    cleanup_expired_files()
     try:
         file_data = await excel_file.read()
+        if not file_data:
+            raise HTTPException(status_code=400, detail="The uploaded file is empty")
+        if len(file_data) > MAX_UPLOAD_BYTES:
+            raise HTTPException(status_code=413, detail="File exceeds the upload limit")
         filn = excel_file.filename or "upload.xlsx"
         file_extension = filn.split(".")[-1].lower() if "." in filn else "xlsx"
+        if file_extension not in ALLOWED_INPUT_EXTENSIONS:
+            raise HTTPException(status_code=400, detail="Supported inputs: XLS, XLSX, XLSM, and CSV")
 
         file_name = f"{random.randint(1, 99999)}.{file_extension}"
         file_path = os.path.join(input_dir, file_name)
@@ -443,7 +622,7 @@ async def excel_to_image_func(excel_file: UploadFile = File(...), image_extensio
         with open(file_path, "wb") as fil:
             fil.write(file_data)
 
-        if img_ext in ["docx", "doc"]:
+        if img_ext == "docx":
             conv_res = await excel_to_docx_func(file_path, img_ext)
             return JSONResponse(
                 content={
@@ -467,8 +646,15 @@ async def excel_to_image_func(excel_file: UploadFile = File(...), image_extensio
                 status_code=200
             )
 
+        elif img_ext == "csv":
+            conv_res = await excel_to_csv_func(file_path)
+            return JSONResponse(
+                content={"conv": conv_res["filename"], "filename": conv_res["filename"], "status": "success", "type": conv_res["type"]},
+                status_code=200,
+            )
+
         else:
-            conv_res = await excel_to_image_no_borders(file_path, img_ext)
+            conv_res = await excel_to_image_no_borders(file_path, img_ext, dpi=dpi)
             return JSONResponse(
                 content={
                     "conv": conv_res["zip_file_name"],
@@ -476,29 +662,47 @@ async def excel_to_image_func(excel_file: UploadFile = File(...), image_extensio
                     "status": "success",
                     "type": "zip",
                     "first_image": conv_res.get("first_image"),
-                    "total_parts": conv_res.get("total_parts", 1)
+                    "total_parts": conv_res.get("total_parts", 1),
+                    "sheets": conv_res.get("sheets", []),
+                    "outputs": conv_res.get("outputs", []),
                 },
                 status_code=200
             )
 
+    except HTTPException:
+        raise
     except Exception as e:
         return JSONResponse(
             content={"error": str(e), "status": "error"},
             status_code=400
         )
+    finally:
+        if file_path and os.path.isfile(file_path):
+            try:
+                os.remove(file_path)
+            except OSError:
+                pass
 
 
 @app.post("/api/excel_url")
-async def excel_to_url_func(url: str = Form(...), image_extension: str = Form("jpg")):
+async def excel_to_url_func(
+    url: str = Form(...),
+    image_extension: str = Form("jpg"),
+    dpi: int = Form(300),
+):
     img_ext = image_extension.lower().replace(".", "").strip()
 
-    if img_ext not in ["jpg", "jpeg", "png", "pdf", "docx", "doc", "webp"]:
-        raise HTTPException(status_code=400, detail="Invalid image extension. Supported: jpg, jpeg, png, pdf, docx, doc, webp")
+    if img_ext not in ALLOWED_OUTPUT_EXTENSIONS:
+        raise HTTPException(status_code=400, detail="Unsupported output format")
+    if dpi not in {150, 300, 600}:
+        raise HTTPException(status_code=400, detail="DPI must be 150, 300, or 600")
 
+    file_path = None
+    cleanup_expired_files()
     try:
         file_path = await save_file_url(url)
 
-        if img_ext in ["docx", "doc"]:
+        if img_ext == "docx":
             conv_res = await excel_to_docx_func(file_path, img_ext)
             return JSONResponse(
                 content={
@@ -522,8 +726,15 @@ async def excel_to_url_func(url: str = Form(...), image_extension: str = Form("j
                 status_code=200
             )
 
+        elif img_ext == "csv":
+            conv_res = await excel_to_csv_func(file_path)
+            return JSONResponse(
+                content={"conv": conv_res["filename"], "filename": conv_res["filename"], "status": "success", "type": conv_res["type"]},
+                status_code=200,
+            )
+
         else:
-            conv_res = await excel_to_image_no_borders(file_path, img_ext)
+            conv_res = await excel_to_image_no_borders(file_path, img_ext, dpi=dpi)
             return JSONResponse(
                 content={
                     "conv": conv_res["zip_file_name"],
@@ -531,31 +742,44 @@ async def excel_to_url_func(url: str = Form(...), image_extension: str = Form("j
                     "status": "success",
                     "type": "zip",
                     "first_image": conv_res.get("first_image"),
-                    "total_parts": conv_res.get("total_parts", 1)
+                    "total_parts": conv_res.get("total_parts", 1),
+                    "sheets": conv_res.get("sheets", []),
+                    "outputs": conv_res.get("outputs", []),
                 },
                 status_code=200
             )
 
+    except HTTPException:
+        raise
     except Exception as e:
         return JSONResponse(
             content={"error": str(e), "status": "error"},
             status_code=400
         )
+    finally:
+        if file_path and os.path.isfile(file_path):
+            try:
+                os.remove(file_path)
+            except OSError:
+                pass
 
 
 @app.get("/download_file")
 async def download_txt(filename: str):
-    file_path = os.path.join(output_dir, filename)
+    safe_filename = os.path.basename(filename)
+    if safe_filename != filename:
+        raise HTTPException(status_code=400, detail="Invalid filename")
+    file_path = os.path.join(output_dir, safe_filename)
 
     if not os.path.exists(file_path):
         # Also check input/subfolder in case a single image is requested
-        alt_path = os.path.join(input_dir, filename)
+        alt_path = os.path.join(input_dir, safe_filename)
         if os.path.exists(alt_path):
             file_path = alt_path
         else:
             return JSONResponse(content={"error": "File not found", "status": "error"}, status_code=404)
 
-    ext = filename.split(".")[-1].lower() if "." in filename else ""
+    ext = safe_filename.split(".")[-1].lower() if "." in safe_filename else ""
     media_types = {
         "zip": "application/zip",
         "jpg": "image/jpeg",
@@ -563,16 +787,32 @@ async def download_txt(filename: str):
         "png": "image/png",
         "pdf": "application/pdf",
         "docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "xlsx": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "csv": "text/csv; charset=utf-8",
         "doc": "application/msword",
     }
     media_type = media_types.get(ext, "application/octet-stream")
 
     return FileResponse(
         path=file_path,
-        filename=filename,
+        filename=safe_filename,
         media_type=media_type,
-        headers={"Content-Disposition": f'attachment; filename="{filename}"'}
+        headers={"Content-Disposition": f'attachment; filename="{safe_filename}"'}
     )
+
+
+@app.get("/preview_file")
+async def preview_file(filename: str):
+    safe_filename = os.path.basename(filename)
+    if safe_filename != filename:
+        raise HTTPException(status_code=400, detail="Invalid filename")
+    file_path = os.path.join(output_dir, safe_filename)
+    if not os.path.isfile(file_path):
+        raise HTTPException(status_code=404, detail="Preview not found")
+    extension = Path(safe_filename).suffix.lower()
+    if extension not in {".jpg", ".jpeg", ".png"}:
+        raise HTTPException(status_code=400, detail="Preview is only available for images")
+    return FileResponse(file_path, media_type="image/jpeg" if extension in {".jpg", ".jpeg"} else "image/png")
 
 
 if __name__ == "__main__":

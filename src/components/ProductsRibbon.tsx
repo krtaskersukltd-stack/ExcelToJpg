@@ -199,11 +199,13 @@ function MacDockItem({
   mouseX,
   hoveredId,
   setHoveredId,
+  onSelect,
 }: {
   item: ProductItem;
   mouseX: MotionValue<number>;
   hoveredId: string | null;
   setHoveredId: (id: string | null) => void;
+  onSelect?: () => void;
 }) {
   const ref = useRef<HTMLDivElement>(null);
 
@@ -254,6 +256,7 @@ function MacDockItem({
       <motion.button
         type="button"
         aria-label={item.name}
+        onClick={onSelect}
         style={{ scale, y }}
         className="focus:outline-none cursor-pointer select-none origin-bottom flex items-center justify-center w-full h-full p-0.5"
       >
@@ -266,8 +269,9 @@ function MacDockItem({
 }
 
 import { useLanguage } from "@/context/LanguageContext";
+import { ConverterToolId, PRODUCT_TOOL_IDS } from "@/lib/converter-tools";
 
-export default function ProductsRibbon() {
+export default function ProductsRibbon({ onSelectTool }: { onSelectTool?: (tool: ConverterToolId) => void }) {
   const { t } = useLanguage();
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const mouseX = useMotionValue(Infinity);
@@ -298,13 +302,14 @@ export default function ProductsRibbon() {
           >
             
 
-            {products.map((item) => (
+            {products.map((item, index) => (
               <MacDockItem
                 key={item.id}
                 item={item}
                 mouseX={mouseX}
                 hoveredId={hoveredId}
                 setHoveredId={setHoveredId}
+                onSelect={() => onSelectTool?.(PRODUCT_TOOL_IDS[index])}
               />
             ))}
           </motion.div>

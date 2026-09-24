@@ -4,6 +4,7 @@ import React from "react";
 import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
+import { ConverterToolId, UTILITY_TOOL_IDS } from "@/lib/converter-tools";
 
 interface UtilityMeta {
   badge: string;
@@ -19,7 +20,7 @@ const metaList: UtilityMeta[] = [
   { badge: "CSV", badgeBg: "bg-sky-600" },
 ];
 
-export default function RelatedUtilities({ onSelectTool }: { onSelectTool?: (name: string) => void }) {
+export default function RelatedUtilities({ onSelectTool }: { onSelectTool?: (tool: ConverterToolId) => void }) {
   const { t } = useLanguage();
 
   return (
@@ -47,7 +48,10 @@ export default function RelatedUtilities({ onSelectTool }: { onSelectTool?: (nam
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.4, delay: idx * 0.08 }}
-                onClick={() => onSelectTool && onSelectTool(item.title)}
+                onClick={() => onSelectTool?.(UTILITY_TOOL_IDS[idx])}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") onSelectTool?.(UTILITY_TOOL_IDS[idx]); }}
                 className="cursor-pointer group rounded-2xl p-5 bg-[#F9FBFE] hover:bg-[#F0F6FE] border border-slate-200/70 neon-border-glow shadow-xs hover:shadow-md hover:shadow-blue-500/15 transition-all duration-200 flex items-center justify-between gap-4"
               >
                 <div className="flex items-center gap-3.5 min-w-0">

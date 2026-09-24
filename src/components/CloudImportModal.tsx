@@ -1,20 +1,15 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   X,
   Search,
-  Check,
   Link2,
-  ExternalLink,
   FileSpreadsheet,
-  Download,
   Sparkles,
-  CheckCircle2,
   AlertCircle,
   Loader2,
-  RefreshCw,
   FolderOpen,
   ArrowRight,
   ShieldCheck,
@@ -37,7 +32,7 @@ export function GoogleDriveIcon({ className = "w-5 h-5" }: { className?: string 
 export function DropboxIcon({ className = "w-5 h-5" }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="#0061FF" xmlns="http://www.w3.org/2000/svg">
-      <path d="M6.035 2.5 0 6.643l5.965 4.887 6.035-4.93L6.035 2.5zm11.93 0-6.035 4.099 6.035 4.931L24 6.643 17.965 2.5zM0 16.417l6.035 4.143 5.965-4.888-6.035-4.93L0 16.417zm24 0-6.035-4.257-6.035 4.93 5.965 4.888L24 16.417zM6.035 21.5 12 17.587l5.965 3.913L24 17.375v2.125l-12 8-12-8v-2.125l6.035 4.125z" />
+      <path d="M6 2 0 6.134l6 4.134 6-4.134L6 2Zm12 0-6 4.134 6 4.134 6-4.134L18 2ZM0 14.402l6 4.134 6-4.134-6-4.134-6 4.134Zm18-4.134-6 4.134 6 4.134 6-4.134-6-4.134ZM6 19.804l6 4.134 6-4.134-6-4.134-6 4.134Z" />
     </svg>
   );
 }
@@ -76,20 +71,6 @@ export default function CloudImportModal({
   const [selectedFileId, setSelectedFileId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-  const [isConnectedGDrive, setIsConnectedGDrive] = useState(true);
-  const [isConnectedDropbox, setIsConnectedDropbox] = useState(true);
-
-  useEffect(() => {
-    if (isOpen) {
-      setActiveTab(initialTab);
-      setSearchQuery("");
-      setUrlInput("");
-      setSelectedFileId(null);
-      setErrorMessage("");
-      setIsLoading(false);
-    }
-  }, [isOpen, initialTab]);
-
   if (!isOpen) return null;
 
   const handleUrlImport = async (inputUrl?: string) => {
