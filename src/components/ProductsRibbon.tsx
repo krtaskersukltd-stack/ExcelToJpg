@@ -193,7 +193,7 @@ const products: ProductItem[] = [
   { id: "jpg", name: "JPG to Excel", component: JpgFileIcon },
 ];
 
-/* Mac Dock Individual Animated Item */
+/* Mac Dock Individual Animated Item with Pure Transform Scaling */
 function MacDockItem({
   item,
   mouseX,
@@ -213,14 +213,13 @@ function MacDockItem({
     return val - bounds.x - bounds.width / 2;
   });
 
-  // Authentic macOS fisheye magnification mapping:
-  // Direct target scales highest, adjacent neighbors scale smoothly, outer icons stay default
-  const widthSync = useTransform(distance, [-160, -80, 0, 80, 160], [52, 68, 86, 68, 52]);
-  const ySync = useTransform(distance, [-160, -80, 0, 80, 160], [0, -10, -22, -10, 0]);
+  // Pure GPU transform scale and rise (does NOT resize parent DOM container)
+  const scaleSync = useTransform(distance, [-160, -75, 0, 75, 160], [1, 1.15, 1.30, 1.15, 1]);
+  const ySync = useTransform(distance, [-160, -75, 0, 75, 160], [0, -6, -14, -6, 0]);
 
-  // High performance spring physics
-  const width = useSpring(widthSync, { mass: 0.1, stiffness: 220, damping: 15 });
-  const y = useSpring(ySync, { mass: 0.1, stiffness: 220, damping: 15 });
+  // Buttery-smooth spring physics
+  const scale = useSpring(scaleSync, { mass: 0.08, stiffness: 280, damping: 20 });
+  const y = useSpring(ySync, { mass: 0.08, stiffness: 280, damping: 20 });
 
   const isHovered = hoveredId === item.id;
   const IconComponent = item.component;
@@ -228,7 +227,7 @@ function MacDockItem({
   return (
     <div
       ref={ref}
-      className="relative flex flex-col items-center justify-end"
+      className="relative flex flex-col items-center justify-center w-12 sm:w-14 h-16 sm:h-18"
       onMouseEnter={() => setHoveredId(item.id)}
       onMouseLeave={() => setHoveredId(null)}
     >
@@ -240,25 +239,25 @@ function MacDockItem({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 6, scale: 0.92 }}
             transition={{ duration: 0.15, ease: "easeOut" }}
-            className="absolute -top-12 left-1/2 -translate-x-1/2 pointer-events-none z-40 whitespace-nowrap"
+            className="absolute -top-10 left-1/2 -translate-x-1/2 pointer-events-none z-40 whitespace-nowrap"
           >
-            <div className="relative px-3.5 py-1.5 rounded-xl bg-white border border-indigo-200/90 shadow-[0_4px_20px_rgba(99,102,241,0.18),0_2px_6px_rgba(0,0,0,0.04)] text-[12px] sm:text-[13px] font-semibold text-slate-800">
+            <div className="relative px-3 py-1 rounded-xl bg-white border border-indigo-200/90 shadow-[0_4px_18px_rgba(99,102,241,0.16)] text-[11px] sm:text-[12px] font-semibold text-slate-800">
               {item.name}
               {/* Tooltip triangle indicator */}
-              <div className="absolute -bottom-[5px] left-1/2 -translate-x-1/2 w-2.5 h-2.5 bg-white border-b border-r border-indigo-200/90 rotate-45" />
+              <div className="absolute -bottom-[4px] left-1/2 -translate-x-1/2 w-2 h-2 bg-white border-b border-r border-indigo-200/90 rotate-45" />
             </div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Animated Scale & Rise Icon */}
+      {/* Animated Scale & Rise Icon without layout shift */}
       <motion.button
         type="button"
         aria-label={item.name}
-        style={{ width, y }}
-        className="focus:outline-none cursor-pointer select-none origin-bottom flex items-center justify-center p-1"
+        style={{ scale, y }}
+        className="focus:outline-none cursor-pointer select-none origin-bottom flex items-center justify-center w-full h-full p-0.5"
       >
-        <div className="w-full aspect-[54/68] flex items-center justify-center drop-shadow-[0_4px_10px_rgba(0,0,0,0.08)] transition-transform">
+        <div className="w-11 sm:w-13 aspect-[54/68] flex items-center justify-center drop-shadow-[0_4px_10px_rgba(0,0,0,0.08)]">
           <IconComponent className="w-full h-full object-contain" />
         </div>
       </motion.button>
@@ -284,19 +283,17 @@ export default function ProductsRibbon() {
           </p>
         </div>
 
-        {/* Mac Dock Container */}
-        <div className="relative pt-8 pb-4">
+        {/* Stable Sized Mac Dock Container with Increased Gap */}
+        <div className="relative pt-6 pb-2">
           <motion.div
             onMouseMove={(e) => mouseX.set(e.pageX)}
             onMouseLeave={() => {
               mouseX.set(Infinity);
               setHoveredId(null);
             }}
-            className="relative px-6 sm:px-8 py-3 rounded-2xl sm:rounded-3xl bg-white/90 backdrop-blur-md border border-indigo-200/70 shadow-[0_12px_36px_-6px_rgba(99,102,241,0.14),0_2px_10px_rgba(0,0,0,0.03)] flex items-end justify-center gap-3 sm:gap-4"
+            className="relative px-7 sm:px-10 py-3.5 sm:py-4 rounded-2xl sm:rounded-3xl bg-white/90 backdrop-blur-md border border-indigo-200/70 neon-border-glow shadow-[0_10px_30px_-5px_rgba(99,102,241,0.12),0_2px_8px_rgba(0,0,0,0.02)] hover:shadow-[0_14px_36px_-5px_rgba(99,102,241,0.22)] transition-all flex items-center justify-center gap-4 sm:gap-6"
           >
-            {/* Ambient left & right subtle neon glows */}
-            <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-10 bg-indigo-400/40 rounded-r-full blur-[2px]" />
-            <div className="absolute right-0 top-1/2 -translate-y-1/2 w-1.5 h-10 bg-indigo-400/40 rounded-l-full blur-[2px]" />
+            
 
             {products.map((item) => (
               <MacDockItem

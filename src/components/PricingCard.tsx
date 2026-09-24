@@ -38,7 +38,7 @@ export const PricingCard: React.FC<PricingCardProps> = ({
 
   return (
     <div
-      className={`relative w-full rounded-[30px] transition-all duration-300 flex flex-col justify-between ${
+      className={`relative w-full rounded-[30px] neon-border-glow transition-all duration-300 flex flex-col justify-between ${
         isHighlighted
           ? "bg-[#444AF4] text-white shadow-[0_25px_60px_-10px_rgba(68,74,244,0.48)] border border-[#6B71FF]/35 p-7 lg:p-8 lg:-translate-y-12 lg:scale-[1.03] z-10 hover:shadow-[0_30px_70px_-8px_rgba(68,74,244,0.58)]"
           : "bg-white text-slate-900 shadow-[0_20px_45px_-10px_rgba(56,88,246,0.18)] border-2 border-[#DCE4FE] p-7 lg:p-8 hover:shadow-[0_25px_50px_-8px_rgba(56,88,246,0.24)] hover:-translate-y-1"

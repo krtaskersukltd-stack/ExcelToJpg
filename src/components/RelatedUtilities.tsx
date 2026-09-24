@@ -82,7 +82,7 @@ export default function RelatedUtilities({ onSelectTool }: { onSelectTool?: (nam
               viewport={{ once: true }}
               transition={{ duration: 0.4, delay: idx * 0.08 }}
               onClick={() => onSelectTool && onSelectTool(item.title)}
-              className="cursor-pointer group rounded-2xl p-5 bg-[#F9FBFE] hover:bg-[#F0F6FE] neon-border-glow shadow-xs hover:shadow-md hover:shadow-blue-500/15 transition-all duration-200 flex items-center justify-between gap-4"
+              className="cursor-pointer group rounded-2xl p-5 bg-[#F9FBFE] hover:bg-[#F0F6FE] border border-slate-200/70 neon-border-glow shadow-xs hover:shadow-md hover:shadow-blue-500/15 transition-all duration-200 flex items-center justify-between gap-4"
             >
               <div className="flex items-center gap-3.5 min-w-0">
                 {/* Badge Icon */}

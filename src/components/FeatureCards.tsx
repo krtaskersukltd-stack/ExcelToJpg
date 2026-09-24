@@ -191,7 +191,7 @@ export default function FeatureCards() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.45, delay: idx * 0.12 }}
-              className="relative rounded-[28px] p-6 sm:p-7 bg-white neon-border-glow shadow-[0_10px_30px_-5px_rgba(59,130,246,0.07),0_2px_8px_rgba(0,0,0,0.02)] hover:shadow-[0_20px_45px_-8px_rgba(59,130,246,0.14)] hover:-translate-y-1.5 transition-all duration-300 flex flex-col items-center"
+              className="relative rounded-[28px] p-6 sm:p-7 bg-white border border-slate-200/80 neon-border-glow shadow-[0_10px_30px_-5px_rgba(59,130,246,0.07),0_2px_8px_rgba(0,0,0,0.02)] hover:shadow-[0_20px_45px_-8px_rgba(59,130,246,0.18)] hover:-translate-y-1.5 transition-all duration-300 flex flex-col items-center"
             >
               {/* Top Graphic Card Mockup */}
               <div className="w-full">

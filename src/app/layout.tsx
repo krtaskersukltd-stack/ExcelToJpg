@@ -45,7 +45,7 @@ export default function RootLayout({
           href="https://api.fontshare.com/v2/css?f[]=satoshi@900,800,700,600,500,400&display=swap"
         />
       </head>
-      <body className="font-sans antialiased bg-[#FAFBFD] text-slate-900 selection:bg-blue-600 selection:text-white min-h-screen overflow-x-hidden">
+      <body className="font-sans antialiased bg-[#FAFBFD] text-slate-900 selection:bg-blue-600 selection:text-white min-h-screen overflow-x-clip">
         {children}
       </body>
     </html>

@@ -1,0 +1,10 @@
+pandas
+pillow
+fastapi
+uvicorn
+imgkit
+openpyxl
+python-multipart
+python-docx
+fpdf2
+requests

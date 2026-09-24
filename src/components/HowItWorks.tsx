@@ -34,7 +34,7 @@ export default function HowItWorks() {
               <div>
                 {/* Number & Top-Right Icon */}
                 <div className="flex items-center justify-between mb-4">
-                  <span className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+                  <span className="text-3xl sm:text-4xl font-medium text-slate-900 tracking-tight">
                     01
                   </span>
                   <div className="w-8 h-8 rounded-full bg-[#EEF4FF] flex items-center justify-center text-[#355BFF]">
@@ -54,7 +54,7 @@ export default function HowItWorks() {
               </div>
 
               {/* Bottom Preview Pill Card */}
-              <div className="mt-8 p-3 bg-white rounded-2xl border border-blue-200/80 shadow-[0_4px_16px_rgba(53,91,255,0.12)] flex items-center gap-3">
+              <div className="mt-8 p-3 bg-white rounded-2xl border border-blue-200/80 neon-border-glow shadow-[0_4px_16px_rgba(53,91,255,0.12)] hover:shadow-[0_6px_20px_rgba(53,91,255,0.18)] transition-all flex items-center gap-3">
                 <div className="w-8 h-8 rounded-xl bg-[#DEE7FF] text-[#355BFF] flex items-center justify-center shrink-0">
                   <FileText className="w-4 h-4 stroke-[2.2]" />
                 </div>
@@ -70,7 +70,7 @@ export default function HowItWorks() {
               <div>
                 {/* Number & Top-Right Icon */}
                 <div className="flex items-center justify-between mb-4">
-                  <span className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+                  <span className="text-3xl sm:text-4xl font-medium text-slate-900 tracking-tight">
                     02
                   </span>
                   <div className="w-8 h-8 rounded-full bg-[#EEF4FF] flex items-center justify-center text-[#355BFF]">
@@ -90,7 +90,7 @@ export default function HowItWorks() {
               </div>
 
               {/* Bottom Preview Pill Card */}
-              <div className="mt-8 p-3.5 bg-white rounded-2xl border-2 border-[#355BFF] shadow-[0_4px_16px_rgba(53,91,255,0.15)] flex items-center justify-between">
+              <div className="mt-8 p-6 bg-white rounded-2xl border border-blue-200/80 neon-border-glow shadow-[0_4px_16px_rgba(53,91,255,0.15)] hover:shadow-[0_6px_20px_rgba(53,91,255,0.22)] transition-all flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <span className="w-2 h-2 rounded-full bg-[#355BFF]"></span>
                   <span className="text-xs font-semibold text-slate-800">Rendering Canvas</span>
@@ -106,7 +106,7 @@ export default function HowItWorks() {
               <div>
                 {/* Number & Top-Right Icon */}
                 <div className="flex items-center justify-between mb-4">
-                  <span className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+                  <span className="text-3xl sm:text-4xl font-medium text-slate-900 tracking-tight">
                     03
                   </span>
                   <div className="w-8 h-8 rounded-full bg-[#EEF4FF] flex items-center justify-center text-[#355BFF]">
@@ -126,12 +126,12 @@ export default function HowItWorks() {
               </div>
 
               {/* Bottom Preview Pill Card */}
-              <div className="mt-8 p-3 bg-white rounded-2xl border border-blue-200/80 shadow-[0_4px_16px_rgba(53,91,255,0.12)] flex items-center justify-between gap-2">
+              <div className="mt-8 p-4 bg-white rounded-2xl border border-blue-200/80 neon-border-glow shadow-[0_4px_16px_rgba(53,91,255,0.12)] hover:shadow-[0_6px_20px_rgba(53,91,255,0.18)] transition-all flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2 truncate">
                   <Check className="w-4 h-4 text-[#355BFF] stroke-[2.5] shrink-0" />
                   <span className="text-xs font-semibold text-slate-800 truncate">Sheet_1_Export.jpg</span>
                 </div>
-                <button className="bg-[#355BFF] hover:bg-blue-700 text-white text-[11px] font-semibold px-4 py-1.5 rounded-full shadow-xs transition-colors shrink-0 cursor-pointer">
+                <button className="btn-gradient-border bg-[#355BFF] hover:bg-blue-700 text-white text-[11px] font-semibold px-4 py-1.5 rounded-full shadow-xs transition-colors shrink-0 cursor-pointer">
                   Save
                 </button>
               </div>

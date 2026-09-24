@@ -3,13 +3,13 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { 
-  ChevronDown, 
-  Menu, 
-  X, 
-  FileSpreadsheet, 
-  FileText, 
-  Image as ImageIcon, 
+import {
+  ChevronDown,
+  Menu,
+  X,
+  FileSpreadsheet,
+  FileText,
+  Image as ImageIcon,
   Sparkles,
   Layers
 } from "lucide-react";
@@ -20,7 +20,7 @@ export const toolsList = [
   { name: "Excel to PNG", desc: "Lossless transparent output", icon: Layers, href: "#related-tools" },
   { name: "Excel to PDF", desc: "Print-ready vectorized sheets", icon: FileText, href: "#related-tools" },
   { name: "JPG to Excel", desc: "Extract table data via OCR", icon: FileSpreadsheet, href: "#related-tools" },
-  { name: "PNG to Excel", desc: "Turn screenshots back to tables", icon: FileSpreadsheet, href: "#related-tools" },
+  { name: "PNG to Excel=", desc: "Turn screenshots back to tables", icon: FileSpreadsheet, href: "#related-tools" },
   { name: "PDF to Excel", desc: "Reconstruct PDF tables to XLSX", icon: FileSpreadsheet, href: "#related-tools" },
   { name: "CSV to Excel", desc: "Format comma separated datasets", icon: FileSpreadsheet, href: "#related-tools" },
   { name: "Excel Formula Generator", desc: "AI-assisted spreadsheet formulas", icon: Sparkles, href: "#products", highlight: true },
@@ -42,11 +42,11 @@ export default function Navbar({ onOpenUploadModal }: { onOpenUploadModal?: () =
   }, []);
 
   return (
-    <header 
+    <header
       className={`top-0 left-0 right-0 z-50 transition-all duration-300 py-4 sm:py-5`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
-        
+
         {/* Brand Logo matching user's /logo.png */}
         <Link href="/" className="group inline-flex items-center">
           <div className="relative h-24 sm:h-14 w-auto flex items-center transition-transform duration-200 group-hover:scale-105">
@@ -62,23 +62,23 @@ export default function Navbar({ onOpenUploadModal }: { onOpenUploadModal?: () =
         </Link>
 
         {/* Center Floating Pill Navigation Bar (Desktop) */}
-        <nav className="hidden lg:flex items-center gap-1 p-4 backdrop-blur-xl rounded-full border">
+        <nav className="hidden lg:flex items-center gap-1 p-4 bg-white/85 backdrop-blur-xl rounded-full border border-slate-200/80 neon-border-glow shadow-xs hover:shadow-[0_4px_24px_rgba(59,130,246,0.18)] transition-all">
           {/* Active Image To Text Button */}
-          <Link 
+          <Link
             href="#tools"
             className="px-5 py-2 text-xs font-semibold rounded-full bg-[#355BFF] text-white shadow-xs hover:bg-blue-700 transition-all duration-150"
           >
-            Image To Text
+            Excel to JPG
           </Link>
-          
-          <Link 
+
+          <Link
             href="#related-tools"
             className="px-4 py-2 text-xs font-medium text-slate-700 hover:text-blue-600 hover:bg-slate-50/70 rounded-full transition-colors"
           >
-            PDF To Excel
+            Excel To PNG
           </Link>
-          
-          <Link 
+
+          <Link
             href="#related-tools"
             className="px-4 py-2 text-xs font-medium text-slate-700 hover:text-blue-600 hover:bg-slate-50/70 rounded-full transition-colors"
           >
@@ -122,17 +122,15 @@ export default function Navbar({ onOpenUploadModal }: { onOpenUploadModal?: () =
                         key={item.name}
                         href={item.href}
                         onClick={() => setIsToolsOpen(false)}
-                        className={`flex items-start gap-3 p-2.5 rounded-xl transition-all ${
-                          item.highlight 
-                            ? "bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100/60" 
-                            : item.isCurrent 
-                            ? "bg-blue-50/50 text-blue-700" 
-                            : "hover:bg-slate-50 text-slate-700"
-                        }`}
+                        className={`flex items-start gap-3 p-2.5 rounded-xl transition-all ${item.highlight
+                            ? "bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100/60"
+                            : item.isCurrent
+                              ? "bg-blue-50/50 text-blue-700"
+                              : "hover:bg-slate-50 text-slate-700"
+                          }`}
                       >
-                        <div className={`p-2 rounded-lg mt-0.5 ${
-                          item.highlight ? "bg-blue-600 text-white" : item.isCurrent ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-600"
-                        }`}>
+                        <div className={`p-2 rounded-lg mt-0.5 ${item.highlight ? "bg-blue-600 text-white" : item.isCurrent ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-600"
+                          }`}>
                           <item.icon className="w-4 h-4" />
                         </div>
                         <div className="flex-1 min-w-0">
@@ -155,12 +153,12 @@ export default function Navbar({ onOpenUploadModal }: { onOpenUploadModal?: () =
 
         {/* Right Section: Actions Pill & Language Selector (Desktop) */}
         <div className="hidden lg:flex items-center gap-3">
-          
+
           {/* Right Floating Pill: Pricing + Login */}
-          <div className="flex items-center gap-1.5 p-4 bg-white/85 backdrop-blur-xl rounded-full neon-border-glow shadow-[0_4px_24px_rgba(59,130,246,0.12)]">
+          <div className="flex items-center gap-1.5 p-4 bg-white/85 backdrop-blur-xl rounded-full border border-slate-200/80 neon-border-glow shadow-xs hover:shadow-[0_4px_24px_rgba(59,130,246,0.18)] transition-all">
             {/* Pricing with Diamond / Crystal Icon */}
             <Link 
-              href="#pricing" 
+              href="/pricing" 
               className="flex items-center gap-1.5 px-4 py-2 text-xs font-medium text-slate-800 hover:text-blue-600 hover:bg-slate-50/70 rounded-full transition-colors"
             >
               <svg className="w-4 h-4 text-blue-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -172,7 +170,7 @@ export default function Navbar({ onOpenUploadModal }: { onOpenUploadModal?: () =
             </Link>
 
             {/* Login Pill Button */}
-            <button 
+            <button
               onClick={onOpenUploadModal}
               className="px-6 py-2 bg-[#355BFF] hover:bg-blue-700 text-white text-xs font-semibold rounded-full shadow-xs hover:shadow-md hover:shadow-blue-500/20 transition-all active:scale-95"
             >
@@ -205,9 +203,8 @@ export default function Navbar({ onOpenUploadModal }: { onOpenUploadModal?: () =
                         setSelectedLang(lang);
                         setIsLangOpen(false);
                       }}
-                      className={`w-full text-left px-3 py-1.5 text-xs font-medium transition-colors ${
-                        selectedLang === lang ? "text-blue-600 bg-blue-50 font-semibold" : "text-slate-600 hover:bg-slate-50"
-                      }`}
+                      className={`w-full text-left px-3 py-1.5 text-xs font-medium transition-colors ${selectedLang === lang ? "text-blue-600 bg-blue-50 font-semibold" : "text-slate-600 hover:bg-slate-50"
+                        }`}
                     >
                       {lang} {lang === "EN" && "(English)"}
                     </button>
@@ -220,7 +217,7 @@ export default function Navbar({ onOpenUploadModal }: { onOpenUploadModal?: () =
 
         {/* Mobile View Toggle */}
         <div className="flex lg:hidden items-center gap-2">
-          <button 
+          <button
             onClick={onOpenUploadModal}
             className="px-4 py-1.5 bg-[#355BFF] text-white text-xs font-semibold rounded-full shadow-xs"
           >
@@ -246,29 +243,29 @@ export default function Navbar({ onOpenUploadModal }: { onOpenUploadModal?: () =
             className="lg:hidden border-b border-slate-200 bg-white/95 backdrop-blur-xl px-4 pt-3 pb-6 shadow-xl"
           >
             <div className="flex flex-col gap-2 pt-2">
-              <Link 
-                href="#tools" 
+              <Link
+                href="#tools"
                 onClick={() => setIsMobileMenuOpen(false)}
                 className="px-3.5 py-2 text-xs font-semibold text-white bg-[#355BFF] rounded-xl text-center"
               >
                 Image To Text
               </Link>
-              <Link 
-                href="#related-tools" 
+              <Link
+                href="#related-tools"
                 onClick={() => setIsMobileMenuOpen(false)}
                 className="px-3.5 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 rounded-xl"
               >
                 PDF To Excel
               </Link>
-              <Link 
-                href="#related-tools" 
+              <Link
+                href="#related-tools"
                 onClick={() => setIsMobileMenuOpen(false)}
                 className="px-3.5 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 rounded-xl"
               >
                 Excel To CSV
               </Link>
-              <Link 
-                href="#pricing" 
+              <Link
+                href="/pricing"
                 onClick={() => setIsMobileMenuOpen(false)}
                 className="px-3.5 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 rounded-xl flex items-center gap-2"
               >
