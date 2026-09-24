@@ -2,49 +2,11 @@
 
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-
-interface FaqItem {
-  id: string;
-  question: string;
-  answer: string;
-}
+import { useLanguage } from "@/context/LanguageContext";
 
 export default function FaqSection() {
-  const faqs: FaqItem[] = [
-    {
-      id: "faq-1",
-      question: "What is an Excel to JPG converter?",
-      answer:
-        "An Excel to JPG converter is a tool or feature that turns a Microsoft Excel spreadsheet (.xls or .xlsx) into a high-quality JPEG image",
-    },
-    {
-      id: "faq-2",
-      question: "How do I convert Excel to JPG?",
-      answer:
-        "Simply upload your spreadsheet into our dropzone above, select your desired DPI rendering quality, and click download. Your high-resolution JPG will be generated and saved in seconds.",
-    },
-    {
-      id: "faq-3",
-      question: "Can XLSX files be converted to JPG?",
-      answer:
-        "Yes, our converter provides complete support for modern .xlsx workbooks, legacy .xls sheets, .csv data tables, and macro-enabled .xlsm workbooks.",
-    },
-    {
-      id: "faq-4",
-      question: "Can individual spreadsheet sheets be converted?",
-      answer:
-        "Yes! You can preview individual sheets, select specific tabs to export as standalone JPG images, or grab all sheets bundled into an organized ZIP archive.",
-    },
-    {
-      id: "faq-5",
-      question: "What is the difference between JPG and PNG for spreadsheets?",
-      answer:
-        "JPG is ideal for standard presentations, documents, Slack messages, and email reports with compact file sizes. PNG provides lossless rasterization with support for transparent background areas.",
-    },
-  ];
-
-  // Default first item open matching the Figma design screenshot
-  const [openId, setOpenId] = useState<string | null>("faq-1");
+  const { t } = useLanguage();
+  const [openId, setOpenId] = useState<string | null>("faq-0");
 
   const toggleFaq = (id: string) => {
     setOpenId(openId === id ? null : id);
@@ -57,21 +19,22 @@ export default function FaqSection() {
         {/* Section Heading */}
         <div className="text-center space-y-2.5 mb-14 sm:mb-16">
           <h2 className="text-3xl sm:text-4xl lg:text-[40px] font-extrabold text-[#0F172A] tracking-tight">
-            Frequently Asked Questions
+            {t.faq.title}
           </h2>
           <p className="text-sm sm:text-base text-slate-500 font-normal">
-            Everything you need to know about Excel to JPG conversion.
+            {t.faq.subtitle}
           </p>
         </div>
 
         {/* FAQ List */}
         <div className="space-y-3 sm:space-y-4">
-          {faqs.map((faq) => {
-            const isOpen = openId === faq.id;
+          {t.faq.items.map((faq, idx) => {
+            const faqId = `faq-${idx}`;
+            const isOpen = openId === faqId;
 
             return (
               <motion.div
-                key={faq.id}
+                key={faqId}
                 initial={false}
                 animate={{
                   backgroundColor: isOpen ? "#FFFFFF" : "rgba(255, 255, 255, 0)",
@@ -84,12 +47,12 @@ export default function FaqSection() {
               >
                 <button
                   type="button"
-                  onClick={() => toggleFaq(faq.id)}
+                  onClick={() => toggleFaq(faqId)}
                   className="w-full text-left p-5 sm:p-6 flex items-start justify-between gap-4 cursor-pointer select-none group"
                 >
                   <div className="flex-1 pr-2">
                     <span className="text-base sm:text-[19px] font-bold text-[#0F172A] tracking-tight block leading-snug">
-                      {faq.question}
+                      {faq.q}
                     </span>
 
                     {/* Expanded Answer Content */}
@@ -104,7 +67,7 @@ export default function FaqSection() {
                           className="overflow-hidden"
                         >
                           <p className="text-sm sm:text-[15px] text-slate-600 leading-relaxed max-w-2xl font-normal">
-                            {faq.answer}
+                            {faq.a}
                           </p>
                         </motion.div>
                       )}
@@ -120,7 +83,6 @@ export default function FaqSection() {
                     }`}
                   >
                     {isOpen ? (
-                      /* Active Down-Left Arrow (White) */
                       <svg
                         viewBox="0 0 24 24"
                         className="w-5 h-5 text-white"
@@ -134,7 +96,6 @@ export default function FaqSection() {
                         <path d="M17 17H7V7" />
                       </svg>
                     ) : (
-                      /* Inactive Up-Right Arrow (Blue) */
                       <svg
                         viewBox="0 0 24 24"
                         className="w-5 h-5 text-[#3B66FF]"

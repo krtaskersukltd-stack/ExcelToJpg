@@ -3,7 +3,10 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 
+import { useLanguage } from "@/context/LanguageContext";
+
 export default function SpreadsheetShowcase() {
+  const { t } = useLanguage();
   const [isRendering, setIsRendering] = useState(false);
 
   const triggerRenderAnimation = () => {
@@ -20,11 +23,11 @@ export default function SpreadsheetShowcase() {
         {/* Section Heading */}
         <div className="text-center space-y-3 mb-14 sm:mb-16">
           <h2 className="text-3xl sm:text-4xl lg:text-[42px] font-extrabold text-[#0F172A] tracking-tight leading-tight">
-            Turn Your Spreadsheet Into a<br />
-            <span className="text-[#3B66FF]">Shareable</span> Image
+            {t.showcase.title1}<br />
+            <span className="text-[#3B66FF]">{t.showcase.titleHighlight}</span> {t.showcase.title2}
           </h2>
           <p className="text-sm sm:text-base text-slate-600 max-w-2xl mx-auto font-normal leading-relaxed">
-            Embed complex data tables directly into presentations, Slack messages, social feeds, and emails without formatting headaches.
+            {t.showcase.subtitle}
           </p>
         </div>
 

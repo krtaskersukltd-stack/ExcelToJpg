@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import { CheckCircle2, XCircle, Sparkles, ArrowRight } from "lucide-react";
+import { CheckCircle2, XCircle } from "lucide-react";
 import confetti from "canvas-confetti";
 import Navbar from "@/components/Navbar";
 import { PricingSection } from "@/components/PricingSection";
@@ -10,8 +10,10 @@ import FaqSection from "@/components/FaqSection";
 import CtaBanner from "@/components/CtaBanner";
 import Footer from "@/components/Footer";
 import LiveConverterModal from "@/components/LiveConverterModal";
+import { useLanguage } from "@/context/LanguageContext";
 
 function PaymentStatusNotification() {
+  const { t } = useLanguage();
   const searchParams = useSearchParams();
   const status = searchParams.get("status");
   const planName = searchParams.get("plan");
@@ -43,13 +45,13 @@ function PaymentStatusNotification() {
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h4 className="font-bold text-sm sm:text-base">Payment Confirmed by Stripe!</h4>
+                <h4 className="font-bold text-sm sm:text-base">{t.pricingPage.paymentSuccess}</h4>
                 <span className="px-2 py-0.5 rounded-full bg-emerald-200 text-emerald-800 text-[10px] font-extrabold uppercase">
                   Active
                 </span>
               </div>
               <p className="text-xs text-emerald-700 mt-0.5">
-                Your {planName || "Membership"} is now unlocked with instant extraction credits.
+                {planName ? `${planName}: ` : ""}{t.pricingPage.paymentSuccessDesc}
               </p>
             </div>
           </div>
@@ -57,7 +59,7 @@ function PaymentStatusNotification() {
             onClick={() => setVisible(false)}
             className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-semibold shrink-0 transition-all cursor-pointer"
           >
-            Dismiss
+            {t.pricingPage.dismiss}
           </button>
         </div>
       ) : (
@@ -67,9 +69,9 @@ function PaymentStatusNotification() {
               <XCircle className="w-6 h-6" />
             </div>
             <div>
-              <h4 className="font-bold text-sm">Checkout Cancelled</h4>
+              <h4 className="font-bold text-sm">{t.pricingPage.paymentCancelled}</h4>
               <p className="text-xs text-amber-700">
-                Your card was not charged. You can choose a plan whenever you are ready.
+                {t.pricingPage.paymentCancelledDesc}
               </p>
             </div>
           </div>
@@ -77,7 +79,7 @@ function PaymentStatusNotification() {
             onClick={() => setVisible(false)}
             className="px-3 py-1.5 bg-amber-100 hover:bg-amber-200 text-amber-800 rounded-lg text-xs font-semibold shrink-0 transition-all cursor-pointer"
           >
-            Close
+            {t.pricingPage.close}
           </button>
         </div>
       )}
@@ -88,20 +90,15 @@ function PaymentStatusNotification() {
 export default function PricingPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [customFileName, setCustomFileName] = useState("Annual_Q4_Summary.xlsx");
-  const [customFileSize, setCustomFileSize] = useState("1.4 MB");
 
   const handleOpenConverter = (fileName?: string) => {
-    if (fileName) {
-      setCustomFileName(fileName);
-      setCustomFileSize("2.4 MB");
-    }
+    if (fileName) setCustomFileName(fileName);
     setIsModalOpen(true);
   };
 
   return (
-    <main className="min-h-screen flex flex-col bg-[#FAFBFD] text-slate-900 selection:bg-blue-600 selection:text-white">
-      {/* Main Content Layer (Navbar, Pricing, FAQs, CTA Banner) */}
-      <div className="relative z-20 bg-[#FAFBFD] shadow-[0_30px_70px_-15px_rgba(15,23,42,0.22)]">
+    <div className="min-h-screen bg-[#FAFBFD] flex flex-col justify-between">
+      <div>
         {/* Top Navbar */}
         <Navbar onOpenUploadModal={() => handleOpenConverter()} />
 
@@ -115,25 +112,23 @@ export default function PricingPage() {
           <PricingSection />
         </div>
 
-        {/* Frequently Asked Questions */}
+        {/* FAQ Accordion Section */}
         <FaqSection />
 
-        {/* Sticky CTA Banner ('Ready to Convert Your Excel File?') */}
+        {/* Call to Action Banner */}
         <CtaBanner onScrollToUpload={() => handleOpenConverter()} />
       </div>
 
-      {/* Sticky Curtain Reveal Footer (Reveals from underneath the CTA Banner) */}
-      <div className="sticky bottom-0 z-10 w-full">
-        <Footer />
-      </div>
+      {/* Global Footer */}
+      <Footer />
 
-      {/* Global Interactive Converter Modal */}
+      {/* Live Converter Modal */}
       <LiveConverterModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         fileName={customFileName}
-        fileSize={customFileSize}
+        fileSize="1.4 MB"
       />
-    </main>
+    </div>
   );
 }

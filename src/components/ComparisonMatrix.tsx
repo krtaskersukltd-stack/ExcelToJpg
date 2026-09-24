@@ -2,8 +2,11 @@
 
 import React from "react";
 import { motion } from "framer-motion";
+import { useLanguage } from "@/context/LanguageContext";
 
 export default function ComparisonMatrix() {
+  const { t } = useLanguage();
+
   return (
     <section className="py-20 bg-[#FAFBFD] relative">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -11,10 +14,10 @@ export default function ComparisonMatrix() {
         {/* Section Heading */}
         <div className="text-center space-y-3 mb-14">
           <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 tracking-tight">
-            From Spreadsheet to <span className="text-[#355BFF]">JPG</span>
+            {t.comparison.titlePrefix} <span className="text-[#355BFF]">{t.comparison.titleHighlight}</span>
           </h2>
           <p className="text-sm sm:text-base text-slate-500 max-w-2xl mx-auto">
-            Compare original raw spreadsheet layout against the pristine, non-editable JPG render.
+            {t.comparison.subtitle}
           </p>
         </div>
 
@@ -34,14 +37,14 @@ export default function ComparisonMatrix() {
               <div className="p-1 sm:p-1.5 bg-white rounded-full border border-blue-200/70 shadow-[0_2px_12px_rgba(59,130,246,0.06)] flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2 sm:gap-3">
                   <span className="px-3.5 py-1 bg-[#355BFF] text-white text-[11px] font-bold rounded-full uppercase tracking-wider">
-                    SOURCE
+                    {t.comparison.sourceBadge}
                   </span>
                   <span className="text-sm sm:text-base font-bold text-slate-900">
-                    Editable Excel (.xlsx)
+                    {t.comparison.sourceTitle}
                   </span>
                 </div>
                 <span className="text-[11px] sm:text-xs text-slate-400 font-medium px-3 truncate">
-                  Requires Excel/Viewer
+                  {t.comparison.sourceNote}
                 </span>
               </div>
 
@@ -49,8 +52,8 @@ export default function ComparisonMatrix() {
               <div className="rounded-2xl border border-slate-200/80 bg-white shadow-[0_4px_20px_rgba(0,0,0,0.03)] p-5 sm:p-6 my-6">
                 {/* Card Top Row Header */}
                 <div className="flex items-center justify-between text-xs pb-1">
-                  <span className="font-semibold text-slate-800">Cell [A1:C1]</span>
-                  <span className="font-mono text-slate-700 font-medium">Formula: =NPV(0.08, C2:C12)</span>
+                  <span className="font-semibold text-slate-800">{t.comparison.sourceCell}</span>
+                  <span className="font-mono text-slate-700 font-medium">{t.comparison.sourceFormula}</span>
                 </div>
 
                 {/* Thin Sharp Blue Line Divider */}
@@ -83,11 +86,11 @@ export default function ComparisonMatrix() {
             <div className="space-y-2.5 pt-1 text-xs text-slate-600 font-medium">
               <div className="flex items-start gap-2">
                 <span className="text-[#355BFF] font-bold text-sm leading-none shrink-0">✕</span>
-                <span>Formulas can break or display #REF! errors on other devices</span>
+                <span>{t.comparison.bullets[1]}</span>
               </div>
               <div className="flex items-start gap-2">
                 <span className="text-[#355BFF] font-bold text-sm leading-none shrink-0">✕</span>
-                <span>Requires specialized software to view on mobile devices</span>
+                <span>{t.comparison.sourceNote}</span>
               </div>
             </div>
           </motion.div>
@@ -105,14 +108,14 @@ export default function ComparisonMatrix() {
               <div className="p-1 sm:p-1.5 bg-white rounded-full border border-blue-200/70 shadow-[0_2px_12px_rgba(59,130,246,0.06)] flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2 sm:gap-3">
                   <span className="px-3.5 py-1 bg-[#355BFF] text-white text-[11px] font-bold rounded-full uppercase tracking-wider">
-                    OUTPUT
+                    {t.comparison.outputBadge}
                   </span>
                   <span className="text-sm sm:text-base font-bold text-slate-900">
-                    Pixel-Perfect JPG (.jpg)
+                    {t.comparison.outputTitle}
                   </span>
                 </div>
                 <span className="text-[11px] sm:text-xs text-slate-400 font-medium px-3 truncate">
-                  Universal Compatibility
+                  {t.comparison.outputNote}
                 </span>
               </div>
 
@@ -120,8 +123,8 @@ export default function ComparisonMatrix() {
               <div className="rounded-2xl border border-slate-200/80 bg-white shadow-[0_4px_20px_rgba(0,0,0,0.03)] p-5 sm:p-6 my-6">
                 {/* Card Top Row Header */}
                 <div className="flex items-center justify-between text-xs pb-1">
-                  <span className="font-semibold text-slate-800">Financial Snapshot • Final</span>
-                  <span className="font-bold text-[#355BFF]">300 DPI Raster</span>
+                  <span className="font-semibold text-slate-800">{t.comparison.watermarkFree}</span>
+                  <span className="font-bold text-[#355BFF]">{t.comparison.outputDpi}</span>
                 </div>
 
                 {/* Thin Sharp Blue Line Divider */}
@@ -154,11 +157,11 @@ export default function ComparisonMatrix() {
             <div className="space-y-2.5 pt-1 text-xs text-slate-600 font-medium">
               <div className="flex items-start gap-2">
                 <span className="text-[#355BFF] font-bold text-sm leading-none shrink-0">✓</span>
-                <span>Unchangeable, tamper-proof presentation layout</span>
+                <span>{t.comparison.bullets[0]}</span>
               </div>
               <div className="flex items-start gap-2">
                 <span className="text-[#355BFF] font-bold text-sm leading-none shrink-0">✓</span>
-                <span>Instantly views anywhere: WhatsApp, Slack, Keynote, Notion</span>
+                <span>{t.comparison.bullets[3]}</span>
               </div>
             </div>
           </motion.div>

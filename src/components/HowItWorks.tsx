@@ -3,8 +3,11 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { FileText, RefreshCw, Image as ImageIcon, FileUp, Check } from "lucide-react";
+import { useLanguage } from "@/context/LanguageContext";
 
 export default function HowItWorks() {
+  const { t } = useLanguage();
+
   return (
     <section className="py-20 relative bg-[#FAFBFD]">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -12,10 +15,10 @@ export default function HowItWorks() {
         {/* Section Header */}
         <div className="text-center space-y-3 mb-14">
           <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 tracking-tight">
-            How to Convert <span className="text-[#355BFF]">JPG</span> to Excel?
+            {t.howItWorks.titlePrefix} <span className="text-[#355BFF]">{t.howItWorks.titleHighlight}</span> {t.howItWorks.titleSuffix}
           </h2>
           <p className="text-sm sm:text-base text-slate-500 max-w-2xl mx-auto">
-            The process is very simple, just follow these steps and get your JPG converted into Excel instantly.
+            {t.howItWorks.subtitle}
           </p>
         </div>
 
@@ -44,12 +47,12 @@ export default function HowItWorks() {
 
                 {/* Title */}
                 <h3 className="text-lg sm:text-xl font-bold text-[#355BFF] mb-2 tracking-tight">
-                  Upload Excel
+                  {t.howItWorks.step1Title}
                 </h3>
 
                 {/* Description */}
                 <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-                  Select your .xls, .xlsx, or .csv document from your device or drag it directly onto the upload zone.
+                  {t.howItWorks.step1Desc}
                 </p>
               </div>
 
@@ -59,8 +62,8 @@ export default function HowItWorks() {
                   <FileText className="w-4 h-4 stroke-[2.2]" />
                 </div>
                 <div className="truncate">
-                  <p className="text-xs font-semibold text-slate-800 truncate">Annual_Q4_Summary.xlsx</p>
-                  <p className="text-[10px] text-slate-400 font-medium">1.4 MB • Ready</p>
+                  <p className="text-xs font-semibold text-slate-800 truncate">{t.howItWorks.step1CardTitle}</p>
+                  <p className="text-[10px] text-slate-400 font-medium">{t.howItWorks.step1CardSize} • {t.howItWorks.step1CardStatus}</p>
                 </div>
               </div>
             </div>
@@ -80,12 +83,12 @@ export default function HowItWorks() {
 
                 {/* Title */}
                 <h3 className="text-lg sm:text-xl font-bold text-[#355BFF] mb-2 tracking-tight">
-                  Convert Your Sheet
+                  {t.howItWorks.step2Title}
                 </h3>
 
                 {/* Description */}
                 <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-                  Our render engine parses fonts, custom styles, merged cells, and graphics into razor sharp JPG pixels.
+                  {t.howItWorks.step2Desc}
                 </p>
               </div>
 
@@ -93,10 +96,10 @@ export default function HowItWorks() {
               <div className="mt-8 p-6 bg-white rounded-2xl border border-blue-200/80 neon-border-glow shadow-[0_4px_16px_rgba(53,91,255,0.15)] hover:shadow-[0_6px_20px_rgba(53,91,255,0.22)] transition-all flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <span className="w-2 h-2 rounded-full bg-[#355BFF]"></span>
-                  <span className="text-xs font-semibold text-slate-800">Rendering Canvas</span>
+                  <span className="text-xs font-semibold text-slate-800">{t.howItWorks.step2CardTitle}</span>
                 </div>
                 <span className="text-xs font-bold text-[#355BFF]">
-                  300 DPI
+                  {t.howItWorks.step2CardSpeed}
                 </span>
               </div>
             </div>
@@ -116,12 +119,12 @@ export default function HowItWorks() {
 
                 {/* Title */}
                 <h3 className="text-lg sm:text-xl font-bold text-[#355BFF] mb-2 tracking-tight">
-                  Download JPG
+                  {t.howItWorks.step3Title}
                 </h3>
 
                 {/* Description */}
                 <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-                  Instantly download individual sheet images or grab all worksheets bundled into a clean ZIP file.
+                  {t.howItWorks.step3Desc}
                 </p>
               </div>
 
@@ -129,10 +132,10 @@ export default function HowItWorks() {
               <div className="mt-8 p-4 bg-white rounded-2xl border border-blue-200/80 neon-border-glow shadow-[0_4px_16px_rgba(53,91,255,0.12)] hover:shadow-[0_6px_20px_rgba(53,91,255,0.18)] transition-all flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2 truncate">
                   <Check className="w-4 h-4 text-[#355BFF] stroke-[2.5] shrink-0" />
-                  <span className="text-xs font-semibold text-slate-800 truncate">Sheet_1_Export.jpg</span>
+                  <span className="text-xs font-semibold text-slate-800 truncate">{t.howItWorks.step3CardTitle}</span>
                 </div>
                 <button className="btn-gradient-border bg-[#355BFF] hover:bg-blue-700 text-white text-[11px] font-semibold px-4 py-1.5 rounded-full shadow-xs transition-colors shrink-0 cursor-pointer">
-                  Save
+                  {t.howItWorks.step3CardAction}
                 </button>
               </div>
             </div>

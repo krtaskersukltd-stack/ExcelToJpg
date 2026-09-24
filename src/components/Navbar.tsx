@@ -11,40 +11,31 @@ import {
   FileText,
   Image as ImageIcon,
   Sparkles,
-  Layers
+  Layers,
+  Globe
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useLanguage } from "@/context/LanguageContext";
 
-export const toolsList = [
-  { name: "Excel to JPG", desc: "High-DPI raster image export", icon: ImageIcon, isCurrent: true, href: "#" },
-  { name: "Excel to PNG", desc: "Lossless transparent output", icon: Layers, href: "#related-tools" },
-  { name: "Excel to PDF", desc: "Print-ready vectorized sheets", icon: FileText, href: "#related-tools" },
-  { name: "JPG to Excel", desc: "Extract table data via OCR", icon: FileSpreadsheet, href: "#related-tools" },
-  { name: "PNG to Excel=", desc: "Turn screenshots back to tables", icon: FileSpreadsheet, href: "#related-tools" },
-  { name: "PDF to Excel", desc: "Reconstruct PDF tables to XLSX", icon: FileSpreadsheet, href: "#related-tools" },
-  { name: "CSV to Excel", desc: "Format comma separated datasets", icon: FileSpreadsheet, href: "#related-tools" },
-  { name: "Excel Formula Generator", desc: "AI-assisted spreadsheet formulas", icon: Sparkles, href: "#products", highlight: true },
+const toolIcons = [
+  ImageIcon,
+  Layers,
+  FileText,
+  FileSpreadsheet,
+  FileSpreadsheet,
+  FileSpreadsheet,
+  FileSpreadsheet,
+  Sparkles,
 ];
 
 export default function Navbar({ onOpenUploadModal }: { onOpenUploadModal?: () => void }) {
-  const [isScrolled, setIsScrolled] = useState(false);
+  const { language, setLanguage, t, languages } = useLanguage();
   const [isToolsOpen, setIsToolsOpen] = useState(false);
   const [isLangOpen, setIsLangOpen] = useState(false);
-  const [selectedLang, setSelectedLang] = useState("EN");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 20);
-    };
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-
   return (
-    <header
-      className={`top-0 left-0 right-0 z-50 transition-all duration-300 py-4 sm:py-5`}
-    >
+    <header className="top-0 left-0 right-0 z-50 transition-all duration-300 py-4 sm:py-5">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
 
         {/* Brand Logo matching user's /logo.png */}
@@ -68,21 +59,21 @@ export default function Navbar({ onOpenUploadModal }: { onOpenUploadModal?: () =
             href="#tools"
             className="px-5 py-2 text-xs font-semibold rounded-full bg-[#355BFF] text-white shadow-xs hover:bg-blue-700 transition-all duration-150"
           >
-            Excel to JPG
+            {t.nav.excelToJpg}
           </Link>
 
           <Link
             href="#related-tools"
             className="px-4 py-2 text-xs font-medium text-slate-700 hover:text-blue-600 hover:bg-slate-50/70 rounded-full transition-colors"
           >
-            Excel To PNG
+            {t.nav.excelToPng}
           </Link>
 
           <Link
             href="#related-tools"
             className="px-4 py-2 text-xs font-medium text-slate-700 hover:text-blue-600 hover:bg-slate-50/70 rounded-full transition-colors"
           >
-            Excel To CSV
+            {t.nav.excelToCsv}
           </Link>
 
           {/* Tools Dropdown */}
@@ -90,7 +81,7 @@ export default function Navbar({ onOpenUploadModal }: { onOpenUploadModal?: () =
             <button
               onClick={() => setIsToolsOpen(!isToolsOpen)}
               onMouseEnter={() => setIsToolsOpen(true)}
-              className="flex items-center gap-1.5 px-4 py-2 text-xs font-medium text-slate-900 hover:text-blue-600 hover:bg-slate-50/70 rounded-full transition-colors"
+              className="flex items-center gap-1.5 px-4 py-2 text-xs font-medium text-slate-900 hover:text-blue-600 hover:bg-slate-50/70 rounded-full transition-colors cursor-pointer"
             >
               {/* 4-square Grid Icon */}
               <svg className="w-3.5 h-3.5 text-slate-900 fill-current" viewBox="0 0 16 16">
@@ -99,7 +90,7 @@ export default function Navbar({ onOpenUploadModal }: { onOpenUploadModal?: () =
                 <rect x="1" y="9" width="6" height="6" rx="1.5" />
                 <rect x="9" y="9" width="6" height="6" rx="1.5" />
               </svg>
-              <span>Tools</span>
+              <span>{t.nav.tools}</span>
               <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${isToolsOpen ? "rotate-180 text-blue-600" : "text-slate-500"}`} />
             </button>
 
@@ -114,36 +105,45 @@ export default function Navbar({ onOpenUploadModal }: { onOpenUploadModal?: () =
                   className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-80 bg-white rounded-2xl shadow-2xl border border-slate-100 p-2.5 z-50 overflow-hidden"
                 >
                   <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider px-3 py-1.5">
-                    Conversion Suite
+                    {t.nav.conversionSuite}
                   </div>
                   <div className="space-y-1">
-                    {toolsList.map((item) => (
-                      <Link
-                        key={item.name}
-                        href={item.href}
-                        onClick={() => setIsToolsOpen(false)}
-                        className={`flex items-start gap-3 p-2.5 rounded-xl transition-all ${item.highlight
-                            ? "bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100/60"
-                            : item.isCurrent
+                    {t.nav.toolsList.map((item, idx) => {
+                      const Icon = toolIcons[idx] || ImageIcon;
+                      const isHighlight = idx === t.nav.toolsList.length - 1;
+                      const isCurrent = idx === 0;
+                      return (
+                        <Link
+                          key={item.name}
+                          href={isHighlight ? "#products" : isCurrent ? "#" : "#related-tools"}
+                          onClick={() => setIsToolsOpen(false)}
+                          className={`flex items-start gap-3 p-2.5 rounded-xl transition-all ${
+                            isHighlight
+                              ? "bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100/60"
+                              : isCurrent
                               ? "bg-blue-50/50 text-blue-700"
                               : "hover:bg-slate-50 text-slate-700"
                           }`}
-                      >
-                        <div className={`p-2 rounded-lg mt-0.5 ${item.highlight ? "bg-blue-600 text-white" : item.isCurrent ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-600"
-                          }`}>
-                          <item.icon className="w-4 h-4" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-1.5">
-                            <span className="text-xs font-semibold text-slate-900">{item.name}</span>
-                            {item.highlight && (
-                              <span className="text-[10px] text-white font-bold px-1.5 py-0.2 rounded-full">AI</span>
-                            )}
+                        >
+                          <div
+                            className={`p-2 rounded-lg mt-0.5 ${
+                              isHighlight ? "bg-blue-600 text-white" : isCurrent ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-600"
+                            }`}
+                          >
+                            <Icon className="w-4 h-4" />
                           </div>
-                          <p className="text-[11px] text-slate-500 truncate">{item.desc}</p>
-                        </div>
-                      </Link>
-                    ))}
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-1.5">
+                              <span className="text-xs font-semibold text-slate-900">{item.name}</span>
+                              {isHighlight && (
+                                <span className="text-[10px] text-white bg-blue-600 font-bold px-1.5 py-0.2 rounded-full">AI</span>
+                              )}
+                            </div>
+                            <p className="text-[11px] text-slate-500 truncate">{item.desc}</p>
+                          </div>
+                        </Link>
+                      );
+                    })}
                   </div>
                 </motion.div>
               )}
@@ -166,15 +166,15 @@ export default function Navbar({ onOpenUploadModal }: { onOpenUploadModal?: () =
                 <path d="M11 3 8 9l4 12 4-12-3-6" />
                 <path d="M2 9h20" />
               </svg>
-              <span>Pricing</span>
+              <span>{t.nav.pricing}</span>
             </Link>
 
             {/* Login Pill Button */}
             <button
               onClick={onOpenUploadModal}
-              className="px-6 py-2 bg-[#355BFF] hover:bg-blue-700 text-white text-xs font-semibold rounded-full shadow-xs hover:shadow-md hover:shadow-blue-500/20 transition-all active:scale-95"
+              className="px-6 py-2 bg-[#355BFF] hover:bg-blue-700 text-white text-xs font-semibold rounded-full shadow-xs hover:shadow-md hover:shadow-blue-500/20 transition-all active:scale-95 cursor-pointer"
             >
-              Login
+              {t.nav.login}
             </button>
           </div>
 
@@ -182,10 +182,11 @@ export default function Navbar({ onOpenUploadModal }: { onOpenUploadModal?: () =
           <div className="relative">
             <button
               onClick={() => setIsLangOpen(!isLangOpen)}
-              className="flex items-center gap-1 text-xs font-semibold text-slate-800 hover:text-blue-600 px-2 py-1.5 rounded-lg hover:bg-slate-100/70 transition-colors"
+              className="flex items-center gap-1.5 text-xs font-semibold text-slate-800 hover:text-blue-600 px-3 py-2 rounded-full border border-slate-200/80 bg-white/90 hover:bg-white transition-all shadow-xs cursor-pointer"
             >
-              <span>{selectedLang}</span>
-              <ChevronDown className="w-3.5 h-3.5 text-slate-500" />
+              <Globe className="w-3.5 h-3.5 text-blue-600" />
+              <span>{language}</span>
+              <ChevronDown className={`w-3.5 h-3.5 text-slate-500 transition-transform ${isLangOpen ? "rotate-180" : ""}`} />
             </button>
 
             <AnimatePresence>
@@ -194,19 +195,21 @@ export default function Navbar({ onOpenUploadModal }: { onOpenUploadModal?: () =
                   initial={{ opacity: 0, y: 5 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: 5 }}
-                  className="absolute right-0 mt-1 w-28 bg-white rounded-xl shadow-lg border border-slate-100 py-1 z-50"
+                  className="absolute right-0 mt-2 w-36 bg-white rounded-2xl shadow-xl border border-slate-100 py-1.5 z-50 overflow-hidden"
                 >
-                  {["EN", "ES", "FR", "DE", "JA", "ZH"].map((lang) => (
+                  {languages.map((lang) => (
                     <button
-                      key={lang}
+                      key={lang.code}
                       onClick={() => {
-                        setSelectedLang(lang);
+                        setLanguage(lang.code);
                         setIsLangOpen(false);
                       }}
-                      className={`w-full text-left px-3 py-1.5 text-xs font-medium transition-colors ${selectedLang === lang ? "text-blue-600 bg-blue-50 font-semibold" : "text-slate-600 hover:bg-slate-50"
-                        }`}
+                      className={`w-full text-left px-3.5 py-2 text-xs font-medium transition-colors flex items-center justify-between cursor-pointer ${
+                        language === lang.code ? "text-blue-600 bg-blue-50/80 font-bold" : "text-slate-700 hover:bg-slate-50"
+                      }`}
                     >
-                      {lang} {lang === "EN" && "(English)"}
+                      <span>{lang.nativeLabel}</span>
+                      <span className="text-[10px] text-slate-400 font-mono">({lang.code})</span>
                     </button>
                   ))}
                 </motion.div>
@@ -217,15 +220,51 @@ export default function Navbar({ onOpenUploadModal }: { onOpenUploadModal?: () =
 
         {/* Mobile View Toggle */}
         <div className="flex lg:hidden items-center gap-2">
+          {/* Mobile Language Button */}
+          <div className="relative">
+            <button
+              onClick={() => setIsLangOpen(!isLangOpen)}
+              className="p-1.5 px-2.5 text-xs font-bold text-slate-700 bg-white border border-slate-200 rounded-full flex items-center gap-1"
+            >
+              <span>{language}</span>
+              <ChevronDown className="w-3 h-3 text-slate-500" />
+            </button>
+            <AnimatePresence>
+              {isLangOpen && (
+                <motion.div
+                  initial={{ opacity: 0, y: 5 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 5 }}
+                  className="absolute right-0 mt-1 w-32 bg-white rounded-xl shadow-xl border border-slate-100 py-1 z-50"
+                >
+                  {languages.map((lang) => (
+                    <button
+                      key={lang.code}
+                      onClick={() => {
+                        setLanguage(lang.code);
+                        setIsLangOpen(false);
+                      }}
+                      className={`w-full text-left px-3 py-1.5 text-xs font-medium ${
+                        language === lang.code ? "text-blue-600 bg-blue-50 font-bold" : "text-slate-700 hover:bg-slate-50"
+                      }`}
+                    >
+                      {lang.nativeLabel}
+                    </button>
+                  ))}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+
           <button
             onClick={onOpenUploadModal}
-            className="px-4 py-1.5 bg-[#355BFF] text-white text-xs font-semibold rounded-full shadow-xs"
+            className="px-4 py-1.5 bg-[#355BFF] text-white text-xs font-semibold rounded-full shadow-xs cursor-pointer"
           >
-            Login
+            {t.nav.login}
           </button>
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="p-2 text-slate-700 hover:text-slate-900 rounded-xl hover:bg-slate-100"
+            className="p-2 text-slate-700 hover:text-slate-900 rounded-xl hover:bg-slate-100 cursor-pointer"
           >
             {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
@@ -248,21 +287,21 @@ export default function Navbar({ onOpenUploadModal }: { onOpenUploadModal?: () =
                 onClick={() => setIsMobileMenuOpen(false)}
                 className="px-3.5 py-2 text-xs font-semibold text-white bg-[#355BFF] rounded-xl text-center"
               >
-                Image To Text
+                {t.nav.excelToJpg}
               </Link>
               <Link
                 href="#related-tools"
                 onClick={() => setIsMobileMenuOpen(false)}
                 className="px-3.5 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 rounded-xl"
               >
-                PDF To Excel
+                {t.nav.excelToPng}
               </Link>
               <Link
                 href="#related-tools"
                 onClick={() => setIsMobileMenuOpen(false)}
                 className="px-3.5 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 rounded-xl"
               >
-                Excel To CSV
+                {t.nav.excelToCsv}
               </Link>
               <Link
                 href="/pricing"
@@ -274,21 +313,24 @@ export default function Navbar({ onOpenUploadModal }: { onOpenUploadModal?: () =
                   <path d="M11 3 8 9l4 12 4-12-3-6" />
                   <path d="M2 9h20" />
                 </svg>
-                <span>Pricing</span>
+                <span>{t.nav.pricing}</span>
               </Link>
               <div className="border-t border-slate-100 my-2 pt-2">
-                <div className="text-[11px] font-semibold text-slate-400 px-3 py-1">ALL TOOLS</div>
-                {toolsList.map((tool) => (
-                  <Link
-                    key={tool.name}
-                    href={tool.href}
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    className="flex items-center gap-2 px-3 py-2 text-xs text-slate-600 hover:bg-slate-50 rounded-lg"
-                  >
-                    <tool.icon className="w-4 h-4 text-blue-600" />
-                    <span>{tool.name}</span>
-                  </Link>
-                ))}
+                <div className="text-[11px] font-semibold text-slate-400 px-3 py-1">{t.nav.allTools}</div>
+                {t.nav.toolsList.map((tool, idx) => {
+                  const Icon = toolIcons[idx] || ImageIcon;
+                  return (
+                    <Link
+                      key={tool.name}
+                      href={idx === 0 ? "#" : "#related-tools"}
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="flex items-center gap-2 px-3 py-2 text-xs text-slate-600 hover:bg-slate-50 rounded-lg"
+                    >
+                      <Icon className="w-4 h-4 text-blue-600" />
+                      <span>{tool.name}</span>
+                    </Link>
+                  );
+                })}
               </div>
             </div>
           </motion.div>

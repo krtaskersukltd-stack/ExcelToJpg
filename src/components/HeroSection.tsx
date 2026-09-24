@@ -11,6 +11,7 @@ import {
 import { motion } from "framer-motion";
 import LiveConverterModal from "./LiveConverterModal";
 import CloudImportModal, { GoogleDriveIcon, DropboxIcon } from "./CloudImportModal";
+import { useLanguage } from "@/context/LanguageContext";
 
 /* Exact Cloud Upload Icon matching user's uploaded icon */
 function CustomCloudUploadIcon({ className = "w-7 h-7 text-[#355BFF]" }: { className?: string }) {
@@ -35,6 +36,7 @@ function CustomCloudUploadIcon({ className = "w-7 h-7 text-[#355BFF]" }: { class
 }
 
 export default function HeroSection() {
+  const { t } = useLanguage();
   const [isDragging, setIsDragging] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [cloudModalOpen, setCloudModalOpen] = useState(false);
@@ -103,10 +105,10 @@ export default function HeroSection() {
           className="space-y-3 max-w-3xl mx-auto"
         >
           <h1 className="text-3xl sm:text-5xl lg:text-[48px] font-bold tracking-tight text-slate-900 leading-[1.2]">
-            Excel To <span className="text-[#355BFF]">JPG</span> Converter
+            {t.hero.titlePrefix} <span className="text-[#355BFF]">{t.hero.titleHighlight}</span> {t.hero.titleSuffix}
           </h1>
           <p className="text-sm sm:text-base text-slate-500 font-normal leading-relaxed max-w-xl mx-auto">
-            Convert Excel spreadsheets into clear, high-quality JPG images online. Upload your Excel file, convert it, and download your images in seconds.
+            {t.hero.subtitle}
           </p>
         </motion.div>
 
@@ -155,10 +157,10 @@ export default function HeroSection() {
 
                 {/* Title & Subtext */}
                 <h2 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
-                  Drop your Excel file here
+                  {t.hero.dropzoneTitle}
                 </h2>
                 <p className="text-xs sm:text-sm text-slate-500 mt-1 mb-5">
-                  or choose a file from your device
+                  {t.hero.dropzoneSubtitle}
                 </p>
 
                 {/* Hidden File Input */}
@@ -179,38 +181,38 @@ export default function HeroSection() {
                     className="flex items-center gap-2 px-5 py-2.5 bg-[#355BFF] hover:bg-blue-700 active:scale-95 text-white font-medium rounded-xl shadow-md shadow-blue-500/25 transition-all text-xs sm:text-sm cursor-pointer"
                   >
                     <Folder className="w-4 h-4 fill-white/20 stroke-[2]" />
-                    <span>Choose Excel File</span>
+                    <span>{t.hero.chooseFile}</span>
                   </button>
 
                   {/* Google Drive Integration */}
                   <button 
                     onClick={() => openCloudModal("gdrive")}
                     className="flex flex-col items-center justify-center p-1.5 hover:bg-white/80 rounded-xl transition-colors group cursor-pointer"
-                    title="Import from Google Drive"
+                    title={t.hero.googleDrive}
                   >
                     <GoogleDriveIcon className="w-6 h-6 group-hover:scale-110 transition-transform" />
-                    <span className="text-[10px] font-medium text-slate-700 mt-0.5">Google Drive</span>
+                    <span className="text-[10px] font-medium text-slate-700 mt-0.5">{t.hero.googleDrive}</span>
                   </button>
 
                   {/* Dropbox Integration */}
                   <button 
                     onClick={() => openCloudModal("dropbox")}
                     className="flex flex-col items-center justify-center p-1.5 hover:bg-white/80 rounded-xl transition-colors group cursor-pointer"
-                    title="Import from Dropbox"
+                    title={t.hero.dropbox}
                   >
                     <div className="w-6 h-6 rounded-[6px] bg-[#0061FF] flex items-center justify-center text-white shadow-xs group-hover:scale-110 transition-transform">
                       <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
                         <path d="M6 2l6 4-6 4-6-4 6-4zm12 0l6 4-6 4-6-4 6-4zM0 10l6 4-6 4-6-4 6-4zm24 0l-6 4 6 4 6-4-6-4zM6 18l6-4 6 4-6 4-6-4z"/>
                       </svg>
                     </div>
-                    <span className="text-[10px] font-medium text-slate-700 mt-0.5">Dropbox</span>
+                    <span className="text-[10px] font-medium text-slate-700 mt-0.5">{t.hero.dropbox}</span>
                   </button>
 
                   {/* Direct Link Chain Icon (Allows entering Google Drive / URL link) */}
                   <button 
                     onClick={() => openCloudModal("link")}
                     className="p-2 hover:bg-white/80 text-[#355BFF] hover:text-blue-700 rounded-xl transition-all group cursor-pointer"
-                    title="Enter Google Drive link or file URL"
+                    title={t.hero.urlLink}
                   >
                     <Link2 className="w-6 h-6 group-hover:scale-110 -rotate-45 stroke-[2.5]" />
                   </button>
@@ -235,17 +237,17 @@ export default function HeroSection() {
             <div className="pt-4 mt-2 border-t border-slate-100 flex flex-wrap items-center justify-center sm:justify-between gap-3 text-xs text-slate-600 relative z-10 bg-white">
               <div className="flex items-center gap-1.5">
                 <ShieldCheck className="w-4 h-4 text-[#355BFF]" />
-                <span>Max file size: <strong className="text-slate-800 font-semibold">50MB</strong></span>
+                <span>{t.hero.maxFileSize}</span>
               </div>
 
               <div className="flex items-center gap-1.5">
                 <Lock className="w-4 h-4 text-[#355BFF]" />
-                <span>Files permanently deleted after <strong className="text-slate-800 font-semibold">1 hour</strong></span>
+                <span>{t.hero.deletedAfter}</span>
               </div>
 
               <div className="flex items-center gap-1.5">
                 <Sparkles className="w-4 h-4 text-[#355BFF]" />
-                <span>High-DPI Render</span>
+                <span>{t.hero.highDpi}</span>
               </div>
             </div>
 

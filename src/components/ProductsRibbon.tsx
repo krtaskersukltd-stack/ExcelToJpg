@@ -265,7 +265,10 @@ function MacDockItem({
   );
 }
 
+import { useLanguage } from "@/context/LanguageContext";
+
 export default function ProductsRibbon() {
+  const { t } = useLanguage();
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const mouseX = useMotionValue(Infinity);
 
@@ -276,10 +279,10 @@ export default function ProductsRibbon() {
         {/* Section Heading */}
         <div className="space-y-3 mb-10 text-center">
           <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 tracking-tight">
-            Excel To <span className="text-[#355BFF]">JPG</span> Products
+            {t.products.titlePrefix} <span className="text-[#355BFF]">{t.products.titleHighlight}</span> {t.products.titleSuffix}
           </h2>
           <p className="text-sm sm:text-base text-slate-500 max-w-xl mx-auto">
-            Explore more of our file conversion tools to seamlessly switch between Excel, PDF, and CSV formats.
+            {t.products.subtitle}
           </p>
         </div>
 

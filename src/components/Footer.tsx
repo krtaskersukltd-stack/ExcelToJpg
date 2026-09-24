@@ -2,8 +2,11 @@
 
 import React from "react";
 import Link from "next/link";
+import { useLanguage } from "@/context/LanguageContext";
 
 export default function Footer() {
+  const { t } = useLanguage();
+
   return (
     <footer className="bg-[#FAFBFD] pt-12 pb-8 relative overflow-hidden">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -15,7 +18,7 @@ export default function Footer() {
             {/* Left Column: Description & Social Icons */}
             <div className="md:col-span-5 space-y-5">
               <p className="text-xs sm:text-sm text-slate-700 font-normal leading-relaxed max-w-xs">
-                The high-speed spreadsheet-to-image engine engineered for precision, pixel-perfection, and friction free asset export.
+                {t.footer.description}
               </p>
 
               {/* Social Media Icons (Solid Blue) */}
@@ -69,39 +72,37 @@ export default function Footer() {
             {/* Column 1: Company */}
             <div className="md:col-span-2 space-y-3">
               <h4 className="text-sm font-bold text-[#355BFF] tracking-tight">
-                Company
+                {t.footer.company}
               </h4>
               <ul className="space-y-2 text-xs sm:text-sm text-slate-700 font-normal">
-                <li><Link href="#about" className="hover:text-blue-600 transition-colors">About</Link></li>
-                <li><Link href="#contact" className="hover:text-blue-600 transition-colors">Contact</Link></li>
-                <li><Link href="#changelog" className="hover:text-blue-600 transition-colors">Changelog</Link></li>
-                <li><Link href="#careers" className="hover:text-blue-600 transition-colors">Careers</Link></li>
+                <li><Link href="#about" className="hover:text-blue-600 transition-colors">{t.footer.about}</Link></li>
+                <li><Link href="/pricing" className="hover:text-blue-600 transition-colors">{t.footer.pricing}</Link></li>
+                <li><Link href="#contact" className="hover:text-blue-600 transition-colors">{t.footer.contact}</Link></li>
               </ul>
             </div>
 
-            {/* Column 2: Resources */}
+            {/* Column 2: Products */}
             <div className="md:col-span-2 space-y-3">
               <h4 className="text-sm font-bold text-[#355BFF] tracking-tight">
-                Resources
+                {t.footer.products}
               </h4>
               <ul className="space-y-2 text-xs sm:text-sm text-slate-700 font-normal">
-                <li><Link href="#docs" className="hover:text-blue-600 transition-colors">Documentation</Link></li>
-                <li><Link href="#api" className="hover:text-blue-600 transition-colors">API Reference</Link></li>
-                <li><Link href="#formulas" className="hover:text-blue-600 transition-colors">Spreadsheet Formulas</Link></li>
-                <li><Link href="#batch" className="hover:text-blue-600 transition-colors">Batch Processing</Link></li>
+                <li><Link href="#tools" className="hover:text-blue-600 transition-colors">{t.footer.excelToJpg}</Link></li>
+                <li><Link href="#related-tools" className="hover:text-blue-600 transition-colors">{t.footer.excelToPng}</Link></li>
+                <li><Link href="#related-tools" className="hover:text-blue-600 transition-colors">{t.footer.excelToPdf}</Link></li>
+                <li><Link href="#related-tools" className="hover:text-blue-600 transition-colors">{t.footer.csvToExcel}</Link></li>
               </ul>
             </div>
 
             {/* Column 3: Legal */}
             <div className="md:col-span-3 space-y-3">
               <h4 className="text-sm font-bold text-[#355BFF] tracking-tight">
-                Legal
+                {t.footer.legal}
               </h4>
               <ul className="space-y-2 text-xs sm:text-sm text-slate-700 font-normal">
-                <li><Link href="#privacy" className="hover:text-blue-600 transition-colors">Privacy Policy</Link></li>
-                <li><Link href="#terms" className="hover:text-blue-600 transition-colors">Terms of Service</Link></li>
-                <li><Link href="#security" className="hover:text-blue-600 transition-colors">Security Overview</Link></li>
-                <li><Link href="#gdpr" className="hover:text-blue-600 transition-colors">GDPR Compliance</Link></li>
+                <li><Link href="#privacy" className="hover:text-blue-600 transition-colors">{t.footer.privacy}</Link></li>
+                <li><Link href="#terms" className="hover:text-blue-600 transition-colors">{t.footer.terms}</Link></li>
+                <li><Link href="#security" className="hover:text-blue-600 transition-colors">{t.footer.security}</Link></li>
               </ul>
             </div>
 
@@ -113,12 +114,11 @@ export default function Footer() {
           {/* Sub-Footer Row */}
           <div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-700 font-normal">
             <div>
-              @Excel To JPG. All rights reserved
+              {t.footer.rights}
             </div>
             <div className="flex items-center gap-4 sm:gap-6">
-              <Link href="#privacy" className="hover:text-blue-600 transition-colors">Privacy Policy</Link>
-              <Link href="#terms" className="hover:text-blue-600 transition-colors">Terms & Conditions</Link>
-              <Link href="#cookies" className="hover:text-blue-600 transition-colors">Cookies Settings</Link>
+              <Link href="#privacy" className="hover:text-blue-600 transition-colors">{t.footer.privacy}</Link>
+              <Link href="#terms" className="hover:text-blue-600 transition-colors">{t.footer.terms}</Link>
             </div>
           </div>
         </div>
