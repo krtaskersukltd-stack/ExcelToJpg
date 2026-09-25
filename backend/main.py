@@ -1,3 +1,4 @@
+import asyncio
 import os
 import random
 import tempfile
@@ -7,12 +8,18 @@ import ipaddress
 import socket
 import uuid
 import re
+import base64
+import hashlib
+import hmac
+import json
+import secrets
+import sqlite3
 from pathlib import Path
 from urllib.parse import urlparse
 import requests
 import pandas as pd
 from PIL import Image, ImageDraw, ImageFont
-from fastapi import FastAPI, File, UploadFile, Form, HTTPException
+from fastapi import FastAPI, File, UploadFile, Form, HTTPException, Request, Response, BackgroundTasks
 from fastapi.responses import JSONResponse, FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from docx import Document
@@ -44,26 +51,45 @@ project_dir = os.path.dirname(os.path.abspath(__file__))
 upload_dir = os.path.join(project_dir, "upload")
 input_dir = os.path.join(upload_dir, "input")
 output_dir = os.path.join(upload_dir, "output")
+auth_db_path = os.path.join(project_dir, "auth.db")
+AUTH_SECRET = os.getenv("AUTH_SECRET", "change-this-secret-in-production")
+SESSION_COOKIE = "excel_to_jpg_session"
+SESSION_MAX_AGE = 60 * 60 * 24 * 7
 
 os.makedirs(input_dir, exist_ok=True)
 os.makedirs(output_dir, exist_ok=True)
 
 
-TEMP_FILE_TTL_SECONDS = int(os.getenv("TEMP_FILE_TTL_SECONDS", "600"))  # Default 10 minutes temporary storage
+def init_auth_db():
+    with sqlite3.connect(auth_db_path) as connection:
+        connection.execute(
+            """
+            CREATE TABLE IF NOT EXISTS users (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                phone TEXT NOT NULL UNIQUE,
+                full_name TEXT NOT NULL,
+                username TEXT NOT NULL UNIQUE COLLATE NOCASE,
+                email TEXT UNIQUE COLLATE NOCASE,
+                password_hash TEXT NOT NULL,
+                created_at INTEGER NOT NULL
+            )
+            """
+        )
 
 
-def cleanup_expired_files(max_age_seconds=None):
-    """Remove abandoned inputs and expired conversion results (temporary storage only)."""
-    if max_age_seconds is None:
-        max_age_seconds = TEMP_FILE_TTL_SECONDS
-    cutoff = time.time() - max_age_seconds
-    for directory in (input_dir, output_dir):
-        for entry in Path(directory).iterdir():
-            if entry.name == ".gitkeep" or not entry.is_file():
-                continue
+init_auth_db()
+
+
+def delete_safe_file(filename: str):
+    """Safely removes an uploaded or converted file from input and output directories."""
+    safe_filename = os.path.basename(filename)
+    if not safe_filename or safe_filename != filename:
+        return
+    for d in (output_dir, input_dir):
+        fp = os.path.join(d, safe_filename)
+        if os.path.isfile(fp):
             try:
-                if entry.stat().st_mtime < cutoff:
-                    entry.unlink()
+                os.remove(fp)
             except OSError:
                 pass
 
@@ -73,10 +99,153 @@ app.add_middleware(
     allow_origins=[origin.strip() for origin in os.getenv(
         "FRONTEND_ORIGINS", "http://localhost:3000,http://127.0.0.1:3000"
     ).split(",") if origin.strip()],
-    allow_credentials=False,
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+class SignupRequest(BaseModel):
+    phone: str
+    full_name: str
+    username: str
+    password: str
+
+
+class LoginRequest(BaseModel):
+    identifier: str
+    password: str
+
+
+def password_is_strong(password: str) -> bool:
+    return (
+        len(password) >= 8
+        and re.search(r"[A-Z]", password) is not None
+        and re.search(r"[a-z]", password) is not None
+        and re.search(r"\d", password) is not None
+        and re.search(r"[^A-Za-z0-9]", password) is not None
+    )
+
+
+def hash_password(password: str) -> str:
+    salt = secrets.token_bytes(16)
+    derived = hashlib.pbkdf2_hmac("sha256", password.encode(), salt, 310_000)
+    return f"pbkdf2_sha256$310000${base64.urlsafe_b64encode(salt).decode()}${base64.urlsafe_b64encode(derived).decode()}"
+
+
+def verify_password(password: str, encoded: str) -> bool:
+    try:
+        algorithm, iterations, salt_value, digest_value = encoded.split("$", 3)
+        if algorithm != "pbkdf2_sha256":
+            return False
+        salt = base64.urlsafe_b64decode(salt_value.encode())
+        expected = base64.urlsafe_b64decode(digest_value.encode())
+        actual = hashlib.pbkdf2_hmac("sha256", password.encode(), salt, int(iterations))
+        return hmac.compare_digest(actual, expected)
+    except (ValueError, TypeError):
+        return False
+
+
+def create_session_token(user_id: int) -> str:
+    payload = base64.urlsafe_b64encode(json.dumps({"sub": user_id, "exp": int(time.time()) + SESSION_MAX_AGE}, separators=(",", ":")).encode()).decode().rstrip("=")
+    signature = hmac.new(AUTH_SECRET.encode(), payload.encode(), hashlib.sha256).hexdigest()
+    return f"{payload}.{signature}"
+
+
+def session_user_id(request: Request) -> int | None:
+    token = request.cookies.get(SESSION_COOKIE)
+    if not token or "." not in token:
+        return None
+    payload, signature = token.rsplit(".", 1)
+    expected = hmac.new(AUTH_SECRET.encode(), payload.encode(), hashlib.sha256).hexdigest()
+    if not hmac.compare_digest(signature, expected):
+        return None
+    try:
+        padded = payload + "=" * (-len(payload) % 4)
+        data = json.loads(base64.urlsafe_b64decode(padded).decode())
+        if int(data["exp"]) < int(time.time()):
+            return None
+        return int(data["sub"])
+    except (ValueError, KeyError, TypeError, json.JSONDecodeError):
+        return None
+
+
+def public_user(row: sqlite3.Row) -> dict:
+    return {"id": row["id"], "phone": row["phone"], "full_name": row["full_name"], "username": row["username"], "email": row["email"]}
+
+
+def set_session_cookie(response: Response, user_id: int):
+    response.set_cookie(
+        key=SESSION_COOKIE,
+        value=create_session_token(user_id),
+        max_age=SESSION_MAX_AGE,
+        httponly=True,
+        secure=os.getenv("COOKIE_SECURE", "false").lower() == "true",
+        samesite="lax",
+        path="/",
+    )
+
+
+@app.post("/api/auth/signup", status_code=201)
+async def signup(payload: SignupRequest, response: Response):
+    phone = re.sub(r"[^\d+]", "", payload.phone.strip())
+    full_name = " ".join(payload.full_name.split())
+    username = payload.username.strip()
+    if len(phone) < 8 or len(phone) > 16:
+        raise HTTPException(status_code=422, detail="Enter a valid phone number.")
+    if len(full_name) < 2 or len(full_name) > 80:
+        raise HTTPException(status_code=422, detail="Enter your full name.")
+    if not re.fullmatch(r"[A-Za-z0-9_.]{3,24}", username):
+        raise HTTPException(status_code=422, detail="Username must be 3-24 letters, numbers, dots, or underscores.")
+    if not password_is_strong(payload.password):
+        raise HTTPException(status_code=422, detail="Use 8+ characters with uppercase, lowercase, number, and symbol.")
+    try:
+        with sqlite3.connect(auth_db_path) as connection:
+            cursor = connection.execute(
+                "INSERT INTO users (phone, full_name, username, password_hash, created_at) VALUES (?, ?, ?, ?, ?)",
+                (phone, full_name, username, hash_password(payload.password), int(time.time())),
+            )
+            user_id = int(cursor.lastrowid)
+    except sqlite3.IntegrityError as error:
+        message = "That phone number or username is already registered."
+        raise HTTPException(status_code=409, detail=message) from error
+    set_session_cookie(response, user_id)
+    return {"user": {"id": user_id, "phone": phone, "full_name": full_name, "username": username, "email": None}}
+
+
+@app.post("/api/auth/login")
+async def login(payload: LoginRequest, response: Response):
+    identifier = payload.identifier.strip()
+    normalized_phone = re.sub(r"[^\d+]", "", identifier)
+    with sqlite3.connect(auth_db_path) as connection:
+        connection.row_factory = sqlite3.Row
+        row = connection.execute(
+            "SELECT * FROM users WHERE username = ? COLLATE NOCASE OR email = ? COLLATE NOCASE OR phone = ?",
+            (identifier, identifier, normalized_phone),
+        ).fetchone()
+    if row is None or not verify_password(payload.password, row["password_hash"]):
+        raise HTTPException(status_code=401, detail="Incorrect username, phone, email, or password.")
+    set_session_cookie(response, int(row["id"]))
+    return {"user": public_user(row)}
+
+
+@app.get("/api/auth/me")
+async def current_user(request: Request):
+    user_id = session_user_id(request)
+    if user_id is None:
+        raise HTTPException(status_code=401, detail="Not authenticated.")
+    with sqlite3.connect(auth_db_path) as connection:
+        connection.row_factory = sqlite3.Row
+        row = connection.execute("SELECT * FROM users WHERE id = ?", (user_id,)).fetchone()
+    if row is None:
+        raise HTTPException(status_code=401, detail="Session user no longer exists.")
+    return {"user": public_user(row)}
+
+
+@app.post("/api/auth/logout")
+async def logout(response: Response):
+    response.delete_cookie(SESSION_COOKIE, path="/")
+    return {"ok": True}
 
 
 @app.get("/")
@@ -732,7 +901,6 @@ async def file_to_excel(source_file: UploadFile = File(...), source_kind: str = 
         raise HTTPException(status_code=400, detail="The uploaded file is empty")
     if len(content) > MAX_UPLOAD_BYTES:
         raise HTTPException(status_code=413, detail="File exceeds the upload limit")
-    cleanup_expired_files()
     input_path = os.path.join(input_dir, f"{uuid.uuid4().hex}.{extension}")
     try:
         with open(input_path, "wb") as handle:
@@ -772,7 +940,6 @@ async def excel_to_image_func(
         raise HTTPException(status_code=400, detail="DPI must be 150, 300, or 600")
 
     file_path = None
-    cleanup_expired_files()
     try:
         file_data = await excel_file.read()
         if not file_data:
@@ -875,7 +1042,6 @@ async def excel_to_url_func(
         raise HTTPException(status_code=400, detail="DPI must be 150, 300, or 600")
 
     file_path = None
-    cleanup_expired_files()
     try:
         file_path = await save_file_url(url)
 
@@ -968,7 +1134,6 @@ async def render_edited_table_endpoint(payload: RenderEditedTableRequest):
     if not payload.columns:
         raise HTTPException(status_code=400, detail="Table must contain at least one column")
 
-    cleanup_expired_files()
     try:
         df = pd.DataFrame(data=payload.rows, columns=payload.columns)
         res = render_dataframe_to_outputs(
@@ -982,8 +1147,20 @@ async def render_edited_table_endpoint(payload: RenderEditedTableRequest):
         return JSONResponse(content={"status": "error", "error": str(e)}, status_code=400)
 
 
+class CleanupFilesRequest(BaseModel):
+    filenames: list[str]
+
+
+@app.post("/api/cleanup_files")
+async def cleanup_files_endpoint(payload: CleanupFilesRequest):
+    """Immediately purges user files when page refreshes, closes, or resets."""
+    for fn in payload.filenames:
+        delete_safe_file(fn)
+    return {"status": "success", "cleaned": len(payload.filenames)}
+
+
 @app.get("/download_file")
-async def download_txt(filename: str):
+async def download_txt(filename: str, background_tasks: BackgroundTasks):
     safe_filename = os.path.basename(filename)
     if safe_filename != filename:
         raise HTTPException(status_code=400, detail="Invalid filename")
@@ -995,7 +1172,7 @@ async def download_txt(filename: str):
         if os.path.exists(alt_path):
             file_path = alt_path
         else:
-            return JSONResponse(content={"error": "File not found", "status": "error"}, status_code=404)
+            return JSONResponse(content={"error": "File not found or already deleted after download.", "status": "error"}, status_code=404)
 
     ext = safe_filename.split(".")[-1].lower() if "." in safe_filename else ""
     media_types = {
@@ -1010,6 +1187,11 @@ async def download_txt(filename: str):
         "doc": "application/msword",
     }
     media_type = media_types.get(ext, "application/octet-stream")
+
+    # The response owns the file until streaming finishes, then removes it immediately.
+    # There is deliberately no time-based retention limit: an undownloaded result stays
+    # available for the current page session and is removed by the refresh/close beacon.
+    background_tasks.add_task(delete_safe_file, safe_filename)
 
     return FileResponse(
         path=file_path,

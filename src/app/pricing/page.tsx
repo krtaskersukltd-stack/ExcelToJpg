@@ -97,7 +97,7 @@ export default function PricingPage() {
     <div className="min-h-screen bg-[#FAFBFD] flex flex-col justify-between">
       <div>
         {/* Top Navbar */}
-        <Navbar onOpenUploadModal={() => setActiveTool("excel-jpg")} onSelectTool={setActiveTool} />
+        <Navbar onSelectTool={setActiveTool} />
 
         {/* Payment Confirmation Banner (if redirected from Stripe) */}
         <Suspense fallback={null}>

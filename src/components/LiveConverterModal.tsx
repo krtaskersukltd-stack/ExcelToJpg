@@ -32,6 +32,7 @@ import {
 import confetti from "canvas-confetti";
 import {
   checkBackendHealth,
+  cleanupFiles,
   ConvertedPart,
   convertExcelFile,
   convertExcelUrl,
@@ -93,8 +94,10 @@ export default function LiveConverterModal({
   const [activeSheet, setActiveSheet] = useState("");
   const [downloadSuccess, setDownloadSuccess] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [downloadedFiles, setDownloadedFiles] = useState<Set<string>>(() => new Set());
   const fileInputRef = useRef<HTMLInputElement>(null);
   const requestRef = useRef<AbortController | null>(null);
+  const activeFilesRef = useRef<Set<string>>(new Set());
 
   // High-Resolution Preview & Zoom state
   const [viewMode, setViewMode] = useState<"preview" | "editor">("preview");
@@ -150,6 +153,13 @@ export default function LiveConverterModal({
       setConvertedFilename(null);
       setOutputs([]);
       setSheets([]);
+      setDownloadedFiles(new Set());
+
+      // Purge any previously generated files before starting a new conversion
+      if (activeFilesRef.current.size > 0) {
+        cleanupFiles(Array.from(activeFilesRef.current));
+        activeFilesRef.current.clear();
+      }
 
       const health = await checkBackendHealth();
       if (controller.signal.aborted) return;
@@ -175,6 +185,15 @@ export default function LiveConverterModal({
           setConvertedType(result.type || formatToUse);
           setOutputs(result.outputs || []);
           setSheets(nextSheets);
+
+          // Track generated files for zero-retention auto-purge on refresh or close
+          if (result.filename) activeFilesRef.current.add(result.filename);
+          if (result.conv) activeFilesRef.current.add(result.conv);
+          if (result.first_image) activeFilesRef.current.add(result.first_image);
+          (result.outputs || []).forEach((item) => {
+            if (item.filename) activeFilesRef.current.add(item.filename);
+          });
+
           const firstSheet = nextSheets[0] || "";
           setActiveSheet(firstSheet);
           if (result.sheet_data) {
@@ -210,6 +229,7 @@ export default function LiveConverterModal({
     setDpi("300");
     setHistory([]);
     setDownloadSuccess(false);
+    setDownloadedFiles(new Set());
     setViewMode("preview");
     setFitMode("width");
     setZoom(100);
@@ -220,6 +240,30 @@ export default function LiveConverterModal({
     return () => requestRef.current?.abort();
   }, [isOpen, file, url, initialFormat, executeConversion]);
 
+  const handleClose = useCallback(() => {
+    if (activeFilesRef.current.size > 0) {
+      cleanupFiles(Array.from(activeFilesRef.current));
+      activeFilesRef.current.clear();
+    }
+    onClose();
+  }, [onClose]);
+
+  // Zero-retention auto-purge: purge all user files immediately when refreshing or closing tab
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      if (activeFilesRef.current.size > 0) {
+        cleanupFiles(Array.from(activeFilesRef.current));
+      }
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+      if (activeFilesRef.current.size > 0) {
+        cleanupFiles(Array.from(activeFilesRef.current));
+      }
+    };
+  }, []);
+
   useEffect(() => {
     if (!isOpen) return;
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -227,13 +271,13 @@ export default function LiveConverterModal({
         if (isFullscreen) {
           setIsFullscreen(false);
         } else {
-          onClose();
+          handleClose();
         }
       }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen, isFullscreen, onClose]);
+  }, [isOpen, isFullscreen, handleClose]);
 
   const applySettings = (next: Settings, remember = true) => {
     if (remember && (next.format !== selectedFormat || next.dpi !== dpi))
@@ -266,11 +310,13 @@ export default function LiveConverterModal({
   };
 
   const handleDownload = async (filename = convertedFilename) => {
-    if (!filename) return;
+    if (!filename || downloadedFiles.has(filename)) return;
     setIsDownloading(true);
     setErrorMessage(null);
     try {
       await triggerFileDownload(filename, filename);
+      activeFilesRef.current.delete(filename);
+      setDownloadedFiles((current) => new Set(current).add(filename));
       setDownloadSuccess(true);
       confetti({ particleCount: 70, spread: 70, origin: { y: 0.65 }, colors: ["#355BFF", "#38BDF8", "#10B981"] });
       window.setTimeout(() => setDownloadSuccess(false), 3500);
@@ -341,9 +387,20 @@ export default function LiveConverterModal({
         dpi: dpi,
       });
       if (result.status === "success") {
+        if (activeFilesRef.current.size > 0) {
+          cleanupFiles(Array.from(activeFilesRef.current));
+          activeFilesRef.current.clear();
+        }
         setConvertedFilename(result.filename || result.conv);
         setConvertedType(result.type || selectedFormat);
         setOutputs(result.outputs || []);
+        setDownloadedFiles(new Set());
+        if (result.filename) activeFilesRef.current.add(result.filename);
+        if (result.conv) activeFilesRef.current.add(result.conv);
+        if (result.first_image) activeFilesRef.current.add(result.first_image);
+        (result.outputs || []).forEach((item) => {
+          if (item.filename) activeFilesRef.current.add(item.filename);
+        });
         if (result.sheet_data) {
           setSheetData(result.sheet_data);
           setEditedSheetData(JSON.parse(JSON.stringify(result.sheet_data)));
@@ -376,7 +433,7 @@ export default function LiveConverterModal({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          onClick={onClose}
+          onClick={handleClose}
           className="fixed inset-0 bg-slate-950/65 backdrop-blur-md"
           aria-label="Close converter"
         />
@@ -409,7 +466,7 @@ export default function LiveConverterModal({
               </div>
             </div>
             <button
-              onClick={onClose}
+              onClick={handleClose}
               className="rounded-full p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-800 transition"
               aria-label="Close"
             >
@@ -716,10 +773,11 @@ export default function LiveConverterModal({
 
                                 <button
                                   onClick={() => void handleDownload(activeOutput.filename)}
-                                  className="inline-flex items-center gap-1.5 rounded-lg border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-bold text-blue-700 hover:bg-blue-100 transition"
+                                  disabled={downloadedFiles.has(activeOutput.filename)}
+                                  className="inline-flex items-center gap-1.5 rounded-lg border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-bold text-blue-700 hover:bg-blue-100 disabled:cursor-not-allowed disabled:opacity-50 transition"
                                 >
                                   <Download className="h-3.5 w-3.5" />
-                                  Download this image
+                                  {downloadedFiles.has(activeOutput.filename) ? "Downloaded" : "Download this image"}
                                 </button>
                               </div>
                             </div>
@@ -895,7 +953,7 @@ export default function LiveConverterModal({
                       </div>
                       <button
                         onClick={() => void handleDownload()}
-                        disabled={isDownloading}
+                        disabled={isDownloading || Boolean(convertedFilename && downloadedFiles.has(convertedFilename))}
                         className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#355BFF] px-7 py-3 text-sm font-bold text-white shadow-lg shadow-blue-500/20 hover:bg-blue-700 disabled:opacity-60 sm:w-auto transition"
                       >
                         {isDownloading ? (
@@ -903,7 +961,9 @@ export default function LiveConverterModal({
                         ) : (
                           <Download className="h-4 w-4" />
                         )}
-                        Download {convertedType === "zip" ? "all as ZIP" : selectedFormat.toUpperCase()}
+                        {convertedFilename && downloadedFiles.has(convertedFilename)
+                          ? "Downloaded (one time)"
+                          : `Download ${convertedType === "zip" ? "all as ZIP" : selectedFormat.toUpperCase()}`}
                       </button>
                     </div>
                   </div>
@@ -948,10 +1008,11 @@ export default function LiveConverterModal({
               </button>
               <button
                 onClick={() => void handleDownload(activeOutput.filename)}
-                className="ml-2 inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-blue-700 transition"
+                disabled={downloadedFiles.has(activeOutput.filename)}
+                className="ml-2 inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50 transition"
               >
                 <Download className="h-3.5 w-3.5" />
-                Download
+                {downloadedFiles.has(activeOutput.filename) ? "Downloaded" : "Download"}
               </button>
               <button
                 onClick={() => setIsFullscreen(false)}

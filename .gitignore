@@ -46,6 +46,7 @@ next-env.d.ts
 
 # python backend
 backend/__pycache__/
+backend/auth.db
 backend/upload/input/*
 !backend/upload/input/.gitkeep
 backend/upload/output/*

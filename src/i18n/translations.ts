@@ -15,6 +15,48 @@ export const LANGUAGES: LanguageOption[] = [
   { code: "ZH", label: "ZH", nativeLabel: "中文" },
 ];
 
+export const LANGUAGE_LOCALES: Record<Language, string> = {
+  EN: "en",
+  ES: "es",
+  FR: "fr",
+  DE: "de",
+  JA: "ja",
+  ZH: "zh-CN",
+};
+
+export const SEO_METADATA: Record<Language, { title: string; description: string }> = {
+  EN: {
+    title: "Excel To JPG Converter - Free, Fast & High Quality Sheet to Image",
+    description:
+      "Convert Excel spreadsheets (.xls, .xlsx, .csv, .xlsm) into crisp, high-resolution JPG images online. 300 DPI razor-sharp render engine with instant download.",
+  },
+  ES: {
+    title: "Convertidor de Excel a JPG - Gratis, Rápido y de Alta Calidad",
+    description:
+      "Convierte hojas de cálculo Excel (.xls, .xlsx, .csv, .xlsm) en imágenes JPG nítidas y de alta resolución online, con descarga instantánea.",
+  },
+  FR: {
+    title: "Convertisseur Excel en JPG - Gratuit, Rapide et Haute Qualité",
+    description:
+      "Convertissez vos feuilles Excel (.xls, .xlsx, .csv, .xlsm) en images JPG nettes et haute résolution en ligne, avec téléchargement instantané.",
+  },
+  DE: {
+    title: "Excel-zu-JPG-Konverter - Kostenlos, Schnell und Hochauflösend",
+    description:
+      "Konvertieren Sie Excel-Tabellen (.xls, .xlsx, .csv, .xlsm) online in gestochen scharfe, hochauflösende JPG-Bilder mit sofortigem Download.",
+  },
+  JA: {
+    title: "ExcelからJPGへの変換 - 無料・高速・高画質",
+    description:
+      "Excelスプレッドシート（.xls、.xlsx、.csv、.xlsm）を高解像度で鮮明なJPG画像にオンライン変換し、すぐにダウンロードできます。",
+  },
+  ZH: {
+    title: "Excel 转 JPG 转换器 - 免费、快速、高画质",
+    description:
+      "在线将 Excel 电子表格（.xls、.xlsx、.csv、.xlsm）转换为清晰的高分辨率 JPG 图片，并可立即下载。",
+  },
+};
+
 export const translations = {
   EN: {
     nav: {
@@ -1796,4 +1838,3 @@ type DeepString<T> = {
 };
 
 export type Translations = DeepString<typeof translations.EN>;
-

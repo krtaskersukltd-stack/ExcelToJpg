@@ -1,7 +1,14 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { Language, LANGUAGES, translations, Translations } from "@/i18n/translations";
+import {
+  Language,
+  LANGUAGES,
+  LANGUAGE_LOCALES,
+  SEO_METADATA,
+  translations,
+  Translations,
+} from "@/i18n/translations";
 
 interface LanguageContextType {
   language: Language;
@@ -24,12 +31,27 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     try {
       const saved = localStorage.getItem("app_language") as Language | null;
       if (saved && (saved === "EN" || saved === "ES" || saved === "FR" || saved === "DE" || saved === "JA" || saved === "ZH")) {
-        setLanguageState(saved);
+        const restoreLanguage = window.setTimeout(() => setLanguageState(saved), 0);
+        return () => window.clearTimeout(restoreLanguage);
       }
     } catch {
       // Ignore localStorage access errors
     }
   }, []);
+
+  useEffect(() => {
+    const seo = SEO_METADATA[language];
+    document.documentElement.lang = LANGUAGE_LOCALES[language];
+    document.title = seo.title;
+
+    const description = document.querySelector<HTMLMetaElement>('meta[name="description"]');
+    const openGraphTitle = document.querySelector<HTMLMetaElement>('meta[property="og:title"]');
+    const openGraphDescription = document.querySelector<HTMLMetaElement>('meta[property="og:description"]');
+
+    description?.setAttribute("content", seo.description);
+    openGraphTitle?.setAttribute("content", seo.title);
+    openGraphDescription?.setAttribute("content", seo.description);
+  }, [language]);
 
   const setLanguage = (lang: Language) => {
     setLanguageState(lang);

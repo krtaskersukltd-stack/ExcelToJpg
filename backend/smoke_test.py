@@ -34,12 +34,14 @@ def run():
         body = response.json()
         assert response.status_code == 200, body
         assert body["status"] == "success", body
-        assert client.get("/download_file", params={"filename": body["filename"]}).status_code == 200
+        download_response = client.get("/download_file", params={"filename": body["filename"]})
+        assert download_response.status_code == 200
+        generated[output_format] = download_response.content
+        assert client.get("/download_file", params={"filename": body["filename"]}).status_code == 404
         if output_format in {"jpg", "png"}:
             assert len(body["sheets"]) == 2, body
             assert body["total_parts"] == 2, body
             assert client.get("/preview_file", params={"filename": body["first_image"]}).status_code == 200
-        generated[output_format] = client.get("/download_file", params={"filename": body["filename"]}).content
         results.append((output_format, body["type"], body.get("total_parts", 1)))
 
     csv_response = client.post(

@@ -259,3 +259,30 @@ export async function renderEditedTable(payload: {
     };
   }
 }
+
+/**
+ * Immediately purges user's uploaded and converted files from server.
+ * Uses navigator.sendBeacon when available to ensure deletion even when page is refreshed or tab closed.
+ */
+export function cleanupFiles(filenames: string[]) {
+  const valid = filenames.filter(Boolean);
+  if (!valid.length) return;
+  const url = `${API_BASE_URL}/api/cleanup_files`;
+  const body = JSON.stringify({ filenames: valid });
+  try {
+    if (typeof navigator !== "undefined" && typeof navigator.sendBeacon === "function") {
+      const blob = new Blob([body], { type: "application/json" });
+      navigator.sendBeacon(url, blob);
+    } else {
+      void fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body,
+        keepalive: true,
+      });
+    }
+  } catch {
+    // Ignore unload transport errors
+  }
+}
+

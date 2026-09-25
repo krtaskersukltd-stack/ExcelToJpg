@@ -29,7 +29,7 @@ export default function Home() {
       {/* Top Main Content Layer (Scrolls over the footer) */}
       <div className="relative z-20 bg-[#FAFBFD] shadow-[0_30px_70px_-15px_rgba(15,23,42,0.22)] w-full max-w-full overflow-x-hidden">
         {/* Top Navbar */}
-        <Navbar onOpenUploadModal={() => setActiveTool("excel-jpg")} onSelectTool={setActiveTool} />
+        <Navbar onSelectTool={setActiveTool} />
 
         {/* Hero Section */}
         <HeroSection />

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import { SEO_METADATA } from "@/i18n/translations";
 import "./globals.css";
 
 const inter = Inter({
@@ -9,9 +10,8 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Excel To JPG Converter - Free, Fast & High Quality Sheet to Image",
-  description:
-    "Convert Excel spreadsheets (.xls, .xlsx, .csv, .xlsm) into crisp, high-resolution JPG images online. 300 DPI razor-sharp render engine with instant download.",
+  title: SEO_METADATA.EN.title,
+  description: SEO_METADATA.EN.description,
   keywords: [
     "Excel to JPG",
     "Spreadsheet to Image",
@@ -26,8 +26,8 @@ export const metadata: Metadata = {
     apple: "/logo.png",
   },
   openGraph: {
-    title: "Excel To JPG Converter - High Quality Sheet to Image",
-    description: "Convert Excel spreadsheets into crisp, high-resolution JPG images online.",
+    title: SEO_METADATA.EN.title,
+    description: SEO_METADATA.EN.description,
     type: "website",
   },
 };
