@@ -8,7 +8,7 @@ export default function Footer() {
   const { t } = useLanguage();
 
   return (
-    <footer className="bg-[#FAFBFD] pt-12 pb-8 relative overflow-hidden">
+    <footer className="bg-[#FAFBFD] pt-12 pb-8 relative overflow-hidden min-h-[50vh]">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Main White Footer Container Card */}
@@ -100,9 +100,9 @@ export default function Footer() {
                 {t.footer.legal}
               </h4>
               <ul className="space-y-2 text-xs sm:text-sm text-slate-700 font-normal">
-                <li><Link href="#privacy" className="hover:text-blue-600 transition-colors">{t.footer.privacy}</Link></li>
-                <li><Link href="#terms" className="hover:text-blue-600 transition-colors">{t.footer.terms}</Link></li>
-                <li><Link href="#security" className="hover:text-blue-600 transition-colors">{t.footer.security}</Link></li>
+                <li><Link href="/privacy" className="hover:text-blue-600 transition-colors">{t.footer.privacy}</Link></li>
+                <li><Link href="/terms" className="hover:text-blue-600 transition-colors">{t.footer.terms}</Link></li>
+                <li><Link href="/security" className="hover:text-blue-600 transition-colors">{t.footer.security}</Link></li>
               </ul>
             </div>
 
@@ -117,8 +117,8 @@ export default function Footer() {
               {t.footer.rights}
             </div>
             <div className="flex items-center gap-4 sm:gap-6">
-              <Link href="#privacy" className="hover:text-blue-600 transition-colors">{t.footer.privacy}</Link>
-              <Link href="#terms" className="hover:text-blue-600 transition-colors">{t.footer.terms}</Link>
+              <Link href="/privacy" className="hover:text-blue-600 transition-colors">{t.footer.privacy}</Link>
+              <Link href="/terms" className="hover:text-blue-600 transition-colors">{t.footer.terms}</Link>
             </div>
           </div>
         </div>

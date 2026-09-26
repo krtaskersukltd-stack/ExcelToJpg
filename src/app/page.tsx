@@ -80,8 +80,9 @@ function HomeContent() {
 
   return (
     <OutputFormatProvider format={pageFormat} setFormat={setPageFormat}>
-      <main className="min-h-screen flex flex-col bg-[#FAFBFD] text-slate-900 selection:bg-blue-600 selection:text-white w-full max-w-full overflow-x-hidden">
-        <div className="relative z-20 bg-[#FAFBFD] shadow-[0_30px_70px_-15px_rgba(15,23,42,0.22)] w-full max-w-full overflow-x-hidden">
+      <main className="min-h-screen bg-[#FAFBFD] text-slate-900 selection:bg-blue-600 selection:text-white w-full max-w-full">
+        {/* Upper layer scrolls over the sticky footer (curtain reveal) */}
+        <div className="relative z-20 bg-[#FAFBFD] shadow-[0_30px_70px_-15px_rgba(15,23,42,0.22)] w-full max-w-full">
           <Navbar onSelectTool={handleSelectTool} activeFormat={pageFormat} activeTool={activeTool} />
 
           <HeroSection activeTool={activeTool} onSelectTool={handleSelectTool} />
@@ -100,10 +101,12 @@ function HomeContent() {
 
           <FaqSection />
 
+          {/* Blue “ready” CTA — last piece of the covering layer */}
           <CtaBanner onScrollToUpload={scrollToTop} activeTool={activeTool} />
         </div>
 
-        <div className="sticky bottom-0 z-10 w-full">
+        {/* Sticky footer reveals from underneath the CTA as you scroll */}
+        <div className="sticky bottom-0 z-0 w-full">
           <Footer />
         </div>
       </main>

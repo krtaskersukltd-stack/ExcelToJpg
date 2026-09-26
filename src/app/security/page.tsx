@@ -5,16 +5,19 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { 
-  FileText, 
-  CheckCircle2, 
+  ShieldCheck, 
+  Lock, 
+  Server, 
+  Cpu, 
+  KeyRound, 
+  FileCheck2, 
+  Trash2, 
   ShieldAlert, 
-  CreditCard, 
-  Scale, 
-  HelpCircle, 
-  Mail,
-  Zap,
-  Globe,
-  Award
+  Mail, 
+  Sparkles,
+  CheckCircle2,
+  RefreshCw,
+  Globe2
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import CtaBanner from "@/components/CtaBanner";
@@ -29,7 +32,7 @@ import {
   toolIdToSiteFormat,
 } from "@/context/OutputFormatContext";
 
-export default function TermsOfServicePage() {
+export default function SecurityPage() {
   const router = useRouter();
   const [pageFormat, setPageFormat] = useState<SiteOutputFormat>("jpg");
   const [activeTool, setActiveTool] = useState<ConverterToolId | null>(null);
@@ -71,61 +74,61 @@ export default function TermsOfServicePage() {
                 </Link>
                 <Link
                   href="/terms"
-                  className="px-4 py-1.5 rounded-full bg-[#355BFF] text-white text-xs font-semibold shadow-xs"
+                  className="px-4 py-1.5 rounded-full text-slate-600 hover:text-blue-600 hover:bg-slate-50 text-xs font-medium transition-colors"
                 >
                   Terms of Service
                 </Link>
                 <Link
                   href="/security"
-                  className="px-4 py-1.5 rounded-full text-slate-600 hover:text-blue-600 hover:bg-slate-50 text-xs font-medium transition-colors"
+                  className="px-4 py-1.5 rounded-full bg-[#355BFF] text-white text-xs font-semibold shadow-xs"
                 >
                   Security & Compliance
                 </Link>
               </div>
 
               <h1 className="text-3xl sm:text-5xl font-bold tracking-tight text-slate-900">
-                Terms of <span className="text-[#355BFF]">Service</span>
+                Security & <span className="text-[#355BFF]">Data Protection</span>
               </h1>
               <p className="text-sm sm:text-base text-slate-500 max-w-2xl mx-auto font-normal">
-                Please read these terms carefully before utilizing our online spreadsheet rasterization services.
+                Enterprise-grade cryptographic protection and stateless ephemeral compute for your sensitive financial & tabular datasets.
               </p>
               <div className="flex items-center justify-center gap-2 text-xs text-slate-400 font-medium">
-                <span>Last Revised: September 26, 2026</span>
+                <span>Security Status: All Systems Encrypted & Operational</span>
                 <span>•</span>
-                <span>Version 2.4</span>
+                <span className="text-emerald-600 font-semibold">TLS 1.3 Active</span>
               </div>
             </motion.div>
           </section>
 
-          {/* 4 Key Terms Pillars (Cards with Neon Glow on Hover) */}
+          {/* 4 Key Security Pillars (Cards with Neon Glow on Hover) */}
           <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 mb-12">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
               {[
                 {
-                  icon: Award,
-                  title: "100% User Ownership",
-                  desc: "You retain total copyright & ownership over all uploaded sheets and rendered JPGs.",
+                  icon: Lock,
+                  title: "End-to-End TLS 1.3",
+                  desc: "High-grade 256-bit encryption for all file uploads, previews, and downloads.",
                   color: "text-blue-600",
                   bg: "bg-blue-50"
                 },
                 {
-                  icon: Zap,
-                  title: "Commercial Use OK",
-                  desc: "Exported images may be freely used in commercial client audits, decks, and reports.",
+                  icon: Cpu,
+                  title: "Isolated Sandboxes",
+                  desc: "Every conversion executes in a hardened, memory-confined ephemeral container.",
                   color: "text-emerald-600",
                   bg: "bg-emerald-50"
                 },
                 {
-                  icon: CreditCard,
-                  title: "Transparent Billing",
-                  desc: "Monthly/Yearly subscriptions can be paused or cancelled anytime with no penalties.",
+                  icon: Trash2,
+                  title: "Hard Ephemeral Purge",
+                  desc: "Strict automated cron routines permanently erase files and cache after 60 minutes.",
                   color: "text-indigo-600",
                   bg: "bg-indigo-50"
                 },
                 {
-                  icon: ShieldAlert,
-                  title: "Fair Use Enforced",
-                  desc: "Automated rate-limiting protects our conversion engine against malicious overload.",
+                  icon: KeyRound,
+                  title: "OAuth 2.0 Scoped Auth",
+                  desc: "Cloud pickers read only the selected sheet with immediate token expiration.",
                   color: "text-amber-600",
                   bg: "bg-amber-50"
                 }
@@ -157,32 +160,55 @@ export default function TermsOfServicePage() {
               <div className="space-y-3">
                 <div className="flex items-center gap-2.5">
                   <span className="w-7 h-7 rounded-lg bg-blue-100 text-[#355BFF] flex items-center justify-center text-xs font-bold font-mono">01</span>
-                  <h2 className="text-lg sm:text-xl font-bold text-slate-900 tracking-tight">Agreement to Terms</h2>
+                  <h2 className="text-lg sm:text-xl font-bold text-slate-900 tracking-tight">Security Architecture Overview</h2>
                 </div>
                 <p className="text-xs sm:text-sm text-slate-600 leading-relaxed pl-9">
-                  By visiting, uploading files to, or subscribing to services provided on <span className="font-semibold text-slate-800">ExcelToJpg.com</span>, you confirm that you have read, understood, and agreed to be legally bound by these Terms of Service. If you do not agree to all of these terms, you are explicitly prohibited from using the platform.
+                  ExcelToJpg utilizes a defense-in-depth security model engineered specifically for temporary file processing. We believe the safest data is data that is not retained. Consequently, our conversion architecture is designed from the ground up as a stateless pipeline with zero long-term data persistence.
                 </p>
               </div>
 
-              {/* Section 2 */}
+              {/* Section 2 (Visual Lifecycle Box with Neon Glow) */}
+              <div className="rounded-2xl p-6 bg-gradient-to-r from-blue-50/70 via-indigo-50/50 to-white border border-blue-200/80 neon-border-glow shadow-xs space-y-4">
+                <div className="flex items-center gap-2 text-blue-900 font-bold text-sm sm:text-base">
+                  <ShieldCheck className="w-5 h-5 text-[#355BFF]" />
+                  <span>Automated File Lifecycle & Destruction Pipeline</span>
+                </div>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 pt-1">
+                  <div className="bg-white p-3.5 rounded-xl border border-blue-100 shadow-2xs">
+                    <span className="text-[11px] font-bold text-blue-600 font-mono">01. INGESTION</span>
+                    <p className="text-xs font-bold text-slate-900 mt-1">Encrypted Transit</p>
+                    <p className="text-[11px] text-slate-500 mt-0.5">TLS 1.3 direct to conversion node.</p>
+                  </div>
+
+                  <div className="bg-white p-3.5 rounded-xl border border-blue-100 shadow-2xs">
+                    <span className="text-[11px] font-bold text-blue-600 font-mono">02. ISOLATION</span>
+                    <p className="text-xs font-bold text-slate-900 mt-1">Memory Sandbox</p>
+                    <p className="text-[11px] text-slate-500 mt-0.5">Stateless process without disk writing.</p>
+                  </div>
+
+                  <div className="bg-white p-3.5 rounded-xl border border-blue-100 shadow-2xs">
+                    <span className="text-[11px] font-bold text-blue-600 font-mono">03. VECTORIZE</span>
+                    <p className="text-xs font-bold text-slate-900 mt-1">300 DPI Rendering</p>
+                    <p className="text-[11px] text-slate-500 mt-0.5">Crisp pixel-perfect JPG generation.</p>
+                  </div>
+
+                  <div className="bg-white p-3.5 rounded-xl border border-emerald-200 shadow-2xs">
+                    <span className="text-[11px] font-bold text-emerald-600 font-mono">04. HARD PURGE</span>
+                    <p className="text-xs font-bold text-emerald-900 mt-1">Zero Remnants</p>
+                    <p className="text-[11px] text-emerald-700 mt-0.5">File & memory wiped within 60 mins.</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Section 3 */}
               <div className="space-y-3">
                 <div className="flex items-center gap-2.5">
                   <span className="w-7 h-7 rounded-lg bg-blue-100 text-[#355BFF] flex items-center justify-center text-xs font-bold font-mono">02</span>
-                  <h2 className="text-lg sm:text-xl font-bold text-slate-900 tracking-tight">Description of Service & License</h2>
+                  <h2 className="text-lg sm:text-xl font-bold text-slate-900 tracking-tight">Cloud Integration Security (Google Drive & Dropbox)</h2>
                 </div>
                 <p className="text-xs sm:text-sm text-slate-600 leading-relaxed pl-9">
-                  ExcelToJpg provides a high-fidelity web utility that converts spreadsheet formats (<code className="text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded text-[11px]">.xlsx</code>, <code className="text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded text-[11px]">.xls</code>, <code className="text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded text-[11px]">.xlsm</code>, <code className="text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded text-[11px]">.csv</code>) into raster image formats (<code className="text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded text-[11px]">.jpg</code>, <code className="text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded text-[11px]">.png</code>) and documents (<code className="text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded text-[11px]">.pdf</code>). We grant you a revocable, non-exclusive, non-transferable license to access our application in strict compliance with these terms.
-                </p>
-              </div>
-
-              {/* Section 3 (Highlight Box with Neon Glow) */}
-              <div className="rounded-2xl p-6 bg-gradient-to-r from-blue-50/70 via-indigo-50/50 to-white border border-blue-200/80 neon-border-glow shadow-xs space-y-3">
-                <div className="flex items-center gap-2 text-blue-900 font-bold text-sm sm:text-base">
-                  <CheckCircle2 className="w-4 h-4 text-[#355BFF]" />
-                  <span>Intellectual Property & Complete User Ownership</span>
-                </div>
-                <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-                  <strong>You retain 100% intellectual property ownership</strong> of any spreadsheet data, proprietary formulas, financial summaries, or graphical output processed through our service. ExcelToJpg asserts zero copyright claims, licensing claims, or ownership interest in your content.
+                  When you import files from Google Drive or Dropbox, our client communicates directly through official SDKs with scoped OAuth 2.0 permissions. We only request read access to the specific spreadsheet file you click. We never retain access tokens or inspect any other documents in your cloud drives.
                 </p>
               </div>
 
@@ -190,53 +216,30 @@ export default function TermsOfServicePage() {
               <div className="space-y-3">
                 <div className="flex items-center gap-2.5">
                   <span className="w-7 h-7 rounded-lg bg-blue-100 text-[#355BFF] flex items-center justify-center text-xs font-bold font-mono">03</span>
-                  <h2 className="text-lg sm:text-xl font-bold text-slate-900 tracking-tight">Acceptable Use Policy</h2>
+                  <h2 className="text-lg sm:text-xl font-bold text-slate-900 tracking-tight">Infrastructure & DDoS Mitigation</h2>
                 </div>
                 <div className="pl-9 space-y-2 text-xs sm:text-sm text-slate-600 leading-relaxed">
-                  <p>When utilizing ExcelToJpg, you agree NOT to:</p>
+                  <p>To guarantee 99.9% availability and prevent system abuse:</p>
                   <ul className="space-y-1.5 list-disc list-inside text-slate-700 font-normal">
-                    <li>Upload files containing malicious macro viruses, trojans, ransomware, or corrupt payloads.</li>
-                    <li>Attempt to bypass rate limits, server resource bounds, or security sandboxes.</li>
-                    <li>Use automated reverse-engineering or bots designed to duplicate our vectorization engine.</li>
-                    <li>Utilize the service for any unlawful activities or infringement of third-party IP rights.</li>
+                    <li>Global Edge CDN filtering malicious HTTP traffic and mitigating DDoS attacks.</li>
+                    <li>Intelligent IP rate-limiting guarding compute instances from automated bot abuse.</li>
+                    <li>Automated security patch deployments and non-root Linux container execution.</li>
                   </ul>
                 </div>
               </div>
 
-              {/* Section 5 */}
-              <div className="space-y-3">
-                <div className="flex items-center gap-2.5">
-                  <span className="w-7 h-7 rounded-lg bg-blue-100 text-[#355BFF] flex items-center justify-center text-xs font-bold font-mono">04</span>
-                  <h2 className="text-lg sm:text-xl font-bold text-slate-900 tracking-tight">Subscription Plans & Cancellation</h2>
-                </div>
-                <p className="text-xs sm:text-sm text-slate-600 leading-relaxed pl-9">
-                  Paid plans (Basic, Advance, and Business) are billed in advance on a recurring monthly or yearly schedule. You may cancel your subscription at any time via your account portal or by contacting support. Upon cancellation, your subscription remains active until the end of the paid billing period.
-                </p>
-              </div>
-
-              {/* Section 6 */}
-              <div className="space-y-3">
-                <div className="flex items-center gap-2.5">
-                  <span className="w-7 h-7 rounded-lg bg-blue-100 text-[#355BFF] flex items-center justify-center text-xs font-bold font-mono">05</span>
-                  <h2 className="text-lg sm:text-xl font-bold text-slate-900 tracking-tight">Disclaimer of Warranties & Liability</h2>
-                </div>
-                <p className="text-xs sm:text-sm text-slate-600 leading-relaxed pl-9">
-                  While we maintain a 99.9% conversion accuracy target, the services are provided on an &quot;AS IS&quot; and &quot;AS AVAILABLE&quot; basis. ExcelToJpg is not liable for indirect, punitive, or consequential damages arising from conversion discrepancies or network interruptions.
-                </p>
-              </div>
-
-              {/* Section 7: Contact Box */}
+              {/* Section 5: Responsible Disclosure */}
               <div className="pt-6 border-t border-slate-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div>
-                  <h3 className="text-sm font-bold text-slate-900">Questions about our Terms of Service?</h3>
-                  <p className="text-xs text-slate-500">Our legal counsel team is available to assist.</p>
+                  <h3 className="text-sm font-bold text-slate-900">Found a vulnerability? Report to our Security Team</h3>
+                  <p className="text-xs text-slate-500">We appreciate responsible security disclosures and bug reports.</p>
                 </div>
                 <a
-                  href="mailto:legal@exceltojpg.com"
+                  href="mailto:security@exceltojpg.com"
                   className="btn-gradient-border inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#355BFF] hover:bg-blue-700 text-white text-xs font-semibold shadow-xs transition-all"
                 >
                   <Mail className="w-4 h-4" />
-                  <span>Contact Legal Team</span>
+                  <span>Submit Security Report</span>
                 </a>
               </div>
 
