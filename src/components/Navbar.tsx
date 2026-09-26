@@ -155,9 +155,9 @@ export default function Navbar({
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-3 max-h-[72vh] md:max-h-[560px] overflow-y-auto pr-1">
                     {NAV_TOOL_COLUMNS.map((group) => (
                       <div key={group.title} className="flex flex-col bg-slate-50/70 rounded-xl p-2 border border-slate-100">
-                        <div className="px-2 py-1 mb-1 border-b border-slate-200/60">
-                          <h4 className="text-xs font-bold text-slate-900 tracking-tight">{group.title}</h4>
-                          <p className="text-[10px] text-slate-500 font-medium">{group.subtitle}</p>
+                        <div className="px-2 py-1.5 mb-1.5 border-b border-slate-200/60">
+                          <h4 className="text-xs font-bold uppercase tracking-wider text-slate-900">{group.title}</h4>
+                          <span className="block text-[10px] text-slate-400 font-normal mt-0.5">{group.subtitle}</span>
                         </div>
                         <div className="space-y-1">
                           {group.tools.map((tool) => {
@@ -204,9 +204,9 @@ export default function Navbar({
                                       </span>
                                     )}
                                   </div>
-                                  <p className={`text-[10px] truncate ${isCurrent ? "text-blue-100" : "text-slate-500"}`}>
+                                  <span className={`block text-[10px] truncate mt-0.5 ${isCurrent ? "text-blue-100" : "text-slate-400"}`}>
                                     {tool.desc}
-                                  </p>
+                                  </span>
                                 </div>
                               </button>
                             );
