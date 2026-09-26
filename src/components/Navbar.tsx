@@ -34,9 +34,19 @@ export default function Navbar({ onSelectTool }: { onSelectTool?: (tool: Convert
   const [isToolsOpen, setIsToolsOpen] = useState(false);
   const [isLangOpen, setIsLangOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [currentUser, setCurrentUser] = useState<{ full_name: string; auth_provider: string } | null>(null);
 
   const langRef = useRef<HTMLDivElement>(null);
   const toolsRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    fetch("/api/py/api/auth/me", { credentials: "include", signal: controller.signal })
+      .then((response) => response.ok ? response.json() : null)
+      .then((data) => setCurrentUser(data?.user ?? null))
+      .catch(() => undefined);
+    return () => controller.abort();
+  }, []);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -73,7 +83,7 @@ export default function Navbar({ onSelectTool }: { onSelectTool?: (tool: Convert
         </Link>
 
         {/* Center Floating Pill Navigation Bar (Desktop) */}
-        <nav className="hidden lg:flex absolute left-1/2 -translate-x-1/2 items-center gap-1 p-4 bg-white/85 backdrop-blur-xl rounded-full border border-slate-200/80 neon-border-glow shadow-xs hover:shadow-[0_4px_24px_rgba(59,130,246,0.18)] transition-all">
+        <nav className="hidden lg:flex position-revert absolute left-1/2 -translate-x-1/2 items-center gap-1 p-4 bg-white/85 backdrop-blur-xl rounded-full border border-slate-200/80 neon-border-glow shadow-xs hover:shadow-[0_4px_24px_rgba(59,130,246,0.18)] transition-all">
           {/* Active Image To Text Button */}
           <button
             onClick={() => onSelectTool?.("excel-jpg")}
@@ -190,10 +200,10 @@ export default function Navbar({ onSelectTool }: { onSelectTool?: (tool: Convert
 
             {/* Login Pill Button */}
             <Link
-              href="/login"
+              href={currentUser ? "/account" : "/login"}
               className="px-6 py-2 bg-[#355BFF] hover:bg-blue-700 text-white text-xs font-semibold rounded-full shadow-xs hover:shadow-md hover:shadow-blue-500/20 transition-all active:scale-95 cursor-pointer"
             >
-              {t.nav.login}
+              {currentUser ? (currentUser.auth_provider === "google" ? "Google" : currentUser.full_name.split(" ")[0]) : t.nav.login}
             </Link>
           </div>
 
@@ -283,10 +293,10 @@ export default function Navbar({ onSelectTool }: { onSelectTool?: (tool: Convert
           </div>
 
           <Link
-            href="/login"
+            href={currentUser ? "/account" : "/login"}
             className="px-4 py-1.5 bg-[#355BFF] text-white text-xs font-semibold rounded-full shadow-xs cursor-pointer"
           >
-            {t.nav.login}
+            {currentUser ? (currentUser.auth_provider === "google" ? "Google" : currentUser.full_name.split(" ")[0]) : t.nav.login}
           </Link>
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}

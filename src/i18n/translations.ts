@@ -343,6 +343,9 @@ export const translations = {
       connectGdrive: "Connect Google Drive to select spreadsheets directly.",
       connectDropbox: "Connect Dropbox to import your workbook files.",
       connectBtn: "Authorize Account",
+      notConnected: "Not connected",
+      listingUnavailable: "Connected file listing is not available yet",
+      publicLinksOnly: "Only public or view-accessible links can be imported.",
     },
     checkout: {
       title: "Upgrade to",
@@ -637,6 +640,9 @@ export const translations = {
       connectGdrive: "Conecta Google Drive para elegir archivos directamente.",
       connectDropbox: "Conecta Dropbox para importar tus hojas de cálculo.",
       connectBtn: "Autorizar Cuenta",
+      notConnected: "No conectado",
+      listingUnavailable: "La lista de archivos conectados aún no está disponible",
+      publicLinksOnly: "Solo se pueden importar enlaces públicos o accesibles para lectura.",
     },
     checkout: {
       title: "Actualizar a",
@@ -931,6 +937,9 @@ export const translations = {
       connectGdrive: "Connectez votre Google Drive pour importer facilement vos fichiers.",
       connectDropbox: "Connectez Dropbox pour sélectionner vos classeurs.",
       connectBtn: "Autoriser l'Accès",
+      notConnected: "Non connecté",
+      listingUnavailable: "La liste des fichiers connectés n’est pas encore disponible",
+      publicLinksOnly: "Seuls les liens publics ou accessibles en lecture peuvent être importés.",
     },
     checkout: {
       title: "Passer à la formule",
@@ -1225,6 +1234,9 @@ export const translations = {
       connectGdrive: "Verbinden Sie Google Drive zum direkten Dateiimport.",
       connectDropbox: "Verbinden Sie Dropbox für schnellen Dateizugriff.",
       connectBtn: "Konto autorisieren",
+      notConnected: "Nicht verbunden",
+      listingUnavailable: "Die verbundene Dateiliste ist noch nicht verfügbar",
+      publicLinksOnly: "Nur öffentliche oder lesbare Links können importiert werden.",
     },
     checkout: {
       title: "Upgrade auf",
@@ -1519,6 +1531,9 @@ export const translations = {
       connectGdrive: "Google ドライブを接続してファイルを選択します。",
       connectDropbox: "Dropbox を接続してファイルを選択します。",
       connectBtn: "アカウントを認証",
+      notConnected: "未接続",
+      listingUnavailable: "接続済みファイルの一覧はまだ利用できません",
+      publicLinksOnly: "公開リンクまたは閲覧可能なリンクのみインポートできます。",
     },
     checkout: {
       title: "プランのアップグレード:",
@@ -1813,6 +1828,9 @@ export const translations = {
       connectGdrive: "关联 Google 云端硬盘即可直接选取表格。",
       connectDropbox: "关联 Dropbox 即可选择需要转换的文件。",
       connectBtn: "授权连接账号",
+      notConnected: "未连接",
+      listingUnavailable: "暂不支持列出已连接的文件",
+      publicLinksOnly: "只能导入公开或具有查看权限的链接。",
     },
     checkout: {
       title: "升级至",

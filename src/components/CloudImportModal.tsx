@@ -1,12 +1,11 @@
 "use client";
 
 import React, { useState } from "react";
+import { useLanguage } from "@/context/LanguageContext";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   X,
-  Search,
   Link2,
-  FileSpreadsheet,
   Sparkles,
   AlertCircle,
   Loader2,
@@ -37,21 +36,6 @@ export function DropboxIcon({ className = "w-5 h-5" }: { className?: string }) {
   );
 }
 
-const GDRIVE_MOCK_FILES = [
-  { id: "gd-1", name: "2026_Executive_Financial_Plan.xlsx", size: "2.4 MB", modified: "Today, 11:20 AM", type: "XLSX", owner: "Me" },
-  { id: "gd-2", name: "Global_Sales_Revenue_Q4.xlsx", size: "1.8 MB", modified: "Yesterday", type: "XLSX", owner: "Me" },
-  { id: "gd-3", name: "Marketing_Campaign_KPIs.csv", size: "840 KB", modified: "Sep 21, 2026", type: "CSV", owner: "Marketing Team" },
-  { id: "gd-4", name: "Staff_Directory_&_Payroll.xlsx", size: "3.1 MB", modified: "Sep 18, 2026", type: "XLSX", owner: "Finance" },
-  { id: "gd-5", name: "Supply_Chain_Forecast_2026.xlsm", size: "4.5 MB", modified: "Sep 15, 2026", type: "XLSM", owner: "Operations" },
-];
-
-const DROPBOX_MOCK_FILES = [
-  { id: "db-1", name: "Dropbox_Q4_Audit_Report.xlsx", size: "1.9 MB", modified: "Today, 09:45 AM", type: "XLSX" },
-  { id: "db-2", name: "Inventory_Logistics_Matrix.xlsx", size: "2.2 MB", modified: "Sep 22, 2026", type: "XLSX" },
-  { id: "db-3", name: "Client_Invoice_Dataset.csv", size: "650 KB", modified: "Sep 20, 2026", type: "CSV" },
-  { id: "db-4", name: "Regional_Performance_2026.xlsx", size: "3.7 MB", modified: "Sep 17, 2026", type: "XLSX" },
-];
-
 interface CloudImportModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -65,10 +49,9 @@ export default function CloudImportModal({
   initialTab = "gdrive",
   onImportSuccess
 }: CloudImportModalProps) {
+  const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState<"gdrive" | "dropbox" | "link">(initialTab);
-  const [searchQuery, setSearchQuery] = useState("");
   const [urlInput, setUrlInput] = useState("");
-  const [selectedFileId, setSelectedFileId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   if (!isOpen) return null;
@@ -84,36 +67,33 @@ export default function CloudImportModal({
     setIsLoading(true);
 
     try {
+      const parsed = new URL(targetUrl);
+      if (parsed.protocol !== "https:" && parsed.protocol !== "http:") {
+        throw new Error("Unsupported URL protocol");
+      }
+
       let fileName = "Cloud_Spreadsheet.xlsx";
-      let fileSize = "1.8 MB";
+      const fileSize = "Remote file";
       let source = "URL Link";
 
       // Google Drive / Google Sheets Parsing
       if (targetUrl.includes("docs.google.com/spreadsheets")) {
         fileName = "Google_Sheets_Document.xlsx";
-        fileSize = "2.1 MB";
         source = "Google Sheets";
       } else if (targetUrl.includes("drive.google.com")) {
         fileName = "Google_Drive_File.xlsx";
-        fileSize = "2.4 MB";
         source = "Google Drive";
       } else if (targetUrl.includes("dropbox.com")) {
         fileName = "Dropbox_Shared_Sheet.xlsx";
-        fileSize = "1.9 MB";
         source = "Dropbox";
       } else {
         // Extract filename from direct link if available
-        try {
-          const parsed = new URL(targetUrl);
-          const pathSegments = parsed.pathname.split("/").filter(Boolean);
-          const lastSeg = pathSegments[pathSegments.length - 1];
-          if (lastSeg && (lastSeg.endsWith(".xlsx") || lastSeg.endsWith(".xls") || lastSeg.endsWith(".csv") || lastSeg.endsWith(".xlsm"))) {
-            fileName = decodeURIComponent(lastSeg);
-          } else {
-            fileName = "Imported_Dataset.xlsx";
-          }
-        } catch {
-          fileName = "Web_Spreadsheet.xlsx";
+        const pathSegments = parsed.pathname.split("/").filter(Boolean);
+        const lastSeg = pathSegments[pathSegments.length - 1];
+        if (lastSeg && /\.(xlsx|xls|csv|xlsm)$/i.test(lastSeg)) {
+          fileName = decodeURIComponent(lastSeg);
+        } else {
+          fileName = "Imported_Dataset.xlsx";
         }
       }
 
@@ -125,23 +105,6 @@ export default function CloudImportModal({
       setErrorMessage("Could not fetch file from the provided URL. Please check permissions or direct link.");
     }
   };
-
-  const handleFileSelectAndImport = (file: { name: string; size: string }, source: string) => {
-    setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
-      onImportSuccess(file.name, file.size, source);
-      onClose();
-    }, 600);
-  };
-
-  const filteredGDriveFiles = GDRIVE_MOCK_FILES.filter((f) =>
-    f.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  const filteredDropboxFiles = DROPBOX_MOCK_FILES.filter((f) =>
-    f.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
 
   return (
     <AnimatePresence>
@@ -201,7 +164,7 @@ export default function CloudImportModal({
                 }`}
             >
               <GoogleDriveIcon className="w-4 h-4" />
-              <span>Google Drive</span>
+              <span>{t.cloudImport.gdriveTab}</span>
             </button>
 
             <button
@@ -212,7 +175,7 @@ export default function CloudImportModal({
                 }`}
             >
               <DropboxIcon className="w-4 h-4" />
-              <span>Dropbox</span>
+              <span>{t.cloudImport.dropboxTab}</span>
             </button>
 
             <button
@@ -223,7 +186,7 @@ export default function CloudImportModal({
                 }`}
             >
               <Link2 className="w-4 h-4" />
-              <span>Google Drive / URL Link</span>
+              <span>{t.cloudImport.urlTab}</span>
             </button>
           </div>
 
@@ -272,60 +235,20 @@ export default function CloudImportModal({
                   </div>
                 </div>
 
-                {/* Google Drive Account Header & Search */}
+                {/* OAuth-backed account listing is not available yet. */}
                 <div className="flex items-center justify-between gap-3 pt-2">
                   <div className="flex items-center gap-2 text-xs font-semibold text-slate-800">
                     <FolderOpen className="w-4 h-4 text-blue-600" />
                     <span>My Google Drive Files</span>
-                    <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-bold">
-                      Connected
+                    <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 text-[10px] font-bold">
+                      {t.cloudImport.notConnected}
                     </span>
-                  </div>
-
-                  <div className="relative w-48">
-                    <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
-                    <input
-                      type="text"
-                      placeholder="Search Drive..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="w-full text-xs pl-8 pr-3 py-1.5 rounded-lg border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:ring-1 focus:ring-blue-500"
-                    />
                   </div>
                 </div>
 
-                {/* Google Drive Files List */}
-                <div className="border border-slate-200 rounded-2xl overflow-hidden divide-y divide-slate-100">
-                  {filteredGDriveFiles.map((file) => (
-                    <div
-                      key={file.id}
-                      onClick={() => setSelectedFileId(file.id)}
-                      className={`flex items-center justify-between p-3 cursor-pointer transition-colors ${selectedFileId === file.id
-                          ? "bg-blue-50/70 text-blue-900"
-                          : "hover:bg-slate-50 text-slate-800"
-                        }`}
-                    >
-                      <div className="flex items-center gap-3 min-w-0">
-                        <div className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
-                          <FileSpreadsheet className="w-4 h-4" />
-                        </div>
-                        <div className="min-w-0">
-                          <p className="text-xs font-semibold truncate text-slate-900">{file.name}</p>
-                          <p className="text-[10px] text-slate-500">{file.size} • Modified {file.modified}</p>
-                        </div>
-                      </div>
-
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleFileSelectAndImport(file, "Google Drive");
-                        }}
-                        className="px-3 py-1.5 bg-[#355BFF] hover:bg-blue-700 text-white rounded-lg text-xs font-semibold shadow-2xs transition-all active:scale-95 shrink-0"
-                      >
-                        Convert to JPG
-                      </button>
-                    </div>
-                  ))}
+                <div className="border border-slate-200 rounded-2xl bg-slate-50/70 p-5 text-center">
+                  <p className="text-xs font-semibold text-slate-800">{t.cloudImport.listingUnavailable}</p>
+                  <p className="mt-1 text-[11px] leading-relaxed text-slate-500">{t.cloudImport.connectGdrive}</p>
                 </div>
               </div>
             )}
@@ -365,60 +288,20 @@ export default function CloudImportModal({
                   </div>
                 </div>
 
-                {/* Dropbox Header & Search */}
+                {/* OAuth-backed account listing is not available yet. */}
                 <div className="flex items-center justify-between gap-3 pt-2">
                   <div className="flex items-center gap-2 text-xs font-semibold text-slate-800">
                     <FolderOpen className="w-4 h-4 text-[#0061FF]" />
                     <span>My Dropbox Spreadsheets</span>
-                    <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-bold">
-                      Connected
+                    <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 text-[10px] font-bold">
+                      {t.cloudImport.notConnected}
                     </span>
-                  </div>
-
-                  <div className="relative w-48">
-                    <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
-                    <input
-                      type="text"
-                      placeholder="Search Dropbox..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="w-full text-xs pl-8 pr-3 py-1.5 rounded-lg border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:ring-1 focus:ring-blue-500"
-                    />
                   </div>
                 </div>
 
-                {/* Dropbox Files List */}
-                <div className="border border-slate-200 rounded-2xl overflow-hidden divide-y divide-slate-100">
-                  {filteredDropboxFiles.map((file) => (
-                    <div
-                      key={file.id}
-                      onClick={() => setSelectedFileId(file.id)}
-                      className={`flex items-center justify-between p-3 cursor-pointer transition-colors ${selectedFileId === file.id
-                          ? "bg-blue-50/70 text-blue-900"
-                          : "hover:bg-slate-50 text-slate-800"
-                        }`}
-                    >
-                      <div className="flex items-center gap-3 min-w-0">
-                        <div className="w-8 h-8 rounded-lg bg-blue-100 text-[#0061FF] flex items-center justify-center shrink-0">
-                          <FileSpreadsheet className="w-4 h-4" />
-                        </div>
-                        <div className="min-w-0">
-                          <p className="text-xs font-semibold truncate text-slate-900">{file.name}</p>
-                          <p className="text-[10px] text-slate-500">{file.size} • Modified {file.modified}</p>
-                        </div>
-                      </div>
-
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleFileSelectAndImport(file, "Dropbox");
-                        }}
-                        className="px-3 py-1.5 bg-[#0061FF] hover:bg-blue-700 text-white rounded-lg text-xs font-semibold shadow-2xs transition-all active:scale-95 shrink-0"
-                      >
-                        Convert to JPG
-                      </button>
-                    </div>
-                  ))}
+                <div className="border border-slate-200 rounded-2xl bg-slate-50/70 p-5 text-center">
+                  <p className="text-xs font-semibold text-slate-800">{t.cloudImport.listingUnavailable}</p>
+                  <p className="mt-1 text-[11px] leading-relaxed text-slate-500">{t.cloudImport.connectDropbox}</p>
                 </div>
               </div>
             )}
@@ -437,7 +320,7 @@ export default function CloudImportModal({
                   <div className="space-y-2">
                     <input
                       type="url"
-                      placeholder="e.g. https://docs.google.com/spreadsheets/d/1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms/edit"
+                      placeholder="e.g. https://docs.google.com/spreadsheets/d/YOUR_FILE_ID/edit"
                       value={urlInput}
                       onChange={(e) => setUrlInput(e.target.value)}
                       onKeyDown={(e) => e.key === "Enter" && handleUrlImport()}
@@ -458,37 +341,9 @@ export default function CloudImportModal({
                   </div>
                 </div>
 
-                {/* Instant Quick-Test Samples */}
-                <div className="pt-2">
-                  <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-2">
-                    Or Test with a Live Sample Sheet:
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    <button
-                      onClick={() => handleUrlImport("https://docs.google.com/spreadsheets/d/1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms/export?format=xlsx")}
-                      className="flex items-center gap-2.5 p-2.5 rounded-xl border border-slate-200 hover:border-blue-300 bg-white hover:bg-blue-50/40 text-left transition-all group"
-                    >
-                      <GoogleDriveIcon className="w-4 h-4 shrink-0" />
-                      <div className="min-w-0 flex-1">
-                        <p className="text-xs font-semibold text-slate-800 group-hover:text-blue-600 truncate">Google Sheets Financial Report</p>
-                        <p className="text-[10px] text-slate-400">Public Google Sheet • 2.1 MB</p>
-                      </div>
-                      <ArrowRight className="w-3.5 h-3.5 text-slate-400 group-hover:text-blue-600 transition-transform group-hover:translate-x-0.5" />
-                    </button>
-
-                    <button
-                      onClick={() => handleUrlImport("https://www.dropbox.com/s/2026_Executive_Dashboard.xlsx?dl=1")}
-                      className="flex items-center gap-2.5 p-2.5 rounded-xl border border-slate-200 hover:border-blue-300 bg-white hover:bg-blue-50/40 text-left transition-all group"
-                    >
-                      <DropboxIcon className="w-4 h-4 shrink-0" />
-                      <div className="min-w-0 flex-1">
-                        <p className="text-xs font-semibold text-slate-800 group-hover:text-blue-600 truncate">Dropbox KPI Dashboard (.xlsx)</p>
-                        <p className="text-[10px] text-slate-400">Dropbox File • 1.8 MB</p>
-                      </div>
-                      <ArrowRight className="w-3.5 h-3.5 text-slate-400 group-hover:text-blue-600 transition-transform group-hover:translate-x-0.5" />
-                    </button>
-                  </div>
+                <div className="pt-2 text-[11px] text-slate-500 flex items-center gap-1.5">
+                  <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                  <span>{t.cloudImport.publicLinksOnly}</span>
                 </div>
               </div>
             )}

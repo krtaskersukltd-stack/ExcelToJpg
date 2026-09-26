@@ -14,9 +14,14 @@ import hmac
 import json
 import secrets
 import sqlite3
+from contextlib import closing
 from pathlib import Path
 from urllib.parse import urlparse
 import requests
+from dotenv import load_dotenv
+from google.auth.exceptions import GoogleAuthError
+from google.auth.transport import requests as google_requests
+from google.oauth2 import id_token as google_id_token
 import pandas as pd
 from PIL import Image, ImageDraw, ImageFont
 from fastapi import FastAPI, File, UploadFile, Form, HTTPException, Request, Response, BackgroundTasks
@@ -26,7 +31,7 @@ from docx import Document
 from fpdf import FPDF, XPos, YPos
 from openpyxl import Workbook
 from pypdf import PdfReader
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 try:
     from rapidocr_onnxruntime import RapidOCR
@@ -48,11 +53,15 @@ ALLOWED_OUTPUT_EXTENSIONS = {"jpg", "jpeg", "png", "pdf", "docx", "csv"}
 MAX_UPLOAD_BYTES = int(os.getenv("MAX_UPLOAD_BYTES", str(25 * 1024 * 1024)))
 
 project_dir = os.path.dirname(os.path.abspath(__file__))
+load_dotenv(os.path.join(os.path.dirname(project_dir), ".env.local"))
 upload_dir = os.path.join(project_dir, "upload")
 input_dir = os.path.join(upload_dir, "input")
 output_dir = os.path.join(upload_dir, "output")
 auth_db_path = os.path.join(project_dir, "auth.db")
 AUTH_SECRET = os.getenv("AUTH_SECRET", "change-this-secret-in-production")
+GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID", "").strip()
+GOOGLE_BROWSER_CLIENT_ID = os.getenv("NEXT_PUBLIC_GOOGLE_CLIENT_ID", "").strip()
+GOOGLE_ISSUERS = {"accounts.google.com", "https://accounts.google.com"}
 SESSION_COOKIE = "excel_to_jpg_session"
 SESSION_MAX_AGE = 60 * 60 * 24 * 7
 
@@ -61,7 +70,7 @@ os.makedirs(output_dir, exist_ok=True)
 
 
 def init_auth_db():
-    with sqlite3.connect(auth_db_path) as connection:
+    with closing(sqlite3.connect(auth_db_path)) as connection, connection:
         connection.execute(
             """
             CREATE TABLE IF NOT EXISTS users (
@@ -75,6 +84,15 @@ def init_auth_db():
             )
             """
         )
+        columns = {row[1] for row in connection.execute("PRAGMA table_info(users)")}
+        if "email" not in columns:
+            connection.execute("ALTER TABLE users ADD COLUMN email TEXT")
+        if "google_sub" not in columns:
+            connection.execute("ALTER TABLE users ADD COLUMN google_sub TEXT")
+        if "auth_provider" not in columns:
+            connection.execute("ALTER TABLE users ADD COLUMN auth_provider TEXT NOT NULL DEFAULT 'password'")
+        connection.execute("CREATE UNIQUE INDEX IF NOT EXISTS users_email_unique ON users(email COLLATE NOCASE)")
+        connection.execute("CREATE UNIQUE INDEX IF NOT EXISTS users_google_sub_unique ON users(google_sub)")
 
 
 init_auth_db()
@@ -106,7 +124,8 @@ app.add_middleware(
 
 
 class SignupRequest(BaseModel):
-    phone: str
+    phone: str = ""
+    email: str = ""
     full_name: str
     username: str
     password: str
@@ -115,6 +134,10 @@ class SignupRequest(BaseModel):
 class LoginRequest(BaseModel):
     identifier: str
     password: str
+
+
+class GoogleAuthRequest(BaseModel):
+    credential: str = Field(min_length=1, max_length=8192)
 
 
 def password_is_strong(password: str) -> bool:
@@ -171,7 +194,14 @@ def session_user_id(request: Request) -> int | None:
 
 
 def public_user(row: sqlite3.Row) -> dict:
-    return {"id": row["id"], "phone": row["phone"], "full_name": row["full_name"], "username": row["username"], "email": row["email"]}
+    return {
+        "id": row["id"],
+        "phone": row["phone"],
+        "full_name": row["full_name"],
+        "username": row["username"],
+        "email": row["email"],
+        "auth_provider": row["auth_provider"],
+    }
 
 
 def set_session_cookie(response: Response, user_id: int):
@@ -188,29 +218,38 @@ def set_session_cookie(response: Response, user_id: int):
 
 @app.post("/api/auth/signup", status_code=201)
 async def signup(payload: SignupRequest, response: Response):
-    phone = re.sub(r"[^\d+]", "", payload.phone.strip())
+    phone = re.sub(r"[^\d+]", "", payload.phone.strip()) if payload.phone else ""
+    email = payload.email.strip().lower() if payload.email else ""
     full_name = " ".join(payload.full_name.split())
     username = payload.username.strip()
-    if len(phone) < 8 or len(phone) > 16:
+    # At least one of phone or email must be provided
+    if not phone and not email:
+        raise HTTPException(status_code=422, detail="Enter a phone number or email address.")
+    if phone and (len(phone) < 8 or len(phone) > 16):
         raise HTTPException(status_code=422, detail="Enter a valid phone number.")
+    if email and not re.fullmatch(r"[^@\s]+@[^@\s]+\.[^@\s]+", email):
+        raise HTTPException(status_code=422, detail="Enter a valid email address.")
     if len(full_name) < 2 or len(full_name) > 80:
         raise HTTPException(status_code=422, detail="Enter your full name.")
     if not re.fullmatch(r"[A-Za-z0-9_.]{3,24}", username):
         raise HTTPException(status_code=422, detail="Username must be 3-24 letters, numbers, dots, or underscores.")
     if not password_is_strong(payload.password):
         raise HTTPException(status_code=422, detail="Use 8+ characters with uppercase, lowercase, number, and symbol.")
+    # Use email as phone placeholder when phone is not provided
+    db_phone = phone if phone else f"email:{email}"
+    db_email = email if email else None
     try:
         with sqlite3.connect(auth_db_path) as connection:
             cursor = connection.execute(
-                "INSERT INTO users (phone, full_name, username, password_hash, created_at) VALUES (?, ?, ?, ?, ?)",
-                (phone, full_name, username, hash_password(payload.password), int(time.time())),
+                "INSERT INTO users (phone, email, full_name, username, password_hash, created_at) VALUES (?, ?, ?, ?, ?, ?)",
+                (db_phone, db_email, full_name, username, hash_password(payload.password), int(time.time())),
             )
             user_id = int(cursor.lastrowid)
     except sqlite3.IntegrityError as error:
-        message = "That phone number or username is already registered."
+        message = "That phone number, email, or username is already registered."
         raise HTTPException(status_code=409, detail=message) from error
     set_session_cookie(response, user_id)
-    return {"user": {"id": user_id, "phone": phone, "full_name": full_name, "username": username, "email": None}}
+    return {"user": {"id": user_id, "phone": phone, "full_name": full_name, "username": username, "email": db_email}}
 
 
 @app.post("/api/auth/login")
@@ -227,6 +266,89 @@ async def login(payload: LoginRequest, response: Response):
         raise HTTPException(status_code=401, detail="Incorrect username, phone, email, or password.")
     set_session_cookie(response, int(row["id"]))
     return {"user": public_user(row)}
+
+
+@app.post("/api/auth/google")
+async def google_auth(payload: GoogleAuthRequest, response: Response):
+    if not GOOGLE_CLIENT_ID:
+        raise HTTPException(status_code=503, detail="Google sign-in is not configured on the server.")
+    if GOOGLE_BROWSER_CLIENT_ID and GOOGLE_BROWSER_CLIENT_ID != GOOGLE_CLIENT_ID:
+        raise HTTPException(status_code=503, detail="Google sign-in client IDs do not match.")
+
+    try:
+        token_data = google_id_token.verify_oauth2_token(
+            payload.credential.strip(),
+            google_requests.Request(),
+            GOOGLE_CLIENT_ID,
+        )
+    except (ValueError, GoogleAuthError) as error:
+        raise HTTPException(status_code=401, detail="Google could not verify this sign-in.") from error
+
+    google_sub = str(token_data.get("sub") or "").strip()
+    email = str(token_data.get("email") or "").strip().lower()
+    name = " ".join(str(token_data.get("name") or "").split())
+    issuer = str(token_data.get("iss") or "")
+    audience = token_data.get("aud")
+    authorized_party = token_data.get("azp")
+    if (
+        issuer not in GOOGLE_ISSUERS
+        or audience != GOOGLE_CLIENT_ID
+        or (authorized_party is not None and authorized_party != GOOGLE_CLIENT_ID)
+        or not google_sub
+        or not email
+        or token_data.get("email_verified") is not True
+    ):
+        raise HTTPException(status_code=401, detail="Google did not provide a verified account.")
+
+    try:
+        with closing(sqlite3.connect(auth_db_path)) as connection, connection:
+            connection.row_factory = sqlite3.Row
+            row = connection.execute(
+                "SELECT * FROM users WHERE google_sub = ?",
+                (google_sub,),
+            ).fetchone()
+
+            if row is not None:
+                user_id = int(row["id"])
+                connection.execute(
+                    "UPDATE users SET email = ?, full_name = ? WHERE id = ?",
+                    (email, name or row["full_name"], user_id),
+                )
+                row = connection.execute("SELECT * FROM users WHERE id = ?", (user_id,)).fetchone()
+                user_data = public_user(row)
+            else:
+                # Never attach a Google identity to a local account based only on a
+                # matching email. Account linking requires a separately authenticated flow.
+                if connection.execute(
+                    "SELECT id FROM users WHERE email = ? COLLATE NOCASE",
+                    (email,),
+                ).fetchone():
+                    raise HTTPException(
+                        status_code=409,
+                        detail="An account already uses this email. Sign in with its existing method.",
+                    )
+
+                full_name = name or email.split("@")[0].title()
+                base_username = re.sub(r"[^A-Za-z0-9_.]", "", email.split("@")[0])[:20] or "user"
+                username = base_username
+                idx = 1
+                while connection.execute("SELECT id FROM users WHERE username = ? COLLATE NOCASE", (username,)).fetchone():
+                    username = f"{base_username[:16]}_{idx}"
+                    idx += 1
+
+                random_pwd = secrets.token_urlsafe(18) + "Aa1!"
+                cursor = connection.execute(
+                    "INSERT INTO users (phone, email, full_name, username, password_hash, created_at, google_sub, auth_provider) VALUES (?, ?, ?, ?, ?, ?, ?, 'google')",
+                    (f"google:{google_sub}", email, full_name, username, hash_password(random_pwd), int(time.time()), google_sub),
+                )
+                user_id = int(cursor.lastrowid)
+                row = connection.execute("SELECT * FROM users WHERE id = ?", (user_id,)).fetchone()
+                user_data = public_user(row)
+    except sqlite3.IntegrityError as error:
+        raise HTTPException(status_code=409, detail="That Google account is already registered.") from error
+
+    set_session_cookie(response, user_id)
+    return {"user": user_data}
 
 
 @app.get("/api/auth/me")

@@ -9,5 +9,7 @@ python-multipart
 python-docx
 fpdf2
 requests
+google-auth
+python-dotenv
 pypdf
 rapidocr_onnxruntime

@@ -331,3 +331,9 @@ body, p, span, a, button, input, select, textarea, table, .font-sans {
 ::-webkit-scrollbar-thumb:hover {
   background: #94A3B8;
 }
+
+@media (min-width: 767px) {
+  .position-revert {
+    position: sticky !important;
+  }
+}
