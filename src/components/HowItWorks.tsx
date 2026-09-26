@@ -2,13 +2,54 @@
 
 import React from "react";
 import { motion } from "framer-motion";
-import { FileText, RefreshCw, Image as ImageIcon, FileUp, Check } from "lucide-react";
+import { FileText, RefreshCw, Image as ImageIcon, FileUp, Check, Sparkles } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { useOutputFormat } from "@/context/OutputFormatContext";
+import { ConverterToolId, getToolConfig } from "@/lib/converter-tools";
 
-export default function HowItWorks() {
+export default function HowItWorks({ activeTool = "excel-jpg" }: { activeTool?: ConverterToolId }) {
   const { t } = useLanguage();
   const { label, withFormat } = useOutputFormat();
+  const toolConfig = getToolConfig(activeTool);
+
+  const isReverse = toolConfig.actionType === "reverse_excel";
+  const isFormula = toolConfig.actionType === "formula";
+
+  const step1Title = isReverse
+    ? `Upload ${toolConfig.titlePrefix.replace(" To", "")} File`
+    : isFormula
+    ? "Enter Prompt"
+    : t.howItWorks.step1Title;
+
+  const step1Desc = isReverse
+    ? `Choose or drop your ${toolConfig.titlePrefix.replace(" To", "")} file into our smart table conversion engine.`
+    : isFormula
+    ? "Describe the calculation, condition, or transformation you need in regular words."
+    : t.howItWorks.step1Desc;
+
+  const step2Title = isReverse
+    ? "AI OCR & Table Extraction"
+    : isFormula
+    ? "Formula Generation"
+    : t.howItWorks.step2Title;
+
+  const step2Desc = isReverse
+    ? "Our engine accurately scans table boundaries, text, and numbers into structured spreadsheet cells."
+    : isFormula
+    ? "Advanced AI creates the optimal Excel or Google Sheets formula and explains syntax step by step."
+    : withFormat(t.howItWorks.step2Desc);
+
+  const step3Title = isReverse
+    ? "Download Excel (.xlsx)"
+    : isFormula
+    ? "Copy & Calculate"
+    : `${t.howItWorks.step3Title.replace(/JPG/gi, toolConfig.titleHighlight)}`;
+
+  const step3Desc = isReverse
+    ? "Download your clean, fully editable Microsoft Excel spreadsheet ready for analysis."
+    : isFormula
+    ? "Paste the formula directly into your sheet and automate calculations instantly."
+    : withFormat(t.howItWorks.step3Desc);
 
   return (
     <section className="py-20 relative bg-[#FAFBFD]">
@@ -17,10 +58,14 @@ export default function HowItWorks() {
         {/* Section Header */}
         <div className="text-center space-y-3 mb-14">
           <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 tracking-tight">
-            {t.howItWorks.titlePrefix} <span className="text-[#355BFF]">{label}</span> {t.howItWorks.titleSuffix}
+            {toolConfig.titlePrefix} <span className="text-[#355BFF]">{toolConfig.titleHighlight}</span> {t.howItWorks.titleSuffix}
           </h2>
           <p className="text-sm sm:text-base text-slate-500 max-w-2xl mx-auto">
-            {withFormat(t.howItWorks.subtitle)}
+            {isReverse
+              ? `Convert your ${toolConfig.titlePrefix.replace(" To", "")} into structured spreadsheets in 3 quick steps.`
+              : isFormula
+              ? "Generate accurate, high-performance formulas in seconds."
+              : withFormat(t.howItWorks.subtitle)}
           </p>
         </div>
 
@@ -49,12 +94,12 @@ export default function HowItWorks() {
 
                 {/* Title */}
                 <h3 className="text-lg sm:text-xl font-bold text-[#355BFF] mb-2 tracking-tight">
-                  {t.howItWorks.step1Title}
+                  {step1Title}
                 </h3>
 
                 {/* Description */}
                 <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-                  {t.howItWorks.step1Desc}
+                  {step1Desc}
                 </p>
               </div>
 
@@ -85,12 +130,12 @@ export default function HowItWorks() {
 
                 {/* Title */}
                 <h3 className="text-lg sm:text-xl font-bold text-[#355BFF] mb-2 tracking-tight">
-                  {t.howItWorks.step2Title}
+                  {step2Title}
                 </h3>
 
                 {/* Description */}
                 <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-                  {withFormat(t.howItWorks.step2Desc)}
+                  {step2Desc}
                 </p>
               </div>
 
@@ -106,7 +151,7 @@ export default function HowItWorks() {
               </div>
             </div>
 
-            {/* Step 03: Download JPG */}
+            {/* Step 03: Download Output */}
             <div className="flex flex-col justify-between">
               <div>
                 {/* Number & Top-Right Icon */}
@@ -121,12 +166,12 @@ export default function HowItWorks() {
 
                 {/* Title */}
                 <h3 className="text-lg sm:text-xl font-bold text-[#355BFF] mb-2 tracking-tight">
-                  {t.howItWorks.step3Title}
+                  {step3Title}
                 </h3>
 
                 {/* Description */}
                 <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-                  {withFormat(t.howItWorks.step3Desc)}
+                  {step3Desc}
                 </p>
               </div>
 

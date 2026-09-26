@@ -5,10 +5,13 @@ import { motion } from "framer-motion";
 
 import { useLanguage } from "@/context/LanguageContext";
 import { useOutputFormat } from "@/context/OutputFormatContext";
+import { ConverterToolId, getToolConfig } from "@/lib/converter-tools";
 
-export default function SpreadsheetShowcase() {
+export default function SpreadsheetShowcase({ activeTool = "excel-jpg" }: { activeTool?: ConverterToolId }) {
   const { t } = useLanguage();
   const { label, withFormat } = useOutputFormat();
+  const toolConfig = getToolConfig(activeTool);
+  const displayLabel = toolConfig.titleHighlight || label;
   const [isRendering, setIsRendering] = useState(false);
 
   const triggerRenderAnimation = () => {
@@ -26,7 +29,7 @@ export default function SpreadsheetShowcase() {
         <div className="text-center space-y-3 mb-14 sm:mb-16">
           <h2 className="text-3xl sm:text-4xl lg:text-[42px] font-extrabold text-[#0F172A] tracking-tight leading-tight">
             {t.showcase.title1}<br />
-            <span className="text-[#3B66FF]">{label}</span> {t.showcase.title2}
+            <span className="text-[#3B66FF]">{displayLabel}</span> {t.showcase.title2}
           </h2>
           <p className="text-sm sm:text-base text-slate-600 max-w-2xl mx-auto font-normal leading-relaxed">
             {withFormat(t.showcase.subtitle)}

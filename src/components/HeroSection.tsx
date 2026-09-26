@@ -10,9 +10,12 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 import LiveConverterModal from "./LiveConverterModal";
+import FileToExcelModal from "./FileToExcelModal";
+import FormulaGeneratorModal from "./FormulaGeneratorModal";
 import CloudImportModal, { GoogleDriveIcon, DropboxIcon } from "./CloudImportModal";
 import { useLanguage } from "@/context/LanguageContext";
 import { useOutputFormat } from "@/context/OutputFormatContext";
+import { ConverterToolId, getToolConfig } from "@/lib/converter-tools";
 
 /* Exact Cloud Upload Icon matching user's uploaded icon */
 function CustomCloudUploadIcon({ className = "w-7 h-7 text-[#355BFF]" }: { className?: string }) {
@@ -36,11 +39,23 @@ function CustomCloudUploadIcon({ className = "w-7 h-7 text-[#355BFF]" }: { class
   );
 }
 
-export default function HeroSection() {
+export default function HeroSection({
+  activeTool = "excel-jpg",
+  onSelectTool,
+  onOpenToolModal,
+}: {
+  activeTool?: ConverterToolId;
+  onSelectTool?: (tool: ConverterToolId) => void;
+  onOpenToolModal?: (tool: ConverterToolId, file?: File | null) => void;
+}) {
   const { t } = useLanguage();
-  const { format, label, withFormat } = useOutputFormat();
+  const { format, label } = useOutputFormat();
+  const toolConfig = getToolConfig(activeTool);
+
   const [isDragging, setIsDragging] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
+  const [fileToExcelOpen, setFileToExcelOpen] = useState(false);
+  const [formulaModalOpen, setFormulaModalOpen] = useState(false);
   const [cloudModalOpen, setCloudModalOpen] = useState(false);
   const [cloudTab, setCloudTab] = useState<"gdrive" | "dropbox" | "link">("gdrive");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -58,27 +73,37 @@ export default function HeroSection() {
     setIsDragging(false);
   };
 
+  const handleFilePicked = (file: File) => {
+    setSelectedFile(file);
+    setSelectedUrl(null);
+    setSelectedFileName(file.name);
+    setSelectedFileSize(`${(file.size / (1024 * 1024)).toFixed(1)} MB`);
+
+    if (onOpenToolModal) {
+      onOpenToolModal(activeTool, file);
+      return;
+    }
+
+    if (toolConfig.actionType === "formula") {
+      setFormulaModalOpen(true);
+    } else if (toolConfig.actionType === "reverse_excel") {
+      setFileToExcelOpen(true);
+    } else {
+      setModalOpen(true);
+    }
+  };
+
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(false);
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      const file = e.dataTransfer.files[0];
-      setSelectedFile(file);
-      setSelectedUrl(null);
-      setSelectedFileName(file.name);
-      setSelectedFileSize(`${(file.size / (1024 * 1024)).toFixed(1)} MB`);
-      setModalOpen(true);
+      handleFilePicked(e.dataTransfer.files[0]);
     }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
-      const file = e.target.files[0];
-      setSelectedFile(file);
-      setSelectedUrl(null);
-      setSelectedFileName(file.name);
-      setSelectedFileSize(`${(file.size / (1024 * 1024)).toFixed(1)} MB`);
-      setModalOpen(true);
+      handleFilePicked(e.target.files[0]);
     }
   };
 
@@ -92,7 +117,19 @@ export default function HeroSection() {
     setSelectedFileSize(size);
     setSelectedFile(null);
     setSelectedUrl(targetUrl || null);
-    setModalOpen(true);
+    if (toolConfig.actionType === "reverse_excel") {
+      setFileToExcelOpen(true);
+    } else {
+      setModalOpen(true);
+    }
+  };
+
+  const handleMainActionClick = () => {
+    if (toolConfig.actionType === "formula") {
+      setFormulaModalOpen(true);
+      return;
+    }
+    fileInputRef.current?.click();
   };
 
   return (
@@ -101,16 +138,17 @@ export default function HeroSection() {
         
         {/* Main Headline */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          key={activeTool}
+          initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
+          transition={{ duration: 0.35 }}
           className="space-y-3 max-w-3xl mx-auto"
         >
           <h1 className="text-3xl sm:text-5xl lg:text-[48px] font-bold tracking-tight text-slate-900 leading-[1.2]">
-            {t.hero.titlePrefix} <span className="text-[#355BFF]">{label}</span> {t.hero.titleSuffix}
+            {toolConfig.titlePrefix} <span className="text-[#355BFF]">{toolConfig.titleHighlight}</span> {toolConfig.titleSuffix}
           </h1>
           <p className="text-sm sm:text-base text-slate-500 font-normal leading-relaxed max-w-xl mx-auto">
-            {withFormat(t.hero.subtitle)}
+            {toolConfig.subtitle}
           </p>
         </motion.div>
 
@@ -149,7 +187,7 @@ export default function HeroSection() {
                 
                 {/* Cloud Upload Icon Inside Lavender-Blue Squircle */}
                 <div 
-                  onClick={() => fileInputRef.current?.click()}
+                  onClick={handleMainActionClick}
                   className="cursor-pointer group mb-3"
                 >
                   <div className="w-14 h-14 rounded-2xl bg-[#DEE7FF] flex items-center justify-center text-[#355BFF] shadow-xs group-hover:scale-105 group-hover:bg-[#D4E0FF] transition-all duration-200">
@@ -159,17 +197,17 @@ export default function HeroSection() {
 
                 {/* Title & Subtext */}
                 <h2 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
-                  {t.hero.dropzoneTitle}
+                  {toolConfig.dropzoneTitle}
                 </h2>
                 <p className="text-xs sm:text-sm text-slate-500 mt-1 mb-5">
-                  {t.hero.dropzoneSubtitle}
+                  {toolConfig.dropzoneSubtitle}
                 </p>
 
                 {/* Hidden File Input */}
                 <input
                   ref={fileInputRef}
                   type="file"
-                  accept=".xls,.xlsx,.csv,.xlsm"
+                  accept={toolConfig.accept}
                   className="hidden"
                   onChange={handleFileChange}
                 />
@@ -177,13 +215,13 @@ export default function HeroSection() {
                 {/* Actions Row: Choose File + Google Drive + Dropbox + URL Link */}
                 <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4 mb-4">
                   
-                  {/* Choose Excel File Button */}
+                  {/* Choose File Button */}
                   <button
-                    onClick={() => fileInputRef.current?.click()}
+                    onClick={handleMainActionClick}
                     className="flex items-center gap-2 px-5 py-2.5 bg-[#355BFF] hover:bg-blue-700 active:scale-95 text-white font-medium rounded-xl shadow-md shadow-blue-500/25 transition-all text-xs sm:text-sm cursor-pointer"
                   >
                     <Folder className="w-4 h-4 fill-white/20 stroke-[2]" />
-                    <span>{t.hero.chooseFile}</span>
+                    <span>{toolConfig.chooseButtonText}</span>
                   </button>
 
                   {/* Google Drive Integration */}
@@ -223,8 +261,8 @@ export default function HeroSection() {
                 </div>
 
                 {/* Supported Formats Pills */}
-                <div className="flex items-center justify-center gap-1.5">
-                  {[".XLS", ".XLSX", ".CSV", ".XLSM"].map((ext) => (
+                <div className="flex items-center justify-center gap-1.5 flex-wrap">
+                  {toolConfig.badges.map((ext) => (
                     <span
                       key={ext}
                       className="px-2 py-0.5 rounded bg-white/95 border border-slate-200/90 text-[10px] font-medium text-slate-600 shadow-2xs"
@@ -279,9 +317,25 @@ export default function HeroSection() {
         url={selectedUrl}
         fileName={selectedFileName}
         fileSize={selectedFileSize}
-        initialFormat={format}
-        toolTitle={`Excel to ${label}`}
+        initialFormat={toolConfig.forwardFormat || format}
+        toolTitle={toolConfig.label}
         lockFormat
+      />
+
+      {/* File To Excel Modal */}
+      {toolConfig.sourceKind && (
+        <FileToExcelModal
+          isOpen={fileToExcelOpen}
+          onClose={() => setFileToExcelOpen(false)}
+          sourceKind={toolConfig.sourceKind}
+          initialFile={selectedFile}
+        />
+      )}
+
+      {/* Formula Generator Modal */}
+      <FormulaGeneratorModal
+        isOpen={formulaModalOpen}
+        onClose={() => setFormulaModalOpen(false)}
       />
     </section>
   );

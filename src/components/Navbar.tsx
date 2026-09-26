@@ -16,40 +16,25 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLanguage } from "@/context/LanguageContext";
-import { ConverterToolId, NAV_TOOL_IDS, TOOL_LABELS } from "@/lib/converter-tools";
+import { ConverterToolId, NAV_TOOL_COLUMNS, TOOL_LABELS } from "@/lib/converter-tools";
 import type { SiteOutputFormat } from "@/context/OutputFormatContext";
 
-const toolIcons = [
-  ImageIcon,
-  Layers,
-  FileText,
-  FileSpreadsheet,
-  FileSpreadsheet,
-  FileSpreadsheet,
-  FileSpreadsheet,
-  FileText,
-  FileText,
-  FileText,
-  Layers,
-  FileText,
-  FileSpreadsheet,
-  FileText,
-  FileText,
-  FileText,
-  FileText,
-  FileSpreadsheet,
-  FileSpreadsheet,
-  FileSpreadsheet,
-  ImageIcon,
-  Sparkles,
-];
+function getToolIcon(id: ConverterToolId) {
+  if (id.includes("jpg") || id.includes("jpeg")) return ImageIcon;
+  if (id.includes("png")) return Layers;
+  if (id.includes("pdf") || id.includes("word") || id.includes("txt")) return FileText;
+  if (id.includes("formula")) return Sparkles;
+  return FileSpreadsheet;
+}
 
 export default function Navbar({
   onSelectTool,
   activeFormat = "jpg",
+  activeTool = "excel-jpg",
 }: {
   onSelectTool?: (tool: ConverterToolId) => void;
   activeFormat?: SiteOutputFormat;
+  activeTool?: ConverterToolId;
 }) {
   const { language, setLanguage, t, languages } = useLanguage();
   const [isToolsOpen, setIsToolsOpen] = useState(false);
@@ -156,51 +141,79 @@ export default function Navbar({
                   exit={{ opacity: 0, y: 8, scale: 0.96 }}
                   transition={{ duration: 0.15 }}
                   onMouseLeave={() => setIsToolsOpen(false)}
-                  className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-80 bg-white rounded-2xl shadow-2xl border border-slate-100 p-2.5 z-50 overflow-hidden"
+                  className="absolute top-full left-1/2 -translate-x-1/2 mt-2.5 w-[760px] lg:w-[860px] max-w-[95vw] bg-white rounded-2xl shadow-[0_20px_50px_rgba(15,23,42,0.18)] border border-slate-200/90 p-3.5 sm:p-4 z-50 overflow-hidden"
                 >
-                  <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider px-3 py-1.5">
-                    {t.nav.conversionSuite}
+                  <div className="flex items-center justify-between pb-2.5 mb-2.5 border-b border-slate-100 px-1">
+                    <div className="text-[11px] font-bold text-slate-600 uppercase tracking-wider flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-[#355BFF]"></span>
+                      {t.nav.conversionSuite}
+                    </div>
+                    <span className="text-[11px] text-slate-400 font-medium hidden sm:inline">22 Fast Online Tools</span>
                   </div>
-                  <div className="space-y-1 max-h-[70vh] overflow-y-auto">
-                    {NAV_TOOL_IDS.map((toolId, idx) => {
-                      const item = t.nav.toolsList[idx] || { name: TOOL_LABELS[toolId], desc: "Conversion tool" };
-                      const Icon = toolIcons[idx] || ImageIcon;
-                      const isHighlight = toolId === "formula";
-                      const isCurrent =
-                        (toolId === "excel-jpg" && activeFormat === "jpg") ||
-                        (toolId === "excel-png" && activeFormat === "png") ||
-                        (toolId === "excel-csv" && activeFormat === "csv");
-                      return (
-                        <button
-                          key={toolId}
-                          onClick={() => { setIsToolsOpen(false); onSelectTool?.(toolId); }}
-                          className={`flex w-full items-start gap-3 p-2.5 text-left rounded-xl transition-all ${
-                            isHighlight
-                              ? "bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100/60"
-                              : isCurrent
-                              ? "bg-blue-50/50 text-blue-700"
-                              : "hover:bg-slate-50 text-slate-700"
-                          }`}
-                        >
-                          <div
-                            className={`p-2 rounded-lg mt-0.5 ${
-                              isHighlight ? "bg-blue-600 text-white" : isCurrent ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-600"
-                            }`}
-                          >
-                            <Icon className="w-4 h-4" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-1.5">
-                              <span className="text-xs font-semibold text-slate-900">{item.name}</span>
-                              {isHighlight && (
-                                <span className="text-[10px] text-white bg-blue-600 font-bold px-1.5 py-0.2 rounded-full">AI</span>
-                              )}
-                            </div>
-                            <p className="text-[11px] text-slate-500 truncate">{item.desc}</p>
-                          </div>
-                        </button>
-                      );
-                    })}
+
+                  {/* 3 Columns Menu */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3 max-h-[72vh] md:max-h-[560px] overflow-y-auto pr-1">
+                    {NAV_TOOL_COLUMNS.map((group) => (
+                      <div key={group.title} className="flex flex-col bg-slate-50/70 rounded-xl p-2 border border-slate-100">
+                        <div className="px-2 py-1 mb-1 border-b border-slate-200/60">
+                          <h4 className="text-xs font-bold text-slate-900 tracking-tight">{group.title}</h4>
+                          <p className="text-[10px] text-slate-500 font-medium">{group.subtitle}</p>
+                        </div>
+                        <div className="space-y-1">
+                          {group.tools.map((tool) => {
+                            const isCurrent = activeTool === tool.id;
+                            const isHighlight = tool.id === "formula";
+                            const Icon = getToolIcon(tool.id);
+
+                            return (
+                              <button
+                                key={tool.id}
+                                onClick={() => {
+                                  setIsToolsOpen(false);
+                                  onSelectTool?.(tool.id);
+                                }}
+                                className={`flex w-full items-start gap-2.5 p-2 text-left rounded-lg transition-all cursor-pointer ${
+                                  isCurrent
+                                    ? "bg-[#355BFF] text-white shadow-xs"
+                                    : isHighlight
+                                    ? "bg-blue-50/90 hover:bg-blue-100/90 text-blue-950"
+                                    : "hover:bg-white hover:shadow-2xs text-slate-700"
+                                }`}
+                              >
+                                <div
+                                  className={`p-1.5 rounded-md mt-0.5 shrink-0 ${
+                                    isCurrent
+                                      ? "bg-white/20 text-white"
+                                      : isHighlight
+                                      ? "bg-blue-600 text-white"
+                                      : "bg-white text-slate-600 border border-slate-200/70"
+                                  }`}
+                                >
+                                  <Icon className="w-3.5 h-3.5" />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center gap-1.5">
+                                    <span className={`text-xs font-semibold truncate ${isCurrent ? "text-white" : "text-slate-900"}`}>
+                                      {tool.name}
+                                    </span>
+                                    {tool.badge && (
+                                      <span className={`text-[9px] font-bold px-1.5 py-0.2 rounded-full ${
+                                        isCurrent ? "bg-white text-[#355BFF]" : "bg-blue-600 text-white"
+                                      }`}>
+                                        {tool.badge}
+                                      </span>
+                                    )}
+                                  </div>
+                                  <p className={`text-[10px] truncate ${isCurrent ? "text-blue-100" : "text-slate-500"}`}>
+                                    {tool.desc}
+                                  </p>
+                                </div>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </motion.div>
               )}
@@ -379,22 +392,40 @@ export default function Navbar({
                 </svg>
                 <span>{t.nav.pricing}</span>
               </Link>
-              <div className="border-t border-slate-100 my-2 pt-2">
+              <div className="border-t border-slate-100 my-2 pt-2 max-h-[50vh] overflow-y-auto">
                 <div className="text-[11px] font-semibold text-slate-400 px-3 py-1">{t.nav.allTools}</div>
-                {NAV_TOOL_IDS.map((toolId, idx) => {
-                  const Icon = toolIcons[idx] || ImageIcon;
-                  const name = t.nav.toolsList[idx]?.name || TOOL_LABELS[toolId];
-                  return (
-                    <button
-                      key={toolId}
-                      onClick={() => { setIsMobileMenuOpen(false); onSelectTool?.(toolId); }}
-                      className="flex w-full items-center gap-2 px-3 py-2 text-left text-xs text-slate-600 hover:bg-slate-50 rounded-lg"
-                    >
-                      <Icon className="w-4 h-4 text-blue-600" />
-                      <span>{name}</span>
-                    </button>
-                  );
-                })}
+                {NAV_TOOL_COLUMNS.map((group) => (
+                  <div key={group.title} className="mb-2">
+                    <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-3 py-1">
+                      {group.title}
+                    </div>
+                    {group.tools.map((tool) => {
+                      const Icon = getToolIcon(tool.id);
+                      const isCurrent = activeTool === tool.id;
+                      return (
+                        <button
+                          key={tool.id}
+                          onClick={() => { setIsMobileMenuOpen(false); onSelectTool?.(tool.id); }}
+                          className={`flex w-full items-center justify-between px-3 py-2 text-left text-xs rounded-lg transition-colors ${
+                            isCurrent
+                              ? "bg-blue-50 text-blue-700 font-semibold"
+                              : "text-slate-600 hover:bg-slate-50"
+                          }`}
+                        >
+                          <div className="flex items-center gap-2">
+                            <Icon className={`w-4 h-4 ${isCurrent ? "text-blue-600" : "text-slate-500"}`} />
+                            <span>{tool.name}</span>
+                          </div>
+                          {tool.badge && (
+                            <span className="text-[9px] font-bold px-1.5 py-0.2 rounded-full bg-blue-600 text-white">
+                              {tool.badge}
+                            </span>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                ))}
               </div>
             </div>
           </motion.div>

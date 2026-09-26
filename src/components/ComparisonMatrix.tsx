@@ -4,10 +4,13 @@ import React from "react";
 import { motion } from "framer-motion";
 import { useLanguage } from "@/context/LanguageContext";
 import { useOutputFormat } from "@/context/OutputFormatContext";
+import { ConverterToolId, getToolConfig } from "@/lib/converter-tools";
 
-export default function ComparisonMatrix() {
+export default function ComparisonMatrix({ activeTool = "excel-jpg" }: { activeTool?: ConverterToolId }) {
   const { t } = useLanguage();
   const { label, withFormat } = useOutputFormat();
+  const toolConfig = getToolConfig(activeTool);
+  const displayLabel = toolConfig.titleHighlight || label;
 
   return (
     <section className="py-20 bg-[#FAFBFD] relative">
@@ -16,10 +19,10 @@ export default function ComparisonMatrix() {
         {/* Section Heading */}
         <div className="text-center space-y-3 mb-14">
           <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 tracking-tight">
-            {t.comparison.titlePrefix} <span className="text-[#355BFF]">{label}</span>
+            {t.comparison.titlePrefix} <span className="text-[#355BFF]">{displayLabel}</span>
           </h2>
           <p className="text-sm sm:text-base text-slate-500 max-w-2xl mx-auto">
-            {withFormat(t.comparison.subtitle)}
+            {withFormat(t.comparison.subtitle).replace(/JPG/g, displayLabel)}
           </p>
         </div>
 

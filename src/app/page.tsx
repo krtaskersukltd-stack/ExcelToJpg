@@ -30,14 +30,36 @@ function parseFormatParam(value: string | null): SiteOutputFormat | null {
 
 function HomeContent() {
   const searchParams = useSearchParams();
-  const [pageFormat, setPageFormat] = useState<SiteOutputFormat>(
-    () => parseFormatParam(searchParams.get("format")) || "jpg",
-  );
-  const [activeTool, setActiveTool] = useState<ConverterToolId | null>(null);
+  const formatFromQuery = parseFormatParam(searchParams.get("format"));
+  const toolFromQuery = searchParams.get("tool") as ConverterToolId | null;
+
+  const [activeTool, setActiveTool] = useState<ConverterToolId>(() => {
+    if (toolFromQuery) return toolFromQuery;
+    if (formatFromQuery === "png") return "excel-png";
+    if (formatFromQuery === "csv") return "excel-csv";
+    return "excel-jpg";
+  });
+
+  const [pageFormat, setPageFormat] = useState<SiteOutputFormat>(() => {
+    if (formatFromQuery) return formatFromQuery;
+    if (toolFromQuery === "excel-png") return "png";
+    if (toolFromQuery === "excel-csv") return "csv";
+    return "jpg";
+  });
 
   useEffect(() => {
-    const fromUrl = parseFormatParam(searchParams.get("format"));
-    if (fromUrl) setPageFormat(fromUrl);
+    const qFormat = parseFormatParam(searchParams.get("format"));
+    const qTool = searchParams.get("tool") as ConverterToolId | null;
+    if (qTool) {
+      setActiveTool(qTool);
+      const siteFmt = toolIdToSiteFormat(qTool);
+      if (siteFmt) setPageFormat(siteFmt);
+    } else if (qFormat) {
+      setPageFormat(qFormat);
+      if (qFormat === "png") setActiveTool("excel-png");
+      else if (qFormat === "csv") setActiveTool("excel-csv");
+      else setActiveTool("excel-jpg");
+    }
   }, [searchParams]);
 
   const scrollToTop = useCallback(() => {
@@ -46,14 +68,12 @@ function HomeContent() {
 
   const handleSelectTool = useCallback(
     (tool: ConverterToolId) => {
+      setActiveTool(tool);
       const siteFormat = toolIdToSiteFormat(tool);
       if (siteFormat) {
         setPageFormat(siteFormat);
-        setActiveTool(null);
-        scrollToTop();
-        return;
       }
-      setActiveTool(tool);
+      scrollToTop();
     },
     [scrollToTop],
   );
@@ -62,42 +82,30 @@ function HomeContent() {
     <OutputFormatProvider format={pageFormat} setFormat={setPageFormat}>
       <main className="min-h-screen flex flex-col bg-[#FAFBFD] text-slate-900 selection:bg-blue-600 selection:text-white w-full max-w-full overflow-x-hidden">
         <div className="relative z-20 bg-[#FAFBFD] shadow-[0_30px_70px_-15px_rgba(15,23,42,0.22)] w-full max-w-full overflow-x-hidden">
-          <Navbar onSelectTool={handleSelectTool} activeFormat={pageFormat} />
+          <Navbar onSelectTool={handleSelectTool} activeFormat={pageFormat} activeTool={activeTool} />
 
-          <HeroSection />
+          <HeroSection activeTool={activeTool} onSelectTool={handleSelectTool} />
 
           <ProductsRibbon onSelectTool={handleSelectTool} />
 
-          <HowItWorks />
+          <HowItWorks activeTool={activeTool} />
 
-          <SpreadsheetShowcase />
+          <SpreadsheetShowcase activeTool={activeTool} />
 
           <FeatureCards />
 
-          <ComparisonMatrix />
+          <ComparisonMatrix activeTool={activeTool} />
 
           <RelatedUtilities onSelectTool={handleSelectTool} />
 
           <FaqSection />
 
-          <CtaBanner onScrollToUpload={scrollToTop} />
+          <CtaBanner onScrollToUpload={scrollToTop} activeTool={activeTool} />
         </div>
 
         <div className="sticky bottom-0 z-10 w-full">
           <Footer />
         </div>
-
-        <LiveConverterModal
-          isOpen={Boolean(activeTool && FORWARD_FORMATS[activeTool] && !toolIdToSiteFormat(activeTool))}
-          onClose={() => setActiveTool(null)}
-          initialFormat={(activeTool && FORWARD_FORMATS[activeTool]) || pageFormat}
-          toolTitle={activeTool ? TOOL_LABELS[activeTool] : undefined}
-          lockFormat
-        />
-        {activeTool && REVERSE_SOURCES[activeTool] && (
-          <FileToExcelModal isOpen onClose={() => setActiveTool(null)} sourceKind={REVERSE_SOURCES[activeTool]!} />
-        )}
-        <FormulaGeneratorModal isOpen={activeTool === "formula"} onClose={() => setActiveTool(null)} />
       </main>
     </OutputFormatProvider>
   );

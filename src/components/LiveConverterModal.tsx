@@ -568,25 +568,135 @@ export default function LiveConverterModal({
               <div className="overflow-y-auto p-4 sm:p-6">
                 {/* Converting Spinner */}
                 {isWorking && (
-                  <div className="flex min-h-[360px] flex-col items-center justify-center text-center">
-                    <div className="relative mb-6">
-                      <div className="h-20 w-20 animate-spin rounded-full border-4 border-blue-100 border-t-[#355BFF]" />
-                      <Sparkles className="absolute inset-0 m-auto h-7 w-7 text-[#355BFF]" />
+                  <div className="flex min-h-[380px] flex-col items-center justify-center text-center px-4 py-6">
+                    {/* Glowing Modern Loader Container */}
+                    <div className="relative mb-6 flex items-center justify-center">
+                      {/* Ambient Background Glow */}
+                      <div className="absolute -inset-6 rounded-full bg-gradient-to-tr from-blue-500/25 via-indigo-500/20 to-cyan-400/25 blur-2xl animate-pulse" />
+
+                      {/* Outer Smooth Rotating Gradient Ring */}
+                      <div className="relative h-24 w-24 sm:h-28 sm:w-28">
+                        <svg className="h-full w-full animate-spin [animation-duration:2s]" viewBox="0 0 100 100">
+                          <defs>
+                            <linearGradient id="converter-spinner-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                              <stop offset="0%" stopColor="#355BFF" />
+                              <stop offset="60%" stopColor="#6366F1" />
+                              <stop offset="100%" stopColor="#06B6D4" />
+                            </linearGradient>
+                          </defs>
+                          <circle
+                            cx="50"
+                            cy="50"
+                            r="42"
+                            fill="none"
+                            stroke="#E0E7FF"
+                            strokeWidth="3.5"
+                            opacity="0.5"
+                          />
+                          <circle
+                            cx="50"
+                            cy="50"
+                            r="42"
+                            fill="none"
+                            stroke="url(#converter-spinner-gradient)"
+                            strokeWidth="4"
+                            strokeDasharray="160 100"
+                            strokeLinecap="round"
+                          />
+                        </svg>
+
+                        {/* Counter-rotating subtle orbital ring */}
+                        <div className="absolute inset-1.5 animate-spin [animation-duration:4s] [animation-direction:reverse]">
+                          <svg className="h-full w-full" viewBox="0 0 100 100">
+                            <circle
+                              cx="50"
+                              cy="50"
+                              r="36"
+                              fill="none"
+                              stroke="#818CF8"
+                              strokeWidth="1.5"
+                              strokeDasharray="5 15"
+                              strokeLinecap="round"
+                              opacity="0.6"
+                            />
+                          </svg>
+                        </div>
+
+                        {/* Center Icon Badge with Laser Scan Wave */}
+                        <div className="absolute inset-0 m-auto flex h-14 w-14 sm:h-16 sm:w-16 items-center justify-center rounded-2xl bg-gradient-to-tr from-[#355BFF] via-[#4338CA] to-[#6366F1] text-white shadow-[0_10px_25px_rgba(53,91,255,0.4)]">
+                          {/* Inner glowing document with animated scan beam */}
+                          <div className="relative flex items-center justify-center">
+                            <FileSpreadsheet className="h-7 w-7 text-white/95" />
+                            {/* Scanning laser beam */}
+                            <motion.div
+                              animate={{ y: [-11, 11, -11] }}
+                              transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
+                              className="absolute -left-1 -right-1 h-0.5 bg-gradient-to-r from-transparent via-cyan-300 to-transparent shadow-[0_0_8px_#22D3EE]"
+                            />
+                            {/* Micro sparkle */}
+                            <Sparkles className="absolute -top-1.5 -right-1.5 h-3.5 w-3.5 text-amber-300 animate-pulse" />
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                    <h3 className="text-xl font-bold text-slate-950">
+
+                    {/* Step Status Pill */}
+                    <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-blue-200/80 bg-blue-50/90 px-3 py-1 text-[11px] font-semibold text-blue-700 shadow-2xs">
+                      <span className="relative flex h-2 w-2">
+                        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-blue-400 opacity-75" />
+                        <span className="relative inline-flex h-2 w-2 rounded-full bg-[#355BFF]" />
+                      </span>
+                      <span>
+                        {status === "parsing"
+                          ? "Step 1 of 3: Scanning Spreadsheet"
+                          : status === "rendering"
+                          ? `Step 2 of 3: Rendering ${selectedFormat.toUpperCase()}`
+                          : "Step 3 of 3: Finalizing Download"}
+                      </span>
+                    </div>
+
+                    {/* Title */}
+                    <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
                       {status === "parsing"
                         ? "Reading spreadsheet data…"
                         : status === "rendering"
                         ? `Rendering crisp ${selectedFormat.toUpperCase()} output…`
                         : "Packaging your download…"}
                     </h3>
-                    <div className="mt-6 h-2.5 w-full max-w-md overflow-hidden rounded-full bg-slate-100">
-                      <motion.div
-                        className="h-full rounded-full bg-gradient-to-r from-blue-600 to-indigo-600"
-                        animate={{ width: `${progress}%` }}
-                      />
+                    <p className="mt-1 text-xs text-slate-500 max-w-sm">
+                      {status === "parsing"
+                        ? "Extracting cells, sheets, and formula calculations..."
+                        : status === "rendering"
+                        ? "Applying vector rasterizer at 300 DPI high clarity..."
+                        : "Preparing ready-to-use export files..."}
+                    </p>
+
+                    {/* High-tech Progress Bar with Shimmer Light */}
+                    <div className="mt-6 w-full max-w-md">
+                      <div className="relative h-2.5 w-full overflow-hidden rounded-full bg-slate-100 p-0.5 border border-slate-200/70 shadow-inner">
+                        <motion.div
+                          className="relative h-full rounded-full bg-gradient-to-r from-[#355BFF] via-[#6366F1] to-[#06B6D4] shadow-xs"
+                          animate={{ width: `${progress}%` }}
+                          transition={{ ease: "easeInOut", duration: 0.25 }}
+                        >
+                          {/* Shimmer light sweep */}
+                          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent animate-[shimmer_1.8s_infinite] -translate-x-full" />
+                        </motion.div>
+                      </div>
+
+                      <div className="mt-2.5 flex items-center justify-between text-xs">
+                        <span className="font-medium text-slate-500">
+                          {status === "parsing"
+                            ? "Analyzing structure"
+                            : status === "rendering"
+                            ? "Exporting high-resolution"
+                            : "Almost done"}
+                        </span>
+                        <span className="font-bold text-[#355BFF] bg-blue-50 px-2 py-0.5 rounded-md border border-blue-100">
+                          {progress}% complete
+                        </span>
+                      </div>
                     </div>
-                    <p className="mt-2 text-xs font-semibold text-slate-400">{progress}% complete</p>
                   </div>
                 )}
 

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import { AlertCircle, CheckCircle2, Download, Loader2, Upload, X } from "lucide-react";
+import { AlertCircle, CheckCircle2, Download, FileSpreadsheet, Loader2, Sparkles, Upload, X } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { cleanupFiles, convertFileToExcel, ExcelSourceKind, triggerFileDownload } from "@/lib/api";
 
@@ -32,7 +32,17 @@ const SOURCE_TITLES: Partial<Record<ExcelSourceKind, string>> = {
 };
 
 
-export default function FileToExcelModal({ isOpen, onClose, sourceKind }: { isOpen: boolean; onClose: () => void; sourceKind: ExcelSourceKind }) {
+export default function FileToExcelModal({
+  isOpen,
+  onClose,
+  sourceKind,
+  initialFile,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  sourceKind: ExcelSourceKind;
+  initialFile?: File | null;
+}) {
   const [file, setFile] = useState<File | null>(null);
   const [status, setStatus] = useState<"idle" | "working" | "ready" | "error">("idle");
   const [output, setOutput] = useState<string | null>(null);
@@ -65,22 +75,6 @@ export default function FileToExcelModal({ isOpen, onClose, sourceKind }: { isOp
     };
   }, []);
 
-  useEffect(() => {
-    if (isOpen) {
-      if (activeOutputRef.current) {
-        cleanupFiles([activeOutputRef.current]);
-        activeOutputRef.current = null;
-      }
-      setFile(null);
-      setStatus("idle");
-      setOutput(null);
-      setError("");
-      setDownloaded(false);
-    } else {
-      controllerRef.current?.abort();
-    }
-  }, [isOpen, sourceKind]);
-
   const convert = async (nextFile: File) => {
     controllerRef.current?.abort();
     const controller = new AbortController();
@@ -97,6 +91,27 @@ export default function FileToExcelModal({ isOpen, onClose, sourceKind }: { isOp
       setStatus("error");
     }
   };
+
+  useEffect(() => {
+    if (isOpen) {
+      if (activeOutputRef.current) {
+        cleanupFiles([activeOutputRef.current]);
+        activeOutputRef.current = null;
+      }
+      setFile(null);
+      setStatus("idle");
+      setOutput(null);
+      setError("");
+      setDownloaded(false);
+
+      if (initialFile) {
+        convert(initialFile);
+      }
+    } else {
+      controllerRef.current?.abort();
+    }
+  }, [isOpen, sourceKind, initialFile]);
+
 
   const download = async () => {
     if (!output || downloaded) return;
@@ -134,7 +149,35 @@ export default function FileToExcelModal({ isOpen, onClose, sourceKind }: { isOp
       <input ref={inputRef} className="hidden" type="file" accept={ACCEPT[sourceKind]} onChange={(event) => { const next = event.target.files?.[0]; if (next) void convert(next); event.target.value = ""; }} />
       <div className="p-6">
         {status === "idle" && <button onClick={() => inputRef.current?.click()} className="flex min-h-72 w-full flex-col items-center justify-center rounded-2xl border-2 border-dashed border-blue-200 bg-blue-50/30 text-center hover:border-blue-500"><Upload className="mb-4 h-10 w-10 text-[#355BFF]" /><span className="text-lg font-bold text-slate-900">Choose {sourceKind.toUpperCase()} file</span><span className="mt-1 text-sm text-slate-500">Only {ACCEPT[sourceKind].replaceAll(",", ", ")} files are accepted</span></button>}
-        {status === "working" && <div className="flex min-h-72 flex-col items-center justify-center text-center"><Loader2 className="mb-5 h-12 w-12 animate-spin text-[#355BFF]" /><h3 className="text-lg font-bold text-slate-900">Extracting data from {file?.name}</h3><p className="mt-1 text-sm text-slate-500">Building an editable Excel workbook…</p></div>}
+        {status === "working" && (
+          <div className="flex min-h-72 flex-col items-center justify-center text-center p-4">
+            <div className="relative mb-5 flex items-center justify-center">
+              <div className="absolute -inset-5 rounded-full bg-gradient-to-tr from-blue-500/25 via-indigo-500/20 to-cyan-400/25 blur-xl animate-pulse" />
+              <div className="relative h-20 w-20">
+                <svg className="h-full w-full animate-spin [animation-duration:2s]" viewBox="0 0 100 100">
+                  <circle cx="50" cy="50" r="42" fill="none" stroke="#E0E7FF" strokeWidth="4" opacity="0.5" />
+                  <circle cx="50" cy="50" r="42" fill="none" stroke="#355BFF" strokeWidth="4" strokeDasharray="160 100" strokeLinecap="round" />
+                </svg>
+                <div className="absolute inset-0 m-auto flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-tr from-[#355BFF] via-[#4338CA] to-[#6366F1] text-white shadow-md">
+                  <div className="relative flex items-center justify-center">
+                    <FileSpreadsheet className="h-6 w-6 text-white" />
+                    <motion.div animate={{ y: [-8, 8, -8] }} transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }} className="absolute -left-1 -right-1 h-0.5 bg-cyan-300 shadow-[0_0_6px_#22D3EE]" />
+                    <Sparkles className="absolute -top-1 -right-1 h-3 w-3 text-amber-300 animate-pulse" />
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="mb-2 inline-flex items-center gap-1.5 rounded-full border border-blue-200/80 bg-blue-50 px-3 py-1 text-[11px] font-semibold text-blue-700">
+              <span className="relative flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-blue-400 opacity-75" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-[#355BFF]" />
+              </span>
+              <span>AI OCR Processing</span>
+            </div>
+            <h3 className="text-lg font-bold text-slate-900">Extracting data from {file?.name}</h3>
+            <p className="mt-1 text-xs text-slate-500 max-w-sm">Reconstructing rows and columns into an editable Excel workbook…</p>
+          </div>
+        )}
         {status === "error" && <div className="flex min-h-72 flex-col items-center justify-center text-center"><AlertCircle className="mb-4 h-12 w-12 text-red-500" /><h3 className="text-lg font-bold text-slate-900">Could not convert this file</h3><p className="mt-2 max-w-md rounded-xl bg-red-50 p-3 text-sm text-red-700">{error}</p><button onClick={() => inputRef.current?.click()} className="mt-5 rounded-xl bg-[#355BFF] px-5 py-2.5 text-sm font-bold text-white">Choose another file</button></div>}
         {status === "ready" && <div className="flex min-h-72 flex-col items-center justify-center text-center"><CheckCircle2 className="mb-4 h-14 w-14 text-emerald-500" /><h3 className="text-xl font-bold text-slate-900">Excel workbook ready</h3><p className="mt-1 max-w-md truncate text-sm text-slate-500">{output}</p>{error && <p className="mt-3 text-sm text-red-600">{error}</p>}<button onClick={() => void download()} disabled={downloaded} className="mt-6 inline-flex items-center gap-2 rounded-xl bg-[#355BFF] px-6 py-3 text-sm font-bold text-white disabled:cursor-not-allowed disabled:opacity-50"><Download className="h-4 w-4" />{downloaded ? "Downloaded (one time)" : "Download XLSX"}</button><button onClick={() => inputRef.current?.click()} className="mt-3 text-xs font-bold text-blue-700 hover:underline">Convert another file</button></div>}
         </div>

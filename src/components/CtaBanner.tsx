@@ -5,10 +5,19 @@ import { motion } from "framer-motion";
 import { Upload } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { useOutputFormat } from "@/context/OutputFormatContext";
+import { ConverterToolId, getToolConfig } from "@/lib/converter-tools";
 
-export default function CtaBanner({ onScrollToUpload }: { onScrollToUpload?: () => void }) {
+export default function CtaBanner({
+  onScrollToUpload,
+  activeTool = "excel-jpg",
+}: {
+  onScrollToUpload?: () => void;
+  activeTool?: ConverterToolId;
+}) {
   const { t } = useLanguage();
   const { withFormat } = useOutputFormat();
+  const toolConfig = getToolConfig(activeTool);
+  const displayLabel = toolConfig.titleHighlight;
 
   const handleClick = () => {
     if (onScrollToUpload) {
@@ -28,10 +37,10 @@ export default function CtaBanner({ onScrollToUpload }: { onScrollToUpload?: () 
           className="space-y-3"
         >
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight">
-            {withFormat(t.cta.title)}
+            {withFormat(t.cta.title).replace(/JPG/g, displayLabel)}
           </h2>
           <p className="text-base sm:text-lg text-blue-100 max-w-2xl mx-auto font-normal">
-            {withFormat(t.cta.subtitle)}
+            {withFormat(t.cta.subtitle).replace(/JPG/g, displayLabel)}
           </p>
         </motion.div>
 
