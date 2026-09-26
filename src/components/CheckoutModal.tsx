@@ -9,10 +9,8 @@ import {
   Lock,
   CreditCard,
   Loader2,
-  ExternalLink,
   Sparkles,
   AlertCircle,
-  HelpCircle,
   CheckCircle2,
 } from "lucide-react";
 import confetti from "canvas-confetti";
@@ -35,7 +33,6 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   const [cardNumber, setCardNumber] = useState("");
   const [cardExpiry, setCardExpiry] = useState("");
   const [cardCvc, setCardCvc] = useState("");
-  const [paymentMode, setPaymentMode] = useState<"card" | "stripe_hosted">("card");
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);

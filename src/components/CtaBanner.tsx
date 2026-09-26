@@ -4,9 +4,11 @@ import React from "react";
 import { motion } from "framer-motion";
 import { Upload } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
+import { useOutputFormat } from "@/context/OutputFormatContext";
 
 export default function CtaBanner({ onScrollToUpload }: { onScrollToUpload?: () => void }) {
   const { t } = useLanguage();
+  const { withFormat } = useOutputFormat();
 
   const handleClick = () => {
     if (onScrollToUpload) {
@@ -26,10 +28,10 @@ export default function CtaBanner({ onScrollToUpload }: { onScrollToUpload?: () 
           className="space-y-3"
         >
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight">
-            {t.cta.title}
+            {withFormat(t.cta.title)}
           </h2>
           <p className="text-base sm:text-lg text-blue-100 max-w-2xl mx-auto font-normal">
-            {t.cta.subtitle}
+            {withFormat(t.cta.subtitle)}
           </p>
         </motion.div>
 
@@ -45,7 +47,7 @@ export default function CtaBanner({ onScrollToUpload }: { onScrollToUpload?: () 
             className="inline-flex items-center gap-2.5 px-8 py-4 rounded-full bg-white text-blue-700 hover:text-blue-800 font-bold text-base shadow-2xl hover:bg-slate-50 hover:shadow-blue-900/30 hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer"
           >
             <Upload className="w-5 h-5 text-blue-600" />
-            <span>{t.cta.button}</span>
+            <span>{withFormat(t.cta.button)}</span>
           </button>
         </motion.div>
       </div>

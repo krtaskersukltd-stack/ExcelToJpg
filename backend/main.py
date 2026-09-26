@@ -1,4 +1,3 @@
-import asyncio
 import os
 import random
 import tempfile
@@ -29,9 +28,18 @@ from fastapi.responses import JSONResponse, FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from docx import Document
 from fpdf import FPDF, XPos, YPos
-from openpyxl import Workbook
-from pypdf import PdfReader
 from pydantic import BaseModel, Field
+from conversions import (
+    FILE_TO_EXCEL_KINDS,
+    normalize_source_kind,
+    rows_to_xlsx,
+    safe_stem,
+    source_kind_to_rows,
+    workbook_sheets_to_json,
+    workbook_sheets_to_tally,
+    workbook_to_xls,
+    workbook_to_xlsx,
+)
 
 try:
     from rapidocr_onnxruntime import RapidOCR
@@ -48,8 +56,8 @@ except ImportError:
 
 app = FastAPI(title="Excel to Image & Document Converter API", version="1.0.0")
 
-ALLOWED_INPUT_EXTENSIONS = {"xlsx", "xlsm", "xls", "csv"}
-ALLOWED_OUTPUT_EXTENSIONS = {"jpg", "jpeg", "png", "pdf", "docx", "csv"}
+ALLOWED_INPUT_EXTENSIONS = {"xlsx", "xlsm", "xls", "csv", "ods"}
+ALLOWED_OUTPUT_EXTENSIONS = {"jpg", "jpeg", "png", "pdf", "docx", "csv", "json", "tally", "xls", "xlsx", "xml"}
 MAX_UPLOAD_BYTES = int(os.getenv("MAX_UPLOAD_BYTES", str(25 * 1024 * 1024)))
 
 project_dir = os.path.dirname(os.path.abspath(__file__))
@@ -377,8 +385,10 @@ async def health_check():
     return {
         "status": "online",
         "service": "Excel Converter API",
-        "version": "1.0.0",
-        "supported_formats": sorted(ALLOWED_OUTPUT_EXTENSIONS),
+        "version": "1.1.0",
+        "supported_outputs": sorted(ALLOWED_OUTPUT_EXTENSIONS),
+        "supported_file_to_excel": sorted(FILE_TO_EXCEL_KINDS),
+        "supported_inputs": sorted(ALLOWED_INPUT_EXTENSIONS),
         "max_upload_bytes": MAX_UPLOAD_BYTES,
     }
 
@@ -529,16 +539,14 @@ def render_dataframe_to_pil(df_chunk, title="Excel Data Preview", dpi=300):
 
 
 def load_workbook_sheets(excel_path):
-    """Return every sheet as (name, dataframe), including CSV as a single sheet."""
-    if excel_path.lower().endswith(".csv"):
+    """Return every sheet as (name, dataframe), including CSV/ODS as sheets."""
+    lower = excel_path.lower()
+    if lower.endswith(".csv"):
         return [("CSV Data", pd.read_csv(excel_path))]
+    if lower.endswith(".ods"):
+        return [("ODS Data", pd.read_excel(excel_path, engine="odf"))]
     with pd.ExcelFile(excel_path) as workbook:
         return [(name, workbook.parse(name)) for name in workbook.sheet_names]
-
-
-def safe_stem(value):
-    cleaned = "".join(char if char.isalnum() or char in "-_" else "_" for char in str(value))
-    return cleaned.strip("_")[:60] or "sheet"
 
 
 def extract_sheet_data(workbook_sheets, max_rows=500):
@@ -816,6 +824,87 @@ async def excel_to_csv_func(file_path):
     return {"filename": zip_name, "type": "zip", "sheet_data": sheet_data}
 
 
+async def convert_excel_to_format(file_path: str, img_ext: str, dpi: int = 300):
+    """Route an Excel/CSV/ODS workbook to the requested output format."""
+    if img_ext == "docx":
+        conv_res = await excel_to_docx_func(file_path, img_ext)
+        return {
+            "conv": conv_res["filename"],
+            "filename": conv_res["filename"],
+            "status": "success",
+            "type": "docx",
+            "sheet_data": conv_res.get("sheet_data", {}),
+        }
+    if img_ext == "pdf":
+        conv_res = await excel_to_pdf(file_path, img_ext)
+        return {
+            "conv": conv_res["filename"],
+            "filename": conv_res["filename"],
+            "status": "success",
+            "type": "pdf",
+            "sheet_data": conv_res.get("sheet_data", {}),
+        }
+    if img_ext == "csv":
+        conv_res = await excel_to_csv_func(file_path)
+        return {
+            "conv": conv_res["filename"],
+            "filename": conv_res["filename"],
+            "status": "success",
+            "type": conv_res["type"],
+            "sheet_data": conv_res.get("sheet_data", {}),
+        }
+    if img_ext == "json":
+        conv_res = workbook_sheets_to_json(load_workbook_sheets(file_path), output_dir, extract_sheet_data)
+        return {
+            "conv": conv_res["filename"],
+            "filename": conv_res["filename"],
+            "status": "success",
+            "type": "json",
+            "sheet_data": conv_res.get("sheet_data", {}),
+        }
+    if img_ext in {"tally", "xml"}:
+        conv_res = workbook_sheets_to_tally(load_workbook_sheets(file_path), output_dir, extract_sheet_data)
+        return {
+            "conv": conv_res["filename"],
+            "filename": conv_res["filename"],
+            "status": "success",
+            "type": "xml",
+            "sheet_data": conv_res.get("sheet_data", {}),
+        }
+    if img_ext == "xls":
+        conv_res = workbook_to_xls(load_workbook_sheets(file_path), output_dir, extract_sheet_data)
+        return {
+            "conv": conv_res["filename"],
+            "filename": conv_res["filename"],
+            "status": "success",
+            "type": "xls",
+            "sheet_data": conv_res.get("sheet_data", {}),
+        }
+    if img_ext == "xlsx":
+        conv_res = workbook_to_xlsx(load_workbook_sheets(file_path), output_dir, extract_sheet_data)
+        return {
+            "conv": conv_res["filename"],
+            "filename": conv_res["filename"],
+            "status": "success",
+            "type": "xlsx",
+            "sheet_data": conv_res.get("sheet_data", {}),
+        }
+    if img_ext in {"jpg", "jpeg", "png"}:
+        conv_res = await excel_to_image_no_borders(file_path, img_ext, dpi=dpi)
+        return {
+            "conv": conv_res["zip_file_name"],
+            "filename": conv_res["zip_file_name"],
+            "status": "success",
+            "type": "zip",
+            "first_image": conv_res.get("first_image"),
+            "total_parts": conv_res.get("total_parts", 1),
+            "sheets": conv_res.get("sheets", []),
+            "outputs": conv_res.get("outputs", []),
+            "sheet_data": conv_res.get("sheet_data", {}),
+        }
+    raise HTTPException(status_code=400, detail="Unsupported output format")
+
+
 def render_dataframe_to_outputs(df: pd.DataFrame, sheet_name: str, image_extension: str, dpi: int = 300, max_rows_per_image: int = 100):
     job_id = uuid.uuid4().hex[:12]
     clean_sheet = safe_stem(sheet_name)
@@ -979,45 +1068,21 @@ def ocr_rows_from_image(file_path):
     return [[text for _, text in sorted(row["cells"])] for row in rows]
 
 
-def pdf_rows(file_path):
-    rows = []
-    for page in PdfReader(file_path).pages:
-        for line in (page.extract_text() or "").splitlines():
-            cells = [cell.strip() for cell in re.split(r"\t+|\s{2,}", line) if cell.strip()]
-            if cells:
-                rows.append(cells)
-    if not rows:
-        raise HTTPException(status_code=422, detail="No extractable table text was found in this PDF")
-    return rows
-
-
-def rows_to_xlsx(rows, source_name):
-    job_id = uuid.uuid4().hex[:12]
-    output_name = f"{safe_stem(Path(source_name).stem)}_{job_id}.xlsx"
-    workbook = Workbook()
-    sheet = workbook.active
-    sheet.title = "Extracted Data"
-    for row in rows:
-        sheet.append(list(row))
-    workbook.save(os.path.join(output_dir, output_name))
-    return output_name
-
-
 @app.post("/api/file_to_excel")
 async def file_to_excel(source_file: UploadFile = File(...), source_kind: str = Form(...)):
-    kind = source_kind.lower().strip()
-    expected_extensions = {
-        "jpg": {"jpg", "jpeg"},
-        "png": {"png"},
-        "pdf": {"pdf"},
-        "csv": {"csv"},
-    }
-    if kind not in expected_extensions:
-        raise HTTPException(status_code=400, detail="Unsupported source converter")
-    original_name = source_file.filename or f"upload.{kind}"
+    kind = normalize_source_kind(source_kind)
+    if kind not in FILE_TO_EXCEL_KINDS:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Unsupported source converter. Supported: {', '.join(sorted(FILE_TO_EXCEL_KINDS))}",
+        )
+    original_name = source_file.filename or f"upload.{next(iter(FILE_TO_EXCEL_KINDS[kind]))}"
     extension = Path(original_name).suffix.lower().lstrip(".")
-    if extension not in expected_extensions[kind]:
-        raise HTTPException(status_code=400, detail=f"Please upload a valid {kind.upper()} file")
+    if extension not in FILE_TO_EXCEL_KINDS[kind]:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Please upload a valid {kind.replace('_', ' ').upper()} file ({', '.join(sorted(FILE_TO_EXCEL_KINDS[kind]))})",
+        )
     content = await source_file.read()
     if not content:
         raise HTTPException(status_code=400, detail="The uploaded file is empty")
@@ -1027,14 +1092,8 @@ async def file_to_excel(source_file: UploadFile = File(...), source_kind: str = 
     try:
         with open(input_path, "wb") as handle:
             handle.write(content)
-        if kind == "csv":
-            dataframe = pd.read_csv(input_path)
-            rows = [list(dataframe.columns)] + dataframe.fillna("").values.tolist()
-        elif kind == "pdf":
-            rows = pdf_rows(input_path)
-        else:
-            rows = ocr_rows_from_image(input_path)
-        output_name = rows_to_xlsx(rows, original_name)
+        rows = source_kind_to_rows(kind, input_path, ocr_rows_from_image)
+        output_name = rows_to_xlsx(rows, original_name, output_dir)
         return {"status": "success", "filename": output_name, "conv": output_name, "type": "xlsx", "rows": len(rows)}
     except HTTPException:
         raise
@@ -1058,7 +1117,7 @@ async def excel_to_image_func(
 
     if img_ext not in ALLOWED_OUTPUT_EXTENSIONS:
         raise HTTPException(status_code=400, detail="Unsupported output format")
-    if dpi not in {150, 300, 600}:
+    if img_ext in {"jpg", "jpeg", "png"} and dpi not in {150, 300, 600}:
         raise HTTPException(status_code=400, detail="DPI must be 150, 300, or 600")
 
     file_path = None
@@ -1071,7 +1130,7 @@ async def excel_to_image_func(
         filn = excel_file.filename or "upload.xlsx"
         file_extension = filn.split(".")[-1].lower() if "." in filn else "xlsx"
         if file_extension not in ALLOWED_INPUT_EXTENSIONS:
-            raise HTTPException(status_code=400, detail="Supported inputs: XLS, XLSX, XLSM, and CSV")
+            raise HTTPException(status_code=400, detail="Supported inputs: XLS, XLSX, XLSM, ODS, and CSV")
 
         file_name = f"{random.randint(1, 99999)}.{file_extension}"
         file_path = os.path.join(input_dir, file_name)
@@ -1079,61 +1138,7 @@ async def excel_to_image_func(
         with open(file_path, "wb") as fil:
             fil.write(file_data)
 
-        if img_ext == "docx":
-            conv_res = await excel_to_docx_func(file_path, img_ext)
-            return JSONResponse(
-                content={
-                    "conv": conv_res["filename"],
-                    "filename": conv_res["filename"],
-                    "status": "success",
-                    "type": "docx",
-                    "sheet_data": conv_res.get("sheet_data", {}),
-                },
-                status_code=200
-            )
-
-        elif img_ext == "pdf":
-            conv_res = await excel_to_pdf(file_path, img_ext)
-            return JSONResponse(
-                content={
-                    "conv": conv_res["filename"],
-                    "filename": conv_res["filename"],
-                    "status": "success",
-                    "type": "pdf",
-                    "sheet_data": conv_res.get("sheet_data", {}),
-                },
-                status_code=200
-            )
-
-        elif img_ext == "csv":
-            conv_res = await excel_to_csv_func(file_path)
-            return JSONResponse(
-                content={
-                    "conv": conv_res["filename"],
-                    "filename": conv_res["filename"],
-                    "status": "success",
-                    "type": conv_res["type"],
-                    "sheet_data": conv_res.get("sheet_data", {}),
-                },
-                status_code=200,
-            )
-
-        else:
-            conv_res = await excel_to_image_no_borders(file_path, img_ext, dpi=dpi)
-            return JSONResponse(
-                content={
-                    "conv": conv_res["zip_file_name"],
-                    "filename": conv_res["zip_file_name"],
-                    "status": "success",
-                    "type": "zip",
-                    "first_image": conv_res.get("first_image"),
-                    "total_parts": conv_res.get("total_parts", 1),
-                    "sheets": conv_res.get("sheets", []),
-                    "outputs": conv_res.get("outputs", []),
-                    "sheet_data": conv_res.get("sheet_data", {}),
-                },
-                status_code=200
-            )
+        return JSONResponse(content=await convert_excel_to_format(file_path, img_ext, dpi=dpi), status_code=200)
 
     except HTTPException:
         raise
@@ -1160,68 +1165,13 @@ async def excel_to_url_func(
 
     if img_ext not in ALLOWED_OUTPUT_EXTENSIONS:
         raise HTTPException(status_code=400, detail="Unsupported output format")
-    if dpi not in {150, 300, 600}:
+    if img_ext in {"jpg", "jpeg", "png"} and dpi not in {150, 300, 600}:
         raise HTTPException(status_code=400, detail="DPI must be 150, 300, or 600")
 
     file_path = None
     try:
         file_path = await save_file_url(url)
-
-        if img_ext == "docx":
-            conv_res = await excel_to_docx_func(file_path, img_ext)
-            return JSONResponse(
-                content={
-                    "conv": conv_res["filename"],
-                    "filename": conv_res["filename"],
-                    "status": "success",
-                    "type": "docx",
-                    "sheet_data": conv_res.get("sheet_data", {}),
-                },
-                status_code=200
-            )
-
-        elif img_ext == "pdf":
-            conv_res = await excel_to_pdf(file_path, img_ext)
-            return JSONResponse(
-                content={
-                    "conv": conv_res["filename"],
-                    "filename": conv_res["filename"],
-                    "status": "success",
-                    "type": "pdf",
-                    "sheet_data": conv_res.get("sheet_data", {}),
-                },
-                status_code=200
-            )
-
-        elif img_ext == "csv":
-            conv_res = await excel_to_csv_func(file_path)
-            return JSONResponse(
-                content={
-                    "conv": conv_res["filename"],
-                    "filename": conv_res["filename"],
-                    "status": "success",
-                    "type": conv_res["type"],
-                    "sheet_data": conv_res.get("sheet_data", {}),
-                },
-                status_code=200,
-            )
-
-        else:
-            conv_res = await excel_to_image_no_borders(file_path, img_ext, dpi=dpi)
-            return JSONResponse(
-                content={
-                    "conv": conv_res["zip_file_name"],
-                    "filename": conv_res["zip_file_name"],
-                    "status": "success",
-                    "type": "zip",
-                    "first_image": conv_res.get("first_image"),
-                    "total_parts": conv_res.get("total_parts", 1),
-                    "sheets": conv_res.get("sheets", []),
-                    "outputs": conv_res.get("outputs", []),
-                    "sheet_data": conv_res.get("sheet_data", {}),
-                },
-                status_code=200
-            )
+        return JSONResponse(content=await convert_excel_to_format(file_path, img_ext, dpi=dpi), status_code=200)
 
     except HTTPException:
         raise
@@ -1305,7 +1255,10 @@ async def download_txt(filename: str, background_tasks: BackgroundTasks):
         "pdf": "application/pdf",
         "docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
         "xlsx": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "xls": "application/vnd.ms-excel",
         "csv": "text/csv; charset=utf-8",
+        "json": "application/json",
+        "xml": "application/xml",
         "doc": "application/msword",
     }
     media_type = media_types.get(ext, "application/octet-stream")

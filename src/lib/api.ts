@@ -20,7 +20,7 @@ export interface ConvertSuccessResponse {
   status: "success";
   conv: string;
   filename: string;
-  type?: "zip" | "pdf" | "docx" | "csv" | "xlsx";
+  type?: "zip" | "pdf" | "docx" | "csv" | "xlsx" | "xls" | "json" | "xml";
   first_image?: string;
   total_parts?: number;
   sheets?: string[];
@@ -35,7 +35,22 @@ export interface ConvertErrorResponse {
 
 export type ConvertResult = ConvertSuccessResponse | ConvertErrorResponse;
 
-export type ExcelSourceKind = "jpg" | "png" | "pdf" | "csv";
+export type ExcelSourceKind =
+  | "jpg"
+  | "jpeg"
+  | "png"
+  | "pdf"
+  | "bank_statement_pdf"
+  | "csv"
+  | "tsv"
+  | "json"
+  | "xml"
+  | "txt"
+  | "text"
+  | "notepad"
+  | "word"
+  | "ods"
+  | "vcf";
 
 export async function convertFileToExcel(file: File, sourceKind: ExcelSourceKind, signal?: AbortSignal): Promise<ConvertResult> {
   const formData = new FormData();

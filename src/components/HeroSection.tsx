@@ -12,6 +12,7 @@ import { motion } from "framer-motion";
 import LiveConverterModal from "./LiveConverterModal";
 import CloudImportModal, { GoogleDriveIcon, DropboxIcon } from "./CloudImportModal";
 import { useLanguage } from "@/context/LanguageContext";
+import { useOutputFormat } from "@/context/OutputFormatContext";
 
 /* Exact Cloud Upload Icon matching user's uploaded icon */
 function CustomCloudUploadIcon({ className = "w-7 h-7 text-[#355BFF]" }: { className?: string }) {
@@ -37,6 +38,7 @@ function CustomCloudUploadIcon({ className = "w-7 h-7 text-[#355BFF]" }: { class
 
 export default function HeroSection() {
   const { t } = useLanguage();
+  const { format, label, withFormat } = useOutputFormat();
   const [isDragging, setIsDragging] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [cloudModalOpen, setCloudModalOpen] = useState(false);
@@ -105,10 +107,10 @@ export default function HeroSection() {
           className="space-y-3 max-w-3xl mx-auto"
         >
           <h1 className="text-3xl sm:text-5xl lg:text-[48px] font-bold tracking-tight text-slate-900 leading-[1.2]">
-            {t.hero.titlePrefix} <span className="text-[#355BFF]">{t.hero.titleHighlight}</span> {t.hero.titleSuffix}
+            {t.hero.titlePrefix} <span className="text-[#355BFF]">{label}</span> {t.hero.titleSuffix}
           </h1>
           <p className="text-sm sm:text-base text-slate-500 font-normal leading-relaxed max-w-xl mx-auto">
-            {t.hero.subtitle}
+            {withFormat(t.hero.subtitle)}
           </p>
         </motion.div>
 
@@ -277,6 +279,9 @@ export default function HeroSection() {
         url={selectedUrl}
         fileName={selectedFileName}
         fileSize={selectedFileSize}
+        initialFormat={format}
+        toolTitle={`Excel to ${label}`}
+        lockFormat
       />
     </section>
   );

@@ -4,9 +4,11 @@ import React from "react";
 import { motion } from "framer-motion";
 import { FileText, RefreshCw, Image as ImageIcon, FileUp, Check } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
+import { useOutputFormat } from "@/context/OutputFormatContext";
 
 export default function HowItWorks() {
   const { t } = useLanguage();
+  const { label, withFormat } = useOutputFormat();
 
   return (
     <section className="py-20 relative bg-[#FAFBFD]">
@@ -15,10 +17,10 @@ export default function HowItWorks() {
         {/* Section Header */}
         <div className="text-center space-y-3 mb-14">
           <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 tracking-tight">
-            {t.howItWorks.titlePrefix} <span className="text-[#355BFF]">{t.howItWorks.titleHighlight}</span> {t.howItWorks.titleSuffix}
+            {t.howItWorks.titlePrefix} <span className="text-[#355BFF]">{label}</span> {t.howItWorks.titleSuffix}
           </h2>
           <p className="text-sm sm:text-base text-slate-500 max-w-2xl mx-auto">
-            {t.howItWorks.subtitle}
+            {withFormat(t.howItWorks.subtitle)}
           </p>
         </div>
 
@@ -88,7 +90,7 @@ export default function HowItWorks() {
 
                 {/* Description */}
                 <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-                  {t.howItWorks.step2Desc}
+                  {withFormat(t.howItWorks.step2Desc)}
                 </p>
               </div>
 
@@ -124,7 +126,7 @@ export default function HowItWorks() {
 
                 {/* Description */}
                 <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-                  {t.howItWorks.step3Desc}
+                  {withFormat(t.howItWorks.step3Desc)}
                 </p>
               </div>
 
@@ -132,7 +134,7 @@ export default function HowItWorks() {
               <div className="mt-8 p-4 bg-white rounded-2xl border border-blue-200/80 neon-border-glow shadow-[0_4px_16px_rgba(53,91,255,0.12)] hover:shadow-[0_6px_20px_rgba(53,91,255,0.18)] transition-all flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2 truncate">
                   <Check className="w-4 h-4 text-[#355BFF] stroke-[2.5] shrink-0" />
-                  <span className="text-xs font-semibold text-slate-800 truncate">{t.howItWorks.step3CardTitle}</span>
+                  <span className="text-xs font-semibold text-slate-800 truncate">{withFormat(t.howItWorks.step3CardTitle)}</span>
                 </div>
                 <button className="btn-gradient-border bg-[#355BFF] hover:bg-blue-700 text-white text-[11px] font-semibold px-4 py-1.5 rounded-full shadow-xs transition-colors shrink-0 cursor-pointer">
                   {t.howItWorks.step3CardAction}

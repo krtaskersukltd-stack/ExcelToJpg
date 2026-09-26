@@ -3,9 +3,11 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLanguage } from "@/context/LanguageContext";
+import { useOutputFormat } from "@/context/OutputFormatContext";
 
 export default function FaqSection() {
   const { t } = useLanguage();
+  const { withFormat } = useOutputFormat();
   const [openId, setOpenId] = useState<string | null>("faq-0");
 
   const toggleFaq = (id: string) => {
@@ -22,7 +24,7 @@ export default function FaqSection() {
             {t.faq.title}
           </h2>
           <p className="text-sm sm:text-base text-slate-500 font-normal">
-            {t.faq.subtitle}
+            {withFormat(t.faq.subtitle)}
           </p>
         </div>
 
@@ -52,7 +54,7 @@ export default function FaqSection() {
                 >
                   <div className="flex-1 pr-2">
                     <span className="text-base sm:text-[19px] font-bold text-[#0F172A] tracking-tight block leading-snug">
-                      {faq.q}
+                      {withFormat(faq.q)}
                     </span>
 
                     {/* Expanded Answer Content */}
@@ -67,7 +69,7 @@ export default function FaqSection() {
                           className="overflow-hidden"
                         >
                           <p className="text-sm sm:text-[15px] text-slate-600 leading-relaxed max-w-2xl font-normal">
-                            {faq.a}
+                            {withFormat(faq.a)}
                           </p>
                         </motion.div>
                       )}

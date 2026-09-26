@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, useEffect, Suspense } from "react";
-import { useSearchParams } from "next/navigation";
+import React, { Suspense, useCallback, useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { CheckCircle2, XCircle } from "lucide-react";
 import confetti from "canvas-confetti";
 import Navbar from "@/components/Navbar";
@@ -14,6 +14,11 @@ import { useLanguage } from "@/context/LanguageContext";
 import FileToExcelModal from "@/components/FileToExcelModal";
 import FormulaGeneratorModal from "@/components/FormulaGeneratorModal";
 import { ConverterToolId, FORWARD_FORMATS, REVERSE_SOURCES, TOOL_LABELS } from "@/lib/converter-tools";
+import {
+  OutputFormatProvider,
+  SiteOutputFormat,
+  toolIdToSiteFormat,
+} from "@/context/OutputFormatContext";
 
 function PaymentStatusNotification() {
   const { t } = useLanguage();
@@ -91,44 +96,55 @@ function PaymentStatusNotification() {
 }
 
 export default function PricingPage() {
+  const router = useRouter();
+  const [pageFormat, setPageFormat] = useState<SiteOutputFormat>("jpg");
   const [activeTool, setActiveTool] = useState<ConverterToolId | null>(null);
 
+  const handleSelectTool = useCallback(
+    (tool: ConverterToolId) => {
+      const siteFormat = toolIdToSiteFormat(tool);
+      if (siteFormat) {
+        router.push(`/?format=${siteFormat}`);
+        return;
+      }
+      setActiveTool(tool);
+    },
+    [router],
+  );
+
   return (
-    <div className="min-h-screen bg-[#FAFBFD] flex flex-col justify-between">
-      <div>
-        {/* Top Navbar */}
-        <Navbar onSelectTool={setActiveTool} />
+    <OutputFormatProvider format={pageFormat} setFormat={setPageFormat}>
+      <div className="min-h-screen bg-[#FAFBFD] flex flex-col justify-between">
+        <div>
+          <Navbar onSelectTool={handleSelectTool} activeFormat={pageFormat} />
 
-        {/* Payment Confirmation Banner (if redirected from Stripe) */}
-        <Suspense fallback={null}>
-          <PaymentStatusNotification />
-        </Suspense>
+          <Suspense fallback={null}>
+            <PaymentStatusNotification />
+          </Suspense>
 
-        {/* Pricing Table Section */}
-        <div className="pt-2 sm:pt-4">
-          <PricingSection />
+          <div className="pt-2 sm:pt-4">
+            <PricingSection />
+          </div>
+
+          <FaqSection />
+
+          <CtaBanner onScrollToUpload={() => router.push("/?format=jpg")} />
         </div>
 
-        {/* FAQ Accordion Section */}
-        <FaqSection />
+        <Footer />
 
-        {/* Call to Action Banner */}
-        <CtaBanner onScrollToUpload={() => setActiveTool("excel-jpg")} />
+        <LiveConverterModal
+          isOpen={Boolean(activeTool && FORWARD_FORMATS[activeTool] && !toolIdToSiteFormat(activeTool))}
+          onClose={() => setActiveTool(null)}
+          initialFormat={(activeTool && FORWARD_FORMATS[activeTool]) || pageFormat}
+          toolTitle={activeTool ? TOOL_LABELS[activeTool] : undefined}
+          lockFormat
+        />
+        {activeTool && REVERSE_SOURCES[activeTool] && (
+          <FileToExcelModal isOpen onClose={() => setActiveTool(null)} sourceKind={REVERSE_SOURCES[activeTool]!} />
+        )}
+        <FormulaGeneratorModal isOpen={activeTool === "formula"} onClose={() => setActiveTool(null)} />
       </div>
-
-      {/* Global Footer */}
-      <Footer />
-
-      {/* Live Converter Modal */}
-      <LiveConverterModal
-        isOpen={Boolean(activeTool && FORWARD_FORMATS[activeTool])}
-        onClose={() => setActiveTool(null)}
-        initialFormat={(activeTool && FORWARD_FORMATS[activeTool]) || "jpg"}
-        toolTitle={activeTool ? TOOL_LABELS[activeTool] : undefined}
-        lockFormat
-      />
-      {activeTool && REVERSE_SOURCES[activeTool] && <FileToExcelModal isOpen onClose={() => setActiveTool(null)} sourceKind={REVERSE_SOURCES[activeTool]!} />}
-      <FormulaGeneratorModal isOpen={activeTool === "formula"} onClose={() => setActiveTool(null)} />
-    </div>
+    </OutputFormatProvider>
   );
 }

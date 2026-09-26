@@ -4,10 +4,6 @@ import React from "react";
 import { Flame } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 
-export interface PlanFeature {
-  text: string;
-}
-
 export interface PricingPlan {
   id: string;
   name: string;

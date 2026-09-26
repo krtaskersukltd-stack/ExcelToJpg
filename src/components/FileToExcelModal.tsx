@@ -5,7 +5,32 @@ import { AlertCircle, CheckCircle2, Download, Loader2, Upload, X } from "lucide-
 import { AnimatePresence, motion } from "framer-motion";
 import { cleanupFiles, convertFileToExcel, ExcelSourceKind, triggerFileDownload } from "@/lib/api";
 
-const ACCEPT: Record<ExcelSourceKind, string> = { jpg: ".jpg,.jpeg", png: ".png", pdf: ".pdf", csv: ".csv" };
+const ACCEPT: Record<ExcelSourceKind, string> = {
+  jpg: ".jpg,.jpeg",
+  jpeg: ".jpg,.jpeg",
+  png: ".png",
+  pdf: ".pdf",
+  bank_statement_pdf: ".pdf",
+  csv: ".csv",
+  tsv: ".tsv,.txt",
+  json: ".json",
+  xml: ".xml",
+  txt: ".txt,.text,.log",
+  text: ".txt,.text,.log",
+  notepad: ".txt,.text,.log",
+  word: ".docx",
+  ods: ".ods",
+  vcf: ".vcf,.vcard",
+};
+
+const SOURCE_TITLES: Partial<Record<ExcelSourceKind, string>> = {
+  bank_statement_pdf: "Bank Statement PDF to Excel",
+  word: "Word to Excel",
+  notepad: "Notepad to Excel",
+  text: "Text to Excel",
+  txt: "TXT to Excel",
+};
+
 
 export default function FileToExcelModal({ isOpen, onClose, sourceKind }: { isOpen: boolean; onClose: () => void; sourceKind: ExcelSourceKind }) {
   const [file, setFile] = useState<File | null>(null);
@@ -85,7 +110,7 @@ export default function FileToExcelModal({ isOpen, onClose, sourceKind }: { isOp
   };
 
   if (!isOpen) return null;
-  const label = `${sourceKind.toUpperCase()} to Excel`;
+  const label = SOURCE_TITLES[sourceKind] || `${sourceKind.replaceAll("_", " ").toUpperCase()} to Excel`;
   return (
     <AnimatePresence>
       <div className="fixed inset-0 z-[80] flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-label={label}>
@@ -94,7 +119,15 @@ export default function FileToExcelModal({ isOpen, onClose, sourceKind }: { isOp
           <header className="flex items-center justify-between border-b border-slate-100 bg-blue-50/60 px-6 py-4">
             <div>
               <h2 className="text-lg font-bold text-slate-950">{label}</h2>
-              <p className="text-xs text-slate-500">{sourceKind === "csv" ? "Format CSV rows and columns into an XLSX workbook." : "Extract readable table data into an editable XLSX workbook."}</p>
+              <p className="text-xs text-slate-500">{
+                sourceKind === "csv" || sourceKind === "tsv"
+                  ? "Format delimited rows and columns into an XLSX workbook."
+                  : sourceKind === "bank_statement_pdf"
+                    ? "Extract bank transactions into Date, Description, Debit, Credit, and Balance columns."
+                    : sourceKind === "word"
+                      ? "Pull tables and text from Word documents into an editable XLSX workbook."
+                      : "Extract readable table data into an editable XLSX workbook."
+              }</p>
             </div>
             <button onClick={handleClose} className="rounded-full p-2 text-slate-500 hover:bg-white"><X className="h-5 w-5" /></button>
           </header>

@@ -1,11 +1,11 @@
 "use client";
 
 import React, { FormEvent, useEffect, useRef, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import Script from "next/script";
 import { useRouter } from "next/navigation";
 import { ChevronDown, Eye, EyeOff, LoaderCircle } from "lucide-react";
-import Logo from "@/components/Logo";
 
 type AuthMode = "login" | "signup";
 
@@ -187,14 +187,15 @@ export default function AuthPage({ mode }: { mode: AuthMode }) {
           <div className="absolute inset-0 bg-gradient-to-t from-black/10 via-transparent to-white/5 pointer-events-none" />
 
           {/* Top: Site Official Logo */}
-          <Link href="/" className="relative z-10 inline-flex items-center gap-3.5 text-white transition-opacity hover:opacity-95 group">
-            <div className="relative h-12 w-10 shrink-0 drop-shadow-md">
-              <Logo size="md" showText={false} />
-            </div>
-            <div className="flex flex-col text-left">
-              <span className="font-heading text-2xl font-bold leading-none tracking-tight text-white drop-shadow-xs">Excel To</span>
-              <span className="font-heading text-2xl font-bold leading-none tracking-tight text-white mt-0.5 drop-shadow-xs">Jpg</span>
-            </div>
+          <Link href="/" className="relative z-10 inline-flex items-center transition-opacity hover:opacity-95 group">
+            <Image
+              src="/logo.png"
+              alt="Excel To JPG"
+              width={176}
+              height={217}
+              priority
+              className="h-16 xl:h-20 w-auto object-contain drop-shadow-md transition-transform duration-200 group-hover:scale-105"
+            />
           </Link>
 
           {/* Center-Bottom Hero Text & Step Cards */}
@@ -242,9 +243,16 @@ export default function AuthPage({ mode }: { mode: AuthMode }) {
             =================================================================== */}
         <section className="flex flex-col items-center justify-center px-6 py-10 sm:px-12 lg:px-16 xl:px-20">
           <div className="w-full max-w-[560px]">
-            {/* Mobile Header Logo */}
-            <Link href="/" className="mb-8 inline-flex items-center gap-3 lg:hidden">
-              <Logo size="sm" showText={true} />
+            {/* Site logo — form header (all screen sizes) */}
+            <Link href="/" className="mb-8 inline-flex items-center group">
+              <Image
+                src="/logo.png"
+                alt="Excel To JPG"
+                width={176}
+                height={217}
+                priority
+                className="h-14 sm:h-16 w-auto object-contain drop-shadow-xs transition-transform duration-200 group-hover:scale-105"
+              />
             </Link>
 
             {/* Title */}

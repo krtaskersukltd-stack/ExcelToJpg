@@ -3,9 +3,11 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { useLanguage } from "@/context/LanguageContext";
+import { useOutputFormat } from "@/context/OutputFormatContext";
 
 export default function ComparisonMatrix() {
   const { t } = useLanguage();
+  const { label, withFormat } = useOutputFormat();
 
   return (
     <section className="py-20 bg-[#FAFBFD] relative">
@@ -14,10 +16,10 @@ export default function ComparisonMatrix() {
         {/* Section Heading */}
         <div className="text-center space-y-3 mb-14">
           <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 tracking-tight">
-            {t.comparison.titlePrefix} <span className="text-[#355BFF]">{t.comparison.titleHighlight}</span>
+            {t.comparison.titlePrefix} <span className="text-[#355BFF]">{label}</span>
           </h2>
           <p className="text-sm sm:text-base text-slate-500 max-w-2xl mx-auto">
-            {t.comparison.subtitle}
+            {withFormat(t.comparison.subtitle)}
           </p>
         </div>
 
@@ -111,7 +113,7 @@ export default function ComparisonMatrix() {
                     {t.comparison.outputBadge}
                   </span>
                   <span className="text-xs sm:text-base font-bold text-slate-900 truncate">
-                    {t.comparison.outputTitle}
+                    {withFormat(t.comparison.outputTitle)}
                   </span>
                 </div>
                 <span className="text-[10px] sm:text-xs text-slate-400 font-medium px-2 sm:px-3 shrink-0">

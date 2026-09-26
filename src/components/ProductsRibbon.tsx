@@ -9,6 +9,9 @@ import {
   MotionValue, 
   AnimatePresence 
 } from "framer-motion";
+import { useLanguage } from "@/context/LanguageContext";
+import { useOutputFormat } from "@/context/OutputFormatContext";
+import { ConverterToolId, PRODUCT_TOOL_IDS } from "@/lib/converter-tools";
 
 interface ProductItem {
   id: string;
@@ -268,11 +271,9 @@ function MacDockItem({
   );
 }
 
-import { useLanguage } from "@/context/LanguageContext";
-import { ConverterToolId, PRODUCT_TOOL_IDS } from "@/lib/converter-tools";
-
 export default function ProductsRibbon({ onSelectTool }: { onSelectTool?: (tool: ConverterToolId) => void }) {
   const { t } = useLanguage();
+  const { label, withFormat } = useOutputFormat();
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const mouseX = useMotionValue(Infinity);
 
@@ -283,10 +284,10 @@ export default function ProductsRibbon({ onSelectTool }: { onSelectTool?: (tool:
         {/* Section Heading */}
         <div className="space-y-3 mb-10 text-center">
           <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 tracking-tight">
-            {t.products.titlePrefix} <span className="text-[#355BFF]">{t.products.titleHighlight}</span> {t.products.titleSuffix}
+            {t.products.titlePrefix} <span className="text-[#355BFF]">{label}</span> {t.products.titleSuffix}
           </h2>
           <p className="text-sm sm:text-base text-slate-500 max-w-xl mx-auto">
-            {t.products.subtitle}
+            {withFormat(t.products.subtitle)}
           </p>
         </div>
 

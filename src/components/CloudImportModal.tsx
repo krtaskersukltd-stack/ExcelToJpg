@@ -17,22 +17,33 @@ import {
 
 export function GoogleDriveIcon({ className = "w-5 h-5" }: { className?: string }) {
   return (
-    <svg className={className} viewBox="0 0 87.3 78" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M6.6 66.85l3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8H0c0 1.55.4 3.1 1.2 4.5l5.4 9.35z" fill="#0066DA" />
-      <path d="M43.65 25L29.9 1.2C28.5.4 26.95 0 25.4 0H8.3C6.75 0 5.2.4 3.8 1.2L17.55 25h26.1z" fill="#00AC47" />
-      <path d="M73.55 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75 5.4-9.35c.8-1.4 1.2-2.95 1.2-4.5h-27.5l5.5 9.5 10.5 10.4z" fill="#EA4335" />
-      <path d="M43.65 25L57.4 1.2C56 .4 54.45 0 52.9 0H35.8c-1.55 0-3.1.4-4.5 1.2L45 25h-1.35z" fill="#00832D" />
-      <path d="M59.8 53H32.3L18.55 76.8c1.4.8 2.95 1.2 4.5 1.2h41.45c1.55 0 3.1-.4 4.5-1.2L59.8 53z" fill="#2684FC" />
-      <path d="M73.4 26.5l-13.6-23.5c-1.4-.8-2.95-1.2-4.5-1.2L41.55 25l13.75 23.8h27.5c0-1.55-.4-3.1-1.2-4.5l-8.2-17.8z" fill="#FFBA00" />
-    </svg>
+    // Official Google Drive product logo (fonts.gstatic productlogos)
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src="/icons/google-drive.svg"
+      alt=""
+      width={24}
+      height={24}
+      className={`object-contain ${className}`}
+      draggable={false}
+      aria-hidden="true"
+    />
   );
 }
 
 export function DropboxIcon({ className = "w-5 h-5" }: { className?: string }) {
   return (
-    <svg className={className} viewBox="0 0 24 24" fill="#0061FF" xmlns="http://www.w3.org/2000/svg">
-      <path d="M6 2 0 6.134l6 4.134 6-4.134L6 2Zm12 0-6 4.134 6 4.134 6-4.134L18 2ZM0 14.402l6 4.134 6-4.134-6-4.134-6 4.134Zm18-4.134-6 4.134 6 4.134 6-4.134-6-4.134ZM6 19.804l6 4.134 6-4.134-6-4.134-6 4.134Z" />
-    </svg>
+    // Official Dropbox open-box mark
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src="/icons/dropbox.svg"
+      alt=""
+      width={24}
+      height={24}
+      className={`object-contain ${className}`}
+      draggable={false}
+      aria-hidden="true"
+    />
   );
 }
 

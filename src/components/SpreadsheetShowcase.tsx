@@ -4,9 +4,11 @@ import React, { useState } from "react";
 import { motion } from "framer-motion";
 
 import { useLanguage } from "@/context/LanguageContext";
+import { useOutputFormat } from "@/context/OutputFormatContext";
 
 export default function SpreadsheetShowcase() {
   const { t } = useLanguage();
+  const { label, withFormat } = useOutputFormat();
   const [isRendering, setIsRendering] = useState(false);
 
   const triggerRenderAnimation = () => {
@@ -24,10 +26,10 @@ export default function SpreadsheetShowcase() {
         <div className="text-center space-y-3 mb-14 sm:mb-16">
           <h2 className="text-3xl sm:text-4xl lg:text-[42px] font-extrabold text-[#0F172A] tracking-tight leading-tight">
             {t.showcase.title1}<br />
-            <span className="text-[#3B66FF]">{t.showcase.titleHighlight}</span> {t.showcase.title2}
+            <span className="text-[#3B66FF]">{label}</span> {t.showcase.title2}
           </h2>
           <p className="text-sm sm:text-base text-slate-600 max-w-2xl mx-auto font-normal leading-relaxed">
-            {t.showcase.subtitle}
+            {withFormat(t.showcase.subtitle)}
           </p>
         </div>
 
@@ -167,7 +169,7 @@ export default function SpreadsheetShowcase() {
                   <circle cx="12" cy="12" r="9" />
                   <path d="m9 12 2 2 4-4" />
                 </svg>
-                <span>Exported <span className="text-[#3B66FF]">JPG</span> (1920 × 1080)</span>
+                <span>Exported <span className="text-[#3B66FF]">{label}</span> (1920 × 1080)</span>
               </div>
               <span className="bg-[#3B66FF] text-white text-[11px] font-bold px-3 py-1 rounded-full shadow-2xs">
                 98% Quality

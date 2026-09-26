@@ -42,7 +42,7 @@ import {
   triggerFileDownload,
 } from "@/lib/api";
 
-export type OutputFormat = "jpg" | "png" | "pdf" | "docx" | "csv";
+export type OutputFormat = "jpg" | "png" | "pdf" | "docx" | "csv" | "json" | "tally" | "xls" | "xlsx";
 type Dpi = "150" | "300" | "600";
 type ConversionStatus = "idle" | "parsing" | "rendering" | "optimizing" | "ready" | "error";
 type Settings = { format: OutputFormat; dpi: Dpi };
@@ -65,6 +65,10 @@ const FORMATS = [
   { id: "pdf", label: "PDF", icon: FileText },
   { id: "docx", label: "DOCX", icon: FileSpreadsheet },
   { id: "csv", label: "CSV", icon: FileText },
+  { id: "json", label: "JSON", icon: FileText },
+  { id: "tally", label: "Tally", icon: FileSpreadsheet },
+  { id: "xls", label: "XLS", icon: FileSpreadsheet },
+  { id: "xlsx", label: "XLSX", icon: FileSpreadsheet },
 ] as const;
 
 export default function LiveConverterModal({
@@ -476,7 +480,7 @@ export default function LiveConverterModal({
           <input
             ref={fileInputRef}
             type="file"
-            accept=".xls,.xlsx,.xlsm,.csv"
+            accept=".xls,.xlsx,.xlsm,.csv,.ods"
             onChange={handleFilePicked}
             className="hidden"
           />
@@ -522,7 +526,7 @@ export default function LiveConverterModal({
                   ))}
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
-                  {!(["pdf", "docx", "csv"] as OutputFormat[]).includes(selectedFormat) && (
+                  {!(["pdf", "docx", "csv", "json", "tally", "xls", "xlsx"] as OutputFormat[]).includes(selectedFormat) && (
                     <>
                       <span className="text-xs font-semibold text-slate-500">DPI</span>
                       {(["150", "300", "600"] as Dpi[]).map((value) => (

@@ -5,6 +5,8 @@ uvicorn
 imgkit
 openpyxl
 xlrd
+xlwt
+odfpy
 python-multipart
 python-docx
 fpdf2

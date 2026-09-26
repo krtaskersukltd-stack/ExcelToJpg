@@ -16,7 +16,8 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLanguage } from "@/context/LanguageContext";
-import { ConverterToolId, NAV_TOOL_IDS } from "@/lib/converter-tools";
+import { ConverterToolId, NAV_TOOL_IDS, TOOL_LABELS } from "@/lib/converter-tools";
+import type { SiteOutputFormat } from "@/context/OutputFormatContext";
 
 const toolIcons = [
   ImageIcon,
@@ -26,10 +27,30 @@ const toolIcons = [
   FileSpreadsheet,
   FileSpreadsheet,
   FileSpreadsheet,
+  FileText,
+  FileText,
+  FileText,
+  Layers,
+  FileText,
+  FileSpreadsheet,
+  FileText,
+  FileText,
+  FileText,
+  FileText,
+  FileSpreadsheet,
+  FileSpreadsheet,
+  FileSpreadsheet,
+  ImageIcon,
   Sparkles,
 ];
 
-export default function Navbar({ onSelectTool }: { onSelectTool?: (tool: ConverterToolId) => void }) {
+export default function Navbar({
+  onSelectTool,
+  activeFormat = "jpg",
+}: {
+  onSelectTool?: (tool: ConverterToolId) => void;
+  activeFormat?: SiteOutputFormat;
+}) {
   const { language, setLanguage, t, languages } = useLanguage();
   const [isToolsOpen, setIsToolsOpen] = useState(false);
   const [isLangOpen, setIsLangOpen] = useState(false);
@@ -66,54 +87,57 @@ export default function Navbar({ onSelectTool }: { onSelectTool?: (tool: Convert
 
   return (
     <header className="relative z-50 top-0 left-0 right-0 transition-all duration-300 py-4 sm:py-5">
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between lg:grid lg:grid-cols-3 lg:items-center lg:gap-4">
 
-        {/* Brand Logo matching user's /logo.png */}
-        <Link href="/" className="group inline-flex items-center">
-          <div className="relative h-14 sm:h-14 w-auto flex items-center transition-transform duration-200 group-hover:scale-105">
-            <Image
-              src="/logo.png"
-              alt="Excel To JPG"
-              width={176}
-              height={217}
-              priority
-              className="h-12 sm:h-16 w-auto object-contain drop-shadow-xs"
-            />
-          </div>
-        </Link>
+        {/* Left: Brand Logo */}
+        <div className="flex items-center lg:justify-self-start">
+          <Link href="/" className="group inline-flex items-center">
+            <div className="relative h-14 sm:h-14 w-auto flex items-center transition-transform duration-200 group-hover:scale-105">
+              <Image
+                src="/logo.png"
+                alt="Excel To JPG"
+                width={176}
+                height={217}
+                priority
+                className="h-12 sm:h-16 w-auto object-contain drop-shadow-xs"
+              />
+            </div>
+          </Link>
+        </div>
 
-        {/* Center Floating Pill Navigation Bar (Desktop) */}
-        <nav className="hidden lg:flex position-revert absolute left-1/2 -translate-x-1/2 items-center gap-1 p-4 bg-white/85 backdrop-blur-xl rounded-full border border-slate-200/80 neon-border-glow shadow-xs hover:shadow-[0_4px_24px_rgba(59,130,246,0.18)] transition-all">
-          {/* Active Image To Text Button */}
-          <button
-            onClick={() => onSelectTool?.("excel-jpg")}
-            className="px-5 py-2 text-xs font-semibold rounded-full bg-[#355BFF] text-white shadow-xs hover:bg-blue-700 transition-all duration-150"
-          >
-            {t.nav.excelToJpg}
-          </button>
-
-          <button
-            onClick={() => onSelectTool?.("excel-png")}
-            className="px-4 py-2 text-xs font-medium text-slate-700 hover:text-blue-600 hover:bg-slate-50/70 rounded-full transition-colors"
-          >
-            {t.nav.excelToPng}
-          </button>
-
-          <button
-            onClick={() => onSelectTool?.("excel-csv")}
-            className="px-4 py-2 text-xs font-medium text-slate-700 hover:text-blue-600 hover:bg-slate-50/70 rounded-full transition-colors"
-          >
-            {t.nav.excelToCsv}
-          </button>
+        {/* Center: Floating Pill Navigation (Desktop) */}
+        <nav className="hidden lg:flex lg:justify-self-center items-center gap-0.5 p-1.5 bg-white/85 backdrop-blur-xl rounded-full border border-slate-200/80 neon-border-glow shadow-xs hover:shadow-[0_4px_24px_rgba(59,130,246,0.18)] transition-all">
+          {(
+            [
+              { tool: "excel-jpg" as const, format: "jpg" as const, label: t.nav.excelToJpg },
+              { tool: "excel-png" as const, format: "png" as const, label: t.nav.excelToPng },
+              { tool: "excel-csv" as const, format: "csv" as const, label: t.nav.excelToCsv },
+            ] as const
+          ).map(({ tool, format, label }) => {
+            const isActive = activeFormat === format;
+            return (
+              <button
+                key={tool}
+                onClick={() => onSelectTool?.(tool)}
+                className={`whitespace-nowrap shrink-0 px-4 py-2 text-xs rounded-full transition-all duration-150 ${
+                  isActive
+                    ? "font-semibold bg-[#355BFF] text-white shadow-xs hover:bg-blue-700"
+                    : "font-medium text-slate-700 hover:text-blue-600 hover:bg-slate-50/70"
+                }`}
+              >
+                {label}
+              </button>
+            );
+          })}
 
           {/* Tools Dropdown */}
-          <div ref={toolsRef} className="relative">
+          <div ref={toolsRef} className="relative shrink-0">
             <button
               onClick={() => setIsToolsOpen(!isToolsOpen)}
               onMouseEnter={() => setIsToolsOpen(true)}
-              className="flex items-center gap-1.5 px-4 py-2 text-xs font-medium text-slate-900 hover:text-blue-600 hover:bg-slate-50/70 rounded-full transition-colors cursor-pointer"
+              className="flex items-center gap-1.5 whitespace-nowrap px-4 py-2 text-xs font-medium text-slate-900 hover:text-blue-600 hover:bg-slate-50/70 rounded-full transition-colors cursor-pointer"
             >
-              {/* 4-square Grid Icon */}
               <svg className="w-3.5 h-3.5 text-slate-900 fill-current" viewBox="0 0 16 16">
                 <rect x="1" y="1" width="6" height="6" rx="1.5" />
                 <rect x="9" y="1" width="6" height="6" rx="1.5" />
@@ -137,15 +161,19 @@ export default function Navbar({ onSelectTool }: { onSelectTool?: (tool: Convert
                   <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider px-3 py-1.5">
                     {t.nav.conversionSuite}
                   </div>
-                  <div className="space-y-1">
-                    {t.nav.toolsList.map((item, idx) => {
+                  <div className="space-y-1 max-h-[70vh] overflow-y-auto">
+                    {NAV_TOOL_IDS.map((toolId, idx) => {
+                      const item = t.nav.toolsList[idx] || { name: TOOL_LABELS[toolId], desc: "Conversion tool" };
                       const Icon = toolIcons[idx] || ImageIcon;
-                      const isHighlight = idx === t.nav.toolsList.length - 1;
-                      const isCurrent = idx === 0;
+                      const isHighlight = toolId === "formula";
+                      const isCurrent =
+                        (toolId === "excel-jpg" && activeFormat === "jpg") ||
+                        (toolId === "excel-png" && activeFormat === "png") ||
+                        (toolId === "excel-csv" && activeFormat === "csv");
                       return (
                         <button
-                          key={item.name}
-                          onClick={() => { setIsToolsOpen(false); onSelectTool?.(NAV_TOOL_IDS[idx]); }}
+                          key={toolId}
+                          onClick={() => { setIsToolsOpen(false); onSelectTool?.(toolId); }}
                           className={`flex w-full items-start gap-3 p-2.5 text-left rounded-xl transition-all ${
                             isHighlight
                               ? "bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100/60"
@@ -180,132 +208,131 @@ export default function Navbar({ onSelectTool }: { onSelectTool?: (tool: Convert
           </div>
         </nav>
 
-        {/* Right Section: Actions Pill & Language Selector (Desktop) */}
-        <div className="hidden lg:flex items-stretch gap-3 ml-auto">
+        {/* Right: Actions (Desktop) + Mobile controls */}
+        <div className="flex items-center gap-2 sm:gap-3 lg:justify-self-end">
 
-          {/* Right Floating Pill: Pricing + Login */}
-          <div className="flex items-center gap-1.5 p-4 bg-white/85 backdrop-blur-xl rounded-full border border-slate-200/80 neon-border-glow shadow-xs hover:shadow-[0_4px_24px_rgba(59,130,246,0.18)] transition-all">
-            {/* Pricing with Diamond / Crystal Icon */}
-            <Link 
-              href="/pricing" 
-              className="flex items-center gap-1.5 px-4 py-2 text-xs font-medium text-slate-800 hover:text-blue-600 hover:bg-slate-50/70 rounded-full transition-colors"
+          {/* Desktop: Pricing + Login + Language */}
+          <div className="hidden lg:flex items-center gap-3">
+            <div className="flex items-center gap-1.5 p-1.5 bg-white/85 backdrop-blur-xl rounded-full border border-slate-200/80 neon-border-glow shadow-xs hover:shadow-[0_4px_24px_rgba(59,130,246,0.18)] transition-all">
+              <Link 
+                href="/pricing" 
+                className="flex items-center gap-1.5 px-4 py-2 text-xs font-medium text-slate-800 hover:text-blue-600 hover:bg-slate-50/70 rounded-full transition-colors"
+              >
+                <svg className="w-4 h-4 text-blue-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M6 3h12l4 6-10 12L2 9z" />
+                  <path d="M11 3 8 9l4 12 4-12-3-6" />
+                  <path d="M2 9h20" />
+                </svg>
+                <span>{t.nav.pricing}</span>
+              </Link>
+
+              <Link
+                href={currentUser ? "/account" : "/login"}
+                className="px-6 py-2 bg-[#355BFF] hover:bg-blue-700 text-white text-xs font-semibold rounded-full shadow-xs hover:shadow-md hover:shadow-blue-500/20 transition-all active:scale-95 cursor-pointer"
+              >
+                {currentUser ? (currentUser.auth_provider === "google" ? "Google" : currentUser.full_name.split(" ")[0]) : t.nav.login}
+              </Link>
+            </div>
+
+            <div
+              ref={langRef}
+              className="relative flex items-center"
+              onMouseEnter={() => setIsLangOpen(true)}
+              onMouseLeave={() => setIsLangOpen(false)}
             >
-              <svg className="w-4 h-4 text-blue-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M6 3h12l4 6-10 12L2 9z" />
-                <path d="M11 3 8 9l4 12 4-12-3-6" />
-                <path d="M2 9h20" />
-              </svg>
-              <span>{t.nav.pricing}</span>
-            </Link>
+              <button
+                onClick={() => setIsLangOpen((prev) => !prev)}
+                className="flex h-10 items-center gap-1.5 text-xs font-semibold text-slate-800 hover:text-blue-600 px-4 rounded-full border border-slate-200/80 bg-white/90 hover:bg-white transition-all shadow-xs cursor-pointer"
+              >
+                <Globe className="w-3.5 h-3.5 text-blue-600" />
+                <span>{language}</span>
+                <ChevronDown className={`w-3.5 h-3.5 text-slate-500 transition-transform duration-200 ${isLangOpen ? "rotate-180 text-blue-600" : ""}`} />
+              </button>
 
-            {/* Login Pill Button */}
+              <AnimatePresence>
+                {isLangOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 8, scale: 0.96 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 8, scale: 0.96 }}
+                    transition={{ duration: 0.15 }}
+                    className="absolute top-full right-0 mt-2 w-40 bg-white rounded-2xl shadow-2xl border border-slate-100 py-1.5 z-50 overflow-hidden"
+                  >
+                    {languages.map((lang) => (
+                      <button
+                        key={lang.code}
+                        onClick={() => {
+                          setLanguage(lang.code);
+                          setIsLangOpen(false);
+                        }}
+                        className={`w-full text-left px-3.5 py-2 text-xs font-medium transition-colors flex items-center justify-between cursor-pointer ${
+                          language === lang.code ? "text-blue-600 bg-blue-50/80 font-bold" : "text-slate-700 hover:bg-slate-50"
+                        }`}
+                      >
+                        <span>{lang.nativeLabel}</span>
+                        <span className="text-[10px] text-slate-400 font-mono">({lang.code})</span>
+                      </button>
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          </div>
+
+          {/* Mobile controls */}
+          <div className="flex lg:hidden items-center gap-2">
+            <div className="relative">
+              <button
+                onClick={() => setIsLangOpen((prev) => !prev)}
+                className="p-1.5 px-2.5 text-xs font-bold text-slate-700 bg-white border border-slate-200 rounded-full flex items-center gap-1 cursor-pointer"
+              >
+                <span>{language}</span>
+                <ChevronDown className={`w-3 h-3 text-slate-500 transition-transform duration-200 ${isLangOpen ? "rotate-180 text-blue-600" : ""}`} />
+              </button>
+              <AnimatePresence>
+                {isLangOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 6, scale: 0.96 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 6, scale: 0.96 }}
+                    transition={{ duration: 0.15 }}
+                    className="absolute top-full right-0 mt-2 w-36 bg-white rounded-xl shadow-xl border border-slate-100 py-1 z-50 overflow-hidden"
+                  >
+                    {languages.map((lang) => (
+                      <button
+                        key={lang.code}
+                        onClick={() => {
+                          setLanguage(lang.code);
+                          setIsLangOpen(false);
+                        }}
+                        className={`w-full text-left px-3 py-1.5 text-xs font-medium cursor-pointer ${
+                          language === lang.code ? "text-blue-600 bg-blue-50 font-bold" : "text-slate-700 hover:bg-slate-50"
+                        }`}
+                      >
+                        {lang.nativeLabel}
+                      </button>
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
             <Link
               href={currentUser ? "/account" : "/login"}
-              className="px-6 py-2 bg-[#355BFF] hover:bg-blue-700 text-white text-xs font-semibold rounded-full shadow-xs hover:shadow-md hover:shadow-blue-500/20 transition-all active:scale-95 cursor-pointer"
+              className="px-4 py-1.5 bg-[#355BFF] text-white text-xs font-semibold rounded-full shadow-xs cursor-pointer"
             >
               {currentUser ? (currentUser.auth_provider === "google" ? "Google" : currentUser.full_name.split(" ")[0]) : t.nav.login}
             </Link>
-          </div>
-
-          {/* Language Selector */}
-          <div
-            ref={langRef}
-            className="relative flex items-center"
-            onMouseEnter={() => setIsLangOpen(true)}
-            onMouseLeave={() => setIsLangOpen(false)}
-          >
             <button
-              onClick={() => setIsLangOpen((prev) => !prev)}
-              className="flex h-[66px] items-center gap-1.5 text-xs font-semibold text-slate-800 hover:text-blue-600 px-4 rounded-full border border-slate-200/80 bg-white/90 hover:bg-white transition-all shadow-xs cursor-pointer"
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="p-2 text-slate-700 hover:text-slate-900 rounded-xl hover:bg-slate-100 cursor-pointer"
             >
-              <Globe className="w-3.5 h-3.5 text-blue-600" />
-              <span>{language}</span>
-              <ChevronDown className={`w-3.5 h-3.5 text-slate-500 transition-transform duration-200 ${isLangOpen ? "rotate-180 text-blue-600" : ""}`} />
+              {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
-
-            <AnimatePresence>
-              {isLangOpen && (
-                <motion.div
-                  initial={{ opacity: 0, y: 8, scale: 0.96 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: 8, scale: 0.96 }}
-                  transition={{ duration: 0.15 }}
-                  className="absolute top-full right-0 mt-2 w-40 bg-white rounded-2xl shadow-2xl border border-slate-100 py-1.5 z-50 overflow-hidden"
-                >
-                  {languages.map((lang) => (
-                    <button
-                      key={lang.code}
-                      onClick={() => {
-                        setLanguage(lang.code);
-                        setIsLangOpen(false);
-                      }}
-                      className={`w-full text-left px-3.5 py-2 text-xs font-medium transition-colors flex items-center justify-between cursor-pointer ${
-                        language === lang.code ? "text-blue-600 bg-blue-50/80 font-bold" : "text-slate-700 hover:bg-slate-50"
-                      }`}
-                    >
-                      <span>{lang.nativeLabel}</span>
-                      <span className="text-[10px] text-slate-400 font-mono">({lang.code})</span>
-                    </button>
-                  ))}
-                </motion.div>
-              )}
-            </AnimatePresence>
           </div>
         </div>
 
-        {/* Mobile View Toggle */}
-        <div className="flex lg:hidden items-center gap-2">
-          {/* Mobile Language Button */}
-          <div className="relative">
-            <button
-              onClick={() => setIsLangOpen((prev) => !prev)}
-              className="p-1.5 px-2.5 text-xs font-bold text-slate-700 bg-white border border-slate-200 rounded-full flex items-center gap-1 cursor-pointer"
-            >
-              <span>{language}</span>
-              <ChevronDown className={`w-3 h-3 text-slate-500 transition-transform duration-200 ${isLangOpen ? "rotate-180 text-blue-600" : ""}`} />
-            </button>
-            <AnimatePresence>
-              {isLangOpen && (
-                <motion.div
-                  initial={{ opacity: 0, y: 6, scale: 0.96 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: 6, scale: 0.96 }}
-                  transition={{ duration: 0.15 }}
-                  className="absolute top-full right-0 mt-2 w-36 bg-white rounded-xl shadow-xl border border-slate-100 py-1 z-50 overflow-hidden"
-                >
-                  {languages.map((lang) => (
-                    <button
-                      key={lang.code}
-                      onClick={() => {
-                        setLanguage(lang.code);
-                        setIsLangOpen(false);
-                      }}
-                      className={`w-full text-left px-3 py-1.5 text-xs font-medium cursor-pointer ${
-                        language === lang.code ? "text-blue-600 bg-blue-50 font-bold" : "text-slate-700 hover:bg-slate-50"
-                      }`}
-                    >
-                      {lang.nativeLabel}
-                    </button>
-                  ))}
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-
-          <Link
-            href={currentUser ? "/account" : "/login"}
-            className="px-4 py-1.5 bg-[#355BFF] text-white text-xs font-semibold rounded-full shadow-xs cursor-pointer"
-          >
-            {currentUser ? (currentUser.auth_provider === "google" ? "Google" : currentUser.full_name.split(" ")[0]) : t.nav.login}
-          </Link>
-          <button
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="p-2 text-slate-700 hover:text-slate-900 rounded-xl hover:bg-slate-100 cursor-pointer"
-          >
-            {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-          </button>
         </div>
-
       </div>
 
       {/* Mobile Drawer */}
@@ -318,24 +345,28 @@ export default function Navbar({ onSelectTool }: { onSelectTool?: (tool: Convert
             className="lg:hidden border-b border-slate-200 bg-white/95 backdrop-blur-xl px-4 pt-3 pb-6 shadow-xl"
           >
             <div className="flex flex-col gap-2 pt-2">
-              <button
-                onClick={() => { setIsMobileMenuOpen(false); onSelectTool?.("excel-jpg"); }}
-                className="px-3.5 py-2 text-xs font-semibold text-white bg-[#355BFF] rounded-xl text-center"
-              >
-                {t.nav.excelToJpg}
-              </button>
-              <button
-                onClick={() => { setIsMobileMenuOpen(false); onSelectTool?.("excel-png"); }}
-                className="px-3.5 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 rounded-xl"
-              >
-                {t.nav.excelToPng}
-              </button>
-              <button
-                onClick={() => { setIsMobileMenuOpen(false); onSelectTool?.("excel-csv"); }}
-                className="px-3.5 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 rounded-xl"
-              >
-                {t.nav.excelToCsv}
-              </button>
+              {(
+                [
+                  { tool: "excel-jpg" as const, format: "jpg" as const, label: t.nav.excelToJpg },
+                  { tool: "excel-png" as const, format: "png" as const, label: t.nav.excelToPng },
+                  { tool: "excel-csv" as const, format: "csv" as const, label: t.nav.excelToCsv },
+                ] as const
+              ).map(({ tool, format, label }) => {
+                const isActive = activeFormat === format;
+                return (
+                  <button
+                    key={tool}
+                    onClick={() => { setIsMobileMenuOpen(false); onSelectTool?.(tool); }}
+                    className={`px-3.5 py-2 text-xs rounded-xl text-center whitespace-nowrap ${
+                      isActive
+                        ? "font-semibold text-white bg-[#355BFF]"
+                        : "font-medium text-slate-700 hover:bg-slate-50"
+                    }`}
+                  >
+                    {label}
+                  </button>
+                );
+              })}
               <Link
                 href="/pricing"
                 onClick={() => setIsMobileMenuOpen(false)}
@@ -350,16 +381,17 @@ export default function Navbar({ onSelectTool }: { onSelectTool?: (tool: Convert
               </Link>
               <div className="border-t border-slate-100 my-2 pt-2">
                 <div className="text-[11px] font-semibold text-slate-400 px-3 py-1">{t.nav.allTools}</div>
-                {t.nav.toolsList.map((tool, idx) => {
+                {NAV_TOOL_IDS.map((toolId, idx) => {
                   const Icon = toolIcons[idx] || ImageIcon;
+                  const name = t.nav.toolsList[idx]?.name || TOOL_LABELS[toolId];
                   return (
                     <button
-                      key={tool.name}
-                      onClick={() => { setIsMobileMenuOpen(false); onSelectTool?.(NAV_TOOL_IDS[idx]); }}
+                      key={toolId}
+                      onClick={() => { setIsMobileMenuOpen(false); onSelectTool?.(toolId); }}
                       className="flex w-full items-center gap-2 px-3 py-2 text-left text-xs text-slate-600 hover:bg-slate-50 rounded-lg"
                     >
                       <Icon className="w-4 h-4 text-blue-600" />
-                      <span>{tool.name}</span>
+                      <span>{name}</span>
                     </button>
                   );
                 })}

@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { Suspense, useCallback, useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import HeroSection from "@/components/HeroSection";
 import ProductsRibbon from "@/components/ProductsRibbon";
@@ -16,64 +17,96 @@ import LiveConverterModal from "@/components/LiveConverterModal";
 import FileToExcelModal from "@/components/FileToExcelModal";
 import FormulaGeneratorModal from "@/components/FormulaGeneratorModal";
 import { ConverterToolId, FORWARD_FORMATS, REVERSE_SOURCES, TOOL_LABELS } from "@/lib/converter-tools";
+import {
+  OutputFormatProvider,
+  SiteOutputFormat,
+  toolIdToSiteFormat,
+} from "@/context/OutputFormatContext";
 
-export default function Home() {
+function parseFormatParam(value: string | null): SiteOutputFormat | null {
+  if (value === "jpg" || value === "png" || value === "csv") return value;
+  return null;
+}
+
+function HomeContent() {
+  const searchParams = useSearchParams();
+  const [pageFormat, setPageFormat] = useState<SiteOutputFormat>(
+    () => parseFormatParam(searchParams.get("format")) || "jpg",
+  );
   const [activeTool, setActiveTool] = useState<ConverterToolId | null>(null);
 
-  const scrollToTop = () => {
+  useEffect(() => {
+    const fromUrl = parseFormatParam(searchParams.get("format"));
+    if (fromUrl) setPageFormat(fromUrl);
+  }, [searchParams]);
+
+  const scrollToTop = useCallback(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
-  };
+  }, []);
+
+  const handleSelectTool = useCallback(
+    (tool: ConverterToolId) => {
+      const siteFormat = toolIdToSiteFormat(tool);
+      if (siteFormat) {
+        setPageFormat(siteFormat);
+        setActiveTool(null);
+        scrollToTop();
+        return;
+      }
+      setActiveTool(tool);
+    },
+    [scrollToTop],
+  );
 
   return (
-    <main className="min-h-screen flex flex-col bg-[#FAFBFD] text-slate-900 selection:bg-blue-600 selection:text-white w-full max-w-full overflow-x-hidden">
-      {/* Top Main Content Layer (Scrolls over the footer) */}
-      <div className="relative z-20 bg-[#FAFBFD] shadow-[0_30px_70px_-15px_rgba(15,23,42,0.22)] w-full max-w-full overflow-x-hidden">
-        {/* Top Navbar */}
-        <Navbar onSelectTool={setActiveTool} />
+    <OutputFormatProvider format={pageFormat} setFormat={setPageFormat}>
+      <main className="min-h-screen flex flex-col bg-[#FAFBFD] text-slate-900 selection:bg-blue-600 selection:text-white w-full max-w-full overflow-x-hidden">
+        <div className="relative z-20 bg-[#FAFBFD] shadow-[0_30px_70px_-15px_rgba(15,23,42,0.22)] w-full max-w-full overflow-x-hidden">
+          <Navbar onSelectTool={handleSelectTool} activeFormat={pageFormat} />
 
-        {/* Hero Section */}
-        <HeroSection />
+          <HeroSection />
 
-        {/* Products Ribbon & Dock */}
-        <ProductsRibbon onSelectTool={setActiveTool} />
+          <ProductsRibbon onSelectTool={handleSelectTool} />
 
-        {/* How To Convert / Step-by-Step Flow */}
-        <HowItWorks />
+          <HowItWorks />
 
-        {/* Interactive Spreadsheet to Image Showcase */}
-        <SpreadsheetShowcase />
+          <SpreadsheetShowcase />
 
-        {/* Share Excel Data Without Sending a Spreadsheet (3 Cards) */}
-        <FeatureCards />
+          <FeatureCards />
 
-        {/* From Spreadsheet to JPG (Comparison Matrix) */}
-        <ComparisonMatrix />
+          <ComparisonMatrix />
 
-        {/* Related Conversion Utilities Grid */}
-        <RelatedUtilities onSelectTool={setActiveTool} />
+          <RelatedUtilities onSelectTool={handleSelectTool} />
 
-        {/* FAQ Accordion Section */}
-        <FaqSection />
+          <FaqSection />
 
-        {/* Sticky CTA Banner (Blue Section) */}
-        <CtaBanner onScrollToUpload={scrollToTop} />
-      </div>
+          <CtaBanner onScrollToUpload={scrollToTop} />
+        </div>
 
-      {/* Sticky Curtain Reveal Footer (Reveals from underneath the Blue CTA Banner) */}
-      <div className="sticky bottom-0 z-10 w-full">
-        <Footer />
-      </div>
+        <div className="sticky bottom-0 z-10 w-full">
+          <Footer />
+        </div>
 
-      {/* Global Interactive Converter Modal */}
-      <LiveConverterModal
-        isOpen={Boolean(activeTool && FORWARD_FORMATS[activeTool])}
-        onClose={() => setActiveTool(null)}
-        initialFormat={(activeTool && FORWARD_FORMATS[activeTool]) || "jpg"}
-        toolTitle={activeTool ? TOOL_LABELS[activeTool] : undefined}
-        lockFormat
-      />
-      {activeTool && REVERSE_SOURCES[activeTool] && <FileToExcelModal isOpen onClose={() => setActiveTool(null)} sourceKind={REVERSE_SOURCES[activeTool]!} />}
-      <FormulaGeneratorModal isOpen={activeTool === "formula"} onClose={() => setActiveTool(null)} />
-    </main>
+        <LiveConverterModal
+          isOpen={Boolean(activeTool && FORWARD_FORMATS[activeTool] && !toolIdToSiteFormat(activeTool))}
+          onClose={() => setActiveTool(null)}
+          initialFormat={(activeTool && FORWARD_FORMATS[activeTool]) || pageFormat}
+          toolTitle={activeTool ? TOOL_LABELS[activeTool] : undefined}
+          lockFormat
+        />
+        {activeTool && REVERSE_SOURCES[activeTool] && (
+          <FileToExcelModal isOpen onClose={() => setActiveTool(null)} sourceKind={REVERSE_SOURCES[activeTool]!} />
+        )}
+        <FormulaGeneratorModal isOpen={activeTool === "formula"} onClose={() => setActiveTool(null)} />
+      </main>
+    </OutputFormatProvider>
+  );
+}
+
+export default function Home() {
+  return (
+    <Suspense fallback={null}>
+      <HomeContent />
+    </Suspense>
   );
 }
