@@ -12,12 +12,12 @@ interface UtilityMeta {
 }
 
 const metaList: UtilityMeta[] = [
-  { badge: "PNG", badgeBg: "bg-blue-600" },
+  { badge: "PNG", badgeBg: "bg-blue-700" },
   { badge: "PDF", badgeBg: "bg-blue-700" },
-  { badge: "OCR", badgeBg: "bg-slate-900" },
-  { badge: "XLS", badgeBg: "bg-indigo-600" },
-  { badge: "CON", badgeBg: "bg-blue-800" },
-  { badge: "CSV", badgeBg: "bg-sky-600" },
+  { badge: "OCR", badgeBg: "bg-blue-700" },
+  { badge: "XLS", badgeBg: "bg-blue-700" },
+  { badge: "CON", badgeBg: "bg-blue-700" },
+  { badge: "CSV", badgeBg: "bg-blue-700" },
 ];
 
 export default function RelatedUtilities({ onSelectTool }: { onSelectTool?: (tool: ConverterToolId) => void }) {

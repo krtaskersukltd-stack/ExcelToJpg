@@ -96,8 +96,8 @@ export default function FeatureCards() {
     },
     {
       id: "embedded-charts",
-      titlePrefix: c2?.titlePrefix || "Print & Social",
-      titleSuffix: c2?.titleSuffix || "Ready",
+      titlePrefix: c2?.titlePrefix || "Embedded",
+      titleSuffix: c2?.titleSuffix || "Charts",
       description: c2?.desc || "Generate crystal-clear 300 DPI images suitable for brochures, marketing materials, and displays.",
       centerIcon: (
         <svg viewBox="0 0 24 24" className="w-6 h-6 text-[#2F54EB]" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

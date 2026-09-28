@@ -122,8 +122,8 @@ export const translations = {
           row2: "Rent of car",
         },
         {
-          titlePrefix: "Print & Social",
-          titleSuffix: "Ready",
+          titlePrefix: "Embedded",
+          titleSuffix: "Charts",
           desc: "Generate crystal-clear 300 DPI images suitable for brochures, marketing materials, and high-resolution displays.",
           tag1: "Resolution",
           tag2: "Quality",

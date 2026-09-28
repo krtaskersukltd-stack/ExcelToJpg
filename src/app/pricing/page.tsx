@@ -114,8 +114,9 @@ export default function PricingPage() {
 
   return (
     <OutputFormatProvider format={pageFormat} setFormat={setPageFormat}>
-      <div className="min-h-screen bg-[#FAFBFD] flex flex-col justify-between">
-        <div>
+      <main className="min-h-screen bg-[#FAFBFD] text-slate-900 selection:bg-blue-600 selection:text-white w-full max-w-full">
+        {/* Upper layer scrolls over the sticky footer (curtain reveal) */}
+        <div className="relative z-20 bg-[#FAFBFD] shadow-[0_30px_70px_-15px_rgba(15,23,42,0.22)] w-full max-w-full">
           <Navbar onSelectTool={handleSelectTool} activeFormat={pageFormat} />
 
           <Suspense fallback={null}>
@@ -131,7 +132,10 @@ export default function PricingPage() {
           <CtaBanner onScrollToUpload={() => router.push("/?format=jpg")} />
         </div>
 
-        <Footer />
+        {/* Sticky footer reveals from underneath the CTA as you scroll */}
+        <div className="sticky bottom-0 z-0 w-full">
+          <Footer />
+        </div>
 
         <LiveConverterModal
           isOpen={Boolean(activeTool && FORWARD_FORMATS[activeTool] && !toolIdToSiteFormat(activeTool))}
@@ -144,7 +148,7 @@ export default function PricingPage() {
           <FileToExcelModal isOpen onClose={() => setActiveTool(null)} sourceKind={REVERSE_SOURCES[activeTool]!} />
         )}
         <FormulaGeneratorModal isOpen={activeTool === "formula"} onClose={() => setActiveTool(null)} />
-      </div>
+      </main>
     </OutputFormatProvider>
   );
 }

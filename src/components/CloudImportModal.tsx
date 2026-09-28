@@ -17,11 +17,10 @@ import {
 
 export function GoogleDriveIcon({ className = "w-5 h-5" }: { className?: string }) {
   return (
-    // Official Google Drive product logo (fonts.gstatic productlogos)
     // eslint-disable-next-line @next/next/no-img-element
     <img
-      src="/icons/google-drive.svg"
-      alt=""
+      src="/icons/logos_google-drive.png"
+      alt="Google Drive"
       width={24}
       height={24}
       className={`object-contain ${className}`}
@@ -33,11 +32,10 @@ export function GoogleDriveIcon({ className = "w-5 h-5" }: { className?: string 
 
 export function DropboxIcon({ className = "w-5 h-5" }: { className?: string }) {
   return (
-    // Official Dropbox open-box mark
     // eslint-disable-next-line @next/next/no-img-element
     <img
-      src="/icons/dropbox.svg"
-      alt=""
+      src="/icons/thesvg-color_dropbox.png"
+      alt="Dropbox"
       width={24}
       height={24}
       className={`object-contain ${className}`}

@@ -133,7 +133,7 @@ export default function HeroSection({
   };
 
   return (
-    <section className="relative pt-28 sm:pt-36 pb-16 overflow-hidden bg-gradient-to-b from-[#FAFBFD] via-[#F4F8FE] to-[#FAFBFD]">
+    <section id="tools" className="relative pt-28 sm:pt-36 pb-16 overflow-hidden bg-gradient-to-b from-[#FAFBFD] via-[#F4F8FE] to-[#FAFBFD]">
       <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
         
         {/* Main Headline */}

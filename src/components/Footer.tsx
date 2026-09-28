@@ -75,9 +75,9 @@ export default function Footer() {
                 {t.footer.company}
               </h4>
               <ul className="space-y-2 text-xs sm:text-sm text-slate-700 font-normal">
-                <li><Link href="/#about" className="hover:text-blue-600 transition-colors">{t.footer.about}</Link></li>
+                <li><Link href="/about" className="hover:text-blue-600 transition-colors">{t.footer.about}</Link></li>
                 <li><Link href="/pricing" className="hover:text-blue-600 transition-colors">{t.footer.pricing}</Link></li>
-                <li><a href="mailto:support@exceltojpg.com" className="hover:text-blue-600 transition-colors">{t.footer.contact}</a></li>
+                <li><Link href="/contact" className="hover:text-blue-600 transition-colors">{t.footer.contact}</Link></li>
               </ul>
             </div>
 
@@ -87,10 +87,10 @@ export default function Footer() {
                 {t.footer.products}
               </h4>
               <ul className="space-y-2 text-xs sm:text-sm text-slate-700 font-normal">
-                <li><Link href="/?format=jpg" className="hover:text-blue-600 transition-colors">{t.footer.excelToJpg}</Link></li>
-                <li><Link href="/?format=png" className="hover:text-blue-600 transition-colors">{t.footer.excelToPng}</Link></li>
-                <li><Link href="/?tool=excel-pdf" className="hover:text-blue-600 transition-colors">{t.footer.excelToPdf}</Link></li>
-                <li><Link href="/?tool=csv-excel" className="hover:text-blue-600 transition-colors">{t.footer.csvToExcel}</Link></li>
+                <li><Link href="/#tools" className="hover:text-blue-600 transition-colors">{t.footer.excelToJpg}</Link></li>
+                <li><Link href="/#products" className="hover:text-blue-600 transition-colors">{t.footer.excelToPng}</Link></li>
+                <li><Link href="/#related-tools" className="hover:text-blue-600 transition-colors">{t.footer.excelToPdf}</Link></li>
+                <li><Link href="/#related-tools" className="hover:text-blue-600 transition-colors">{t.footer.csvToExcel}</Link></li>
               </ul>
             </div>
 
