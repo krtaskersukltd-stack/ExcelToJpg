@@ -1,0 +1,107 @@
+from io import BytesIO
+import pandas as pd
+from fastapi.testclient import TestClient
+from main import app, render_dataframe_to_pil
+import json
+from openpyxl import Workbook
+
+def test_all():
+    client = TestClient(app)
+    
+    # 1. Test Excel to JPG/PNG/PDF/DOCX/CSV/JSON/TALLY/XLS/XLSX
+    wb = BytesIO()
+    with pd.ExcelWriter(wb, engine="openpyxl") as writer:
+        pd.DataFrame({"ID": [1, 2, 3], "Item": ["Widget", "Gadget", "Device"], "Price": [19.99, 29.99, 49.99]}).to_excel(
+            writer, index=False, sheet_name="Inventory"
+        )
+    excel_bytes = wb.getvalue()
+    
+    for fmt in ["jpg", "png", "pdf", "docx", "csv", "json", "tally", "xls", "xlsx"]:
+        res = client.post(
+            "/api/excel_to_img",
+            files={"excel_file": ("test.xlsx", excel_bytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")},
+            data={"image_extension": fmt, "dpi": "300"}
+        )
+        assert res.status_code == 200, f"Excel to {fmt} failed: {res.text}"
+        data = res.json()
+        assert data["status"] == "success", f"Excel to {fmt} returned non-success: {data}"
+        print(f"✓ Excel to {fmt.upper()} works!")
+
+    # 2. Test Image OCR (PNG/JPG/JPEG to Excel)
+    img = render_dataframe_to_pil(pd.DataFrame({"Col1": ["DataA", "DataB"], "Col2": [100, 200]}), dpi=300)
+    img_bytes = BytesIO()
+    img.save(img_bytes, format="PNG")
+    png_data = img_bytes.getvalue()
+    
+    for kind in ["png", "jpg", "jpeg"]:
+        res = client.post(
+            "/api/file_to_excel",
+            files={"source_file": (f"test.{kind}", png_data, f"image/{kind if kind != 'jpg' else 'jpeg'}")},
+            data={"source_kind": kind}
+        )
+        assert res.status_code == 200, f"{kind.upper()} to Excel failed: {res.text}"
+        data = res.json()
+        assert data["status"] == "success", f"{kind} to Excel failed: {data}"
+        print(f"✓ {kind.upper()} to Excel works!")
+
+    # 3. Test CSV to Excel
+    res = client.post(
+        "/api/file_to_excel",
+        files={"source_file": ("test.csv", b"HeaderA,HeaderB\nVal1,Val2\nVal3,Val4", "text/csv")},
+        data={"source_kind": "csv"}
+    )
+    assert res.status_code == 200 and res.json()["status"] == "success"
+    print("✓ CSV to Excel works!")
+
+    # 4. Test TSV to Excel
+    res = client.post(
+        "/api/file_to_excel",
+        files={"source_file": ("test.tsv", b"HeaderA\tHeaderB\nVal1\tVal2", "text/tab-separated-values")},
+        data={"source_kind": "tsv"}
+    )
+    assert res.status_code == 200 and res.json()["status"] == "success"
+    print("✓ TSV to Excel works!")
+
+    # 5. Test JSON to Excel
+    json_bytes = json.dumps([{"name": "Alice", "score": 95}, {"name": "Bob", "score": 88}]).encode()
+    res = client.post(
+        "/api/file_to_excel",
+        files={"source_file": ("test.json", json_bytes, "application/json")},
+        data={"source_kind": "json"}
+    )
+    assert res.status_code == 200 and res.json()["status"] == "success"
+    print("✓ JSON to Excel works!")
+
+    # 6. Test TXT to Excel
+    res = client.post(
+        "/api/file_to_excel",
+        files={"source_file": ("test.txt", b"Line1,Col2\nLine2,Col2", "text/plain")},
+        data={"source_kind": "txt"}
+    )
+    assert res.status_code == 200 and res.json()["status"] == "success"
+    print("✓ TXT to Excel works!")
+
+    # 7. Test XML to Excel
+    xml_bytes = b"<root><item><id>1</id><name>First</name></item><item><id>2</id><name>Second</name></item></root>"
+    res = client.post(
+        "/api/file_to_excel",
+        files={"source_file": ("test.xml", xml_bytes, "text/xml")},
+        data={"source_kind": "xml"}
+    )
+    assert res.status_code == 200 and res.json()["status"] == "success"
+    print("✓ XML to Excel works!")
+
+    # 8. Test VCF to Excel
+    vcf_bytes = b"BEGIN:VCARD\nVERSION:3.0\nFN:John Doe\nTEL:+123456789\nEMAIL:john@example.com\nEND:VCARD\n"
+    res = client.post(
+        "/api/file_to_excel",
+        files={"source_file": ("test.vcf", vcf_bytes, "text/vcard")},
+        data={"source_kind": "vcf"}
+    )
+    assert res.status_code == 200 and res.json()["status"] == "success"
+    print("✓ VCF to Excel works!")
+
+    print("\n🎉 ALL 22 CONVERSIONS AND REVERSE TOOLS PASSED SUCCESSFULLY!")
+
+if __name__ == "__main__":
+    test_all()

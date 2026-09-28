@@ -1047,17 +1047,34 @@ def render_dataframe_to_outputs(df: pd.DataFrame, sheet_name: str, image_extensi
 def ocr_rows_from_image(file_path):
     if OCR_ENGINE is None:
         raise HTTPException(status_code=503, detail="OCR engine is not installed on the backend")
-    result, _ = OCR_ENGINE(file_path)
+    try:
+        result, _ = OCR_ENGINE(file_path)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"OCR processing error: {e}")
     if not result:
         raise HTTPException(status_code=422, detail="No readable table text was found in the image")
     words = []
-    for box, text, score in result:
-        if score < 0.35 or not str(text).strip():
+    for item in result:
+        if not item or len(item) < 3:
             continue
-        center_x = sum(point[0] for point in box) / len(box)
-        center_y = sum(point[1] for point in box) / len(box)
-        height = max(point[1] for point in box) - min(point[1] for point in box)
-        words.append((center_y, center_x, max(height, 10), str(text).strip()))
+        box, text, score = item[0], item[1], item[2]
+        try:
+            num_score = float(score)
+        except (ValueError, TypeError):
+            num_score = 1.0
+        if num_score < 0.25 or not str(text).strip():
+            continue
+        try:
+            center_x = sum(float(point[0]) for point in box) / len(box)
+            center_y = sum(float(point[1]) for point in box) / len(box)
+            height = max(float(point[1]) for point in box) - min(float(point[1]) for point in box)
+            words.append((center_y, center_x, max(height, 10.0), str(text).strip()))
+        except Exception:
+            continue
+
+    if not words:
+        raise HTTPException(status_code=422, detail="No readable text detected in this image. Please ensure the image contains clear table or spreadsheet data.")
+
     words.sort(key=lambda item: (item[0], item[1]))
     rows = []
     for center_y, center_x, height, text in words:

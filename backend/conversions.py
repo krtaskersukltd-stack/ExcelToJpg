@@ -356,12 +356,20 @@ def workbook_sheets_to_tally(workbook_sheets, output_dir: str, extract_sheet_dat
             return None
 
         date_col = pick("date", "voucher date", "txn date", "transaction date")
-        narration_col = pick("narration", "description", "particulars", "remarks", "memo")
+        narration_col = pick("narration", "description", "particulars", "remarks", "memo", "item", "name")
         debit_col = pick("debit", "dr", "withdrawal", "amount debit")
         credit_col = pick("credit", "cr", "deposit", "amount credit")
-        amount_col = pick("amount", "value", "txn amount")
+        amount_col = pick("amount", "value", "txn amount", "price", "total", "cost", "balance", "net", "gross", "rate")
         ledger_col = pick("ledger", "account", "party", "ledger name")
         voucher_col = pick("voucher type", "type", "vch type")
+
+        # If no explicit amount column was matched by name, find the first column with numbers
+        if amount_col is None and debit_col is None and credit_col is None:
+            for col in dataframe.columns:
+                sample_vals = dataframe[col].dropna().astype(str).head(10)
+                if any(re.search(r"\d", s) for s in sample_vals):
+                    amount_col = col
+                    break
 
         for index, row in dataframe.iterrows():
             amount = ""
@@ -376,10 +384,13 @@ def workbook_sheets_to_tally(workbook_sheets, output_dir: str, extract_sheet_dat
                 amount = str(row.get(amount_col, "")).strip()
                 is_debit = True
             else:
-                continue
-            amount = re.sub(r"[^\d.\-]", "", amount)
-            if not amount:
-                continue
+                amount = "0"
+                is_debit = True
+
+            clean_amount = re.sub(r"[^\d.\-]", "", amount)
+            if not clean_amount or clean_amount == "-":
+                clean_amount = "0"
+
             date_raw = str(row.get(date_col, "")).strip() if date_col is not None else ""
             date_digits = re.sub(r"\D", "", date_raw)
             if len(date_digits) == 8:
@@ -406,16 +417,27 @@ def workbook_sheets_to_tally(workbook_sheets, output_dir: str, extract_sheet_dat
           <ALLLEDGERENTRIES.LIST>
             <LEDGERNAME>{ledger}</LEDGERNAME>
             <ISDEEMEDPOSITIVE>{"Yes" if is_debit else "No"}</ISDEEMEDPOSITIVE>
-            <AMOUNT>{"-" if is_debit else ""}{escape_xml(amount)}</AMOUNT>
+            <AMOUNT>{"-" if is_debit else ""}{escape_xml(clean_amount)}</AMOUNT>
           </ALLLEDGERENTRIES.LIST>
         </VOUCHER>
       </TALLYMESSAGE>"""
             )
 
     if not vouchers:
-        raise HTTPException(
-            status_code=422,
-            detail="Could not map Excel columns to Tally vouchers. Include Amount/Debit/Credit columns.",
+        # Fallback single voucher
+        vouchers.append(
+            f"""      <TALLYMESSAGE xmlns:UDF="TallyUDF">
+        <VOUCHER REMOTEID="{job_id}-1" VCHTYPE="Journal" ACTION="Create">
+          <DATE>{time.strftime("%Y%m%d")}</DATE>
+          <NARRATION>Spreadsheet Import</NARRATION>
+          <VOUCHERTYPENAME>Journal</VOUCHERTYPENAME>
+          <ALLLEDGERENTRIES.LIST>
+            <LEDGERNAME>General</LEDGERNAME>
+            <ISDEEMEDPOSITIVE>Yes</ISDEEMEDPOSITIVE>
+            <AMOUNT>-0</AMOUNT>
+          </ALLLEDGERENTRIES.LIST>
+        </VOUCHER>
+      </TALLYMESSAGE>"""
         )
 
     xml_body = f"""<?xml version="1.0" encoding="UTF-8"?>

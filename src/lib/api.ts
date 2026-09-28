@@ -52,14 +52,30 @@ export type ExcelSourceKind =
   | "ods"
   | "vcf";
 
+async function safeParseResponse(response: Response) {
+  const text = await response.text();
+  try {
+    return JSON.parse(text);
+  } catch {
+    return {
+      status: "error",
+      error: response.ok
+        ? "Unexpected response from server."
+        : `Server returned HTTP ${response.status}: ${text.slice(0, 150) || response.statusText || "Conversion failed"}`,
+    };
+  }
+}
+
 export async function convertFileToExcel(file: File, sourceKind: ExcelSourceKind, signal?: AbortSignal): Promise<ConvertResult> {
   const formData = new FormData();
   formData.append("source_file", file);
   formData.append("source_kind", sourceKind);
   try {
     const response = await fetch(`${API_BASE_URL}/api/file_to_excel`, { method: "POST", body: formData, signal });
-    const data = await response.json();
-    if (!response.ok || data.status === "error") return { status: "error", error: data.error || data.detail || `Conversion failed (HTTP ${response.status})` };
+    const data = await safeParseResponse(response);
+    if (!response.ok || data.status === "error") {
+      return { status: "error", error: data.error || data.detail || `Conversion failed (HTTP ${response.status})` };
+    }
     return { status: "success", conv: data.conv || data.filename, filename: data.filename || data.conv, type: "xlsx", total_parts: data.rows || 1 };
   } catch (error: any) {
     if (error?.name === "AbortError") throw error;
@@ -112,7 +128,7 @@ export async function convertExcelFile(
       signal,
     });
 
-    const data = await res.json();
+    const data = await safeParseResponse(res);
     if (!res.ok || data.status === "error") {
       return {
         status: "error",
@@ -164,7 +180,7 @@ export async function convertExcelUrl(
       signal,
     });
 
-    const data = await res.json();
+    const data = await safeParseResponse(res);
     if (!res.ok || data.status === "error") {
       return {
         status: "error",
@@ -248,7 +264,7 @@ export async function renderEditedTable(payload: {
       body: JSON.stringify(payload),
       signal,
     });
-    const data = await res.json();
+    const data = await safeParseResponse(res);
     if (!res.ok || data.status === "error") {
       return {
         status: "error",
