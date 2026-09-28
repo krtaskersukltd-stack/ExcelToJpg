@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useCallback, useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { 
@@ -56,35 +55,13 @@ export default function PrivacyPolicyPage() {
           <Navbar onSelectTool={handleSelectTool} activeFormat={pageFormat} />
 
           {/* Hero Banner with Animated Neon Glowing Badge */}
-          <section className="pt-28 sm:pt-36 pb-12 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto text-center">
+         <section className="pt-20 pb-8 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto text-center">
             <motion.div
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4 }}
               className="space-y-4"
             >
-              {/* Legal Hub Switcher Pills */}
-              <div className="inline-flex items-center gap-1.5 p-1.5 bg-white/90 backdrop-blur-md rounded-full border border-blue-200/80 neon-border-glow shadow-sm mb-2">
-                <Link
-                  href="/privacy"
-                  className="px-4 py-1.5 rounded-full bg-[#355BFF] text-white text-xs font-semibold shadow-xs"
-                >
-                  Privacy Policy
-                </Link>
-                <Link
-                  href="/terms"
-                  className="px-4 py-1.5 rounded-full text-slate-600 hover:text-blue-600 hover:bg-slate-50 text-xs font-medium transition-colors"
-                >
-                  Terms of Service
-                </Link>
-                <Link
-                  href="/security"
-                  className="px-4 py-1.5 rounded-full text-slate-600 hover:text-blue-600 hover:bg-slate-50 text-xs font-medium transition-colors"
-                >
-                  Security & Compliance
-                </Link>
-              </div>
-
               <h1 className="text-3xl sm:text-5xl font-bold tracking-tight text-slate-900">
                 Privacy <span className="text-[#355BFF]">Policy</span>
               </h1>

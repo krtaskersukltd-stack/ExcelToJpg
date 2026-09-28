@@ -52,7 +52,7 @@ export default function HowItWorks({ activeTool = "excel-jpg" }: { activeTool?: 
     : withFormat(t.howItWorks.step3Desc);
 
   return (
-    <section className="py-20 relative bg-[#FAFBFD]">
+    <section id="about" className="py-20 relative bg-[#FAFBFD]">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Section Header */}
