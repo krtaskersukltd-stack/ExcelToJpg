@@ -2,65 +2,72 @@
 
 import React from "react";
 import { motion } from "framer-motion";
-import { FileText, RefreshCw, Image as ImageIcon, FileUp, Check, Sparkles } from "lucide-react";
+import { FileText, RefreshCw, Image as ImageIcon, FileUp, Check } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { useOutputFormat } from "@/context/OutputFormatContext";
 import { ConverterToolId, getToolConfig } from "@/lib/converter-tools";
 
 export default function HowItWorks({ activeTool = "excel-jpg" }: { activeTool?: ConverterToolId }) {
   const { t } = useLanguage();
-  const { label, withFormat } = useOutputFormat();
+  const { withFormat } = useOutputFormat();
   const toolConfig = getToolConfig(activeTool);
 
   const isReverse = toolConfig.actionType === "reverse_excel";
   const isFormula = toolConfig.actionType === "formula";
+  const sourceLabel = isReverse
+    ? toolConfig.titlePrefix.replace(" To", "")
+    : toolConfig.titleHighlight;
 
   const step1Title = isReverse
     ? `Upload ${toolConfig.titlePrefix.replace(" To", "")} File`
     : isFormula
     ? "Enter Prompt"
-    : t.howItWorks.step1Title;
+    : "Upload Excel";
 
   const step1Desc = isReverse
     ? `Choose or drop your ${toolConfig.titlePrefix.replace(" To", "")} file into our smart table conversion engine.`
     : isFormula
     ? "Describe the calculation, condition, or transformation you need in regular words."
-    : t.howItWorks.step1Desc;
+    : "Select your .xls, .xlsx, or .csv document from your device or drag it directly onto the upload zone.";
 
   const step2Title = isReverse
     ? "AI OCR & Table Extraction"
     : isFormula
     ? "Formula Generation"
-    : t.howItWorks.step2Title;
+    : "Convert Your Sheet";
 
   const step2Desc = isReverse
     ? "Our engine accurately scans table boundaries, text, and numbers into structured spreadsheet cells."
     : isFormula
     ? "Advanced AI creates the optimal Excel or Google Sheets formula and explains syntax step by step."
-    : withFormat(t.howItWorks.step2Desc);
+    : "Our render engine parses fonts, custom styles, merged cells, and graphics into razor sharp output pixels.";
 
   const step3Title = isReverse
     ? "Download Excel (.xlsx)"
     : isFormula
     ? "Copy & Calculate"
-    : `${t.howItWorks.step3Title.replace(/JPG/gi, toolConfig.titleHighlight)}`;
+    : `Download ${toolConfig.titleHighlight}`;
 
   const step3Desc = isReverse
     ? "Download your clean, fully editable Microsoft Excel spreadsheet ready for analysis."
     : isFormula
     ? "Paste the formula directly into your sheet and automate calculations instantly."
-    : withFormat(t.howItWorks.step3Desc);
+    : "Instantly download individual sheet images or grab all worksheets bundled into a clean ZIP file.";
 
   return (
-    <section id="about" className="py-20 relative bg-[#FAFBFD]">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section id="about" className="relative bg-[#FAFBFD] py-16 sm:py-20">
+      <div className="mx-auto max-w-[1248px] px-4 sm:px-6">
         
         {/* Section Header */}
-        <div className="text-center space-y-3 mb-14">
-          <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 tracking-tight">
-            {toolConfig.titlePrefix} <span className="text-[#355BFF]">{toolConfig.titleHighlight}</span> {t.howItWorks.titleSuffix}
+        <div className="mb-7 text-center sm:mb-6">
+          <h2 className="text-[28px] font-bold leading-[1.2] tracking-[-0.035em] text-[#141414] sm:text-[34px]">
+            {isFormula ? (
+              <>How to Generate <span className="text-[#4A29FF]">Excel Formulas</span>?</>
+            ) : (
+              <>How to Convert <span className="text-[#4A29FF]">{sourceLabel}</span> to Excel?</>
+            )}
           </h2>
-          <p className="text-sm sm:text-base text-slate-500 max-w-2xl mx-auto">
+          <p className="mx-auto mt-2.5 max-w-3xl text-[15px] leading-6 text-[#252525] sm:text-[16px]">
             {isReverse
               ? `Convert your ${toolConfig.titlePrefix.replace(" To", "")} into structured spreadsheets in 3 quick steps.`
               : isFormula
@@ -75,113 +82,113 @@ export default function HowItWorks({ activeTool = "excel-jpg" }: { activeTool?: 
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
-          className="rounded-[28px] sm:rounded-[36px] bg-white border border-slate-200/80 p-6 sm:p-10 lg:p-12 shadow-[0_12px_45px_rgba(53,91,255,0.06)]"
+          className="rounded-[22px] bg-[#F6F7FB] px-6 py-8 sm:px-10 sm:py-10 lg:px-10 lg:py-10"
         >
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-10">
+          <div className="grid grid-cols-1 gap-10 md:grid-cols-3 md:gap-12 lg:gap-[108px]">
             
             {/* Step 01: Upload Excel */}
-            <div className="flex flex-col justify-between">
+            <div className="flex min-w-0 flex-col justify-between">
               <div>
                 {/* Number & Top-Right Icon */}
-                <div className="flex items-center justify-between mb-4">
-                  <span className="text-3xl sm:text-4xl font-medium text-slate-900 tracking-tight">
+                <div className="mb-4 flex items-center justify-between">
+                  <span className="text-[40px] font-medium leading-none tracking-[-0.04em] text-[#141414]">
                     01
                   </span>
-                  <div className="w-8 h-8 rounded-full bg-[#EEF4FF] flex items-center justify-center text-[#355BFF]">
-                    <FileUp className="w-4 h-4 stroke-[2.2]" />
+                  <div className="flex size-10 items-center justify-center rounded-full bg-[#F1F2F7] text-[#4A29FF]">
+                    <FileUp className="size-[18px] stroke-[2.2]" />
                   </div>
                 </div>
 
                 {/* Title */}
-                <h3 className="text-lg sm:text-xl font-bold text-[#355BFF] mb-2 tracking-tight">
+                <h3 className="mb-2 text-[23px] font-bold leading-7 tracking-[-0.025em] text-[#4A29FF]">
                   {step1Title}
                 </h3>
 
                 {/* Description */}
-                <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                <p className="text-[16px] leading-[1.45] text-[#202020]">
                   {step1Desc}
                 </p>
               </div>
 
               {/* Bottom Preview Pill Card */}
-              <div className="mt-8 p-3 bg-white rounded-2xl border border-blue-200/80 neon-border-glow shadow-[0_4px_16px_rgba(53,91,255,0.12)] hover:shadow-[0_6px_20px_rgba(53,91,255,0.18)] transition-all flex items-center gap-3">
-                <div className="w-8 h-8 rounded-xl bg-[#DEE7FF] text-[#355BFF] flex items-center justify-center shrink-0">
-                  <FileText className="w-4 h-4 stroke-[2.2]" />
+              <div className="mt-5 flex min-h-[60px] items-center gap-3 rounded-[14px] border border-[#8D7CFF] bg-white px-4 py-2.5 shadow-[8px_12px_18px_-10px_rgba(73,43,255,0.42)] sm:mt-5">
+                <div className="flex size-8 shrink-0 items-center justify-center rounded-[4px] bg-[#EEECFF] text-[#4A29FF]">
+                  <FileText className="size-[17px] stroke-[2.2]" />
                 </div>
                 <div className="truncate">
-                  <p className="text-xs font-semibold text-slate-800 truncate">{t.howItWorks.step1CardTitle}</p>
-                  <p className="text-[10px] text-slate-400 font-medium">{t.howItWorks.step1CardSize} • {t.howItWorks.step1CardStatus}</p>
+                  <p className="truncate text-[13px] font-medium text-[#252538]">{t.howItWorks.step1CardTitle}</p>
+                  <p className="text-[12px] text-[#55566A]">{t.howItWorks.step1CardSize} • {t.howItWorks.step1CardStatus}</p>
                 </div>
               </div>
             </div>
 
             {/* Step 02: Convert Your Sheet */}
-            <div className="flex flex-col justify-between">
+            <div className="flex min-w-0 flex-col justify-between">
               <div>
                 {/* Number & Top-Right Icon */}
-                <div className="flex items-center justify-between mb-4">
-                  <span className="text-3xl sm:text-4xl font-medium text-slate-900 tracking-tight">
+                <div className="mb-4 flex items-center justify-between">
+                  <span className="text-[40px] font-medium leading-none tracking-[-0.04em] text-[#141414]">
                     02
                   </span>
-                  <div className="w-8 h-8 rounded-full bg-[#EEF4FF] flex items-center justify-center text-[#355BFF]">
-                    <RefreshCw className="w-4 h-4 stroke-[2.2]" />
+                  <div className="flex size-10 items-center justify-center rounded-full bg-[#F1F2F7] text-[#4A29FF]">
+                    <RefreshCw className="size-[18px] stroke-[2.2]" />
                   </div>
                 </div>
 
                 {/* Title */}
-                <h3 className="text-lg sm:text-xl font-bold text-[#355BFF] mb-2 tracking-tight">
+                <h3 className="mb-2 text-[23px] font-bold leading-7 tracking-[-0.025em] text-[#4A29FF]">
                   {step2Title}
                 </h3>
 
                 {/* Description */}
-                <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                <p className="text-[16px] leading-[1.45] text-[#202020]">
                   {step2Desc}
                 </p>
               </div>
 
               {/* Bottom Preview Pill Card */}
-              <div className="mt-8 p-6 bg-white rounded-2xl border border-blue-200/80 neon-border-glow shadow-[0_4px_16px_rgba(53,91,255,0.15)] hover:shadow-[0_6px_20px_rgba(53,91,255,0.22)] transition-all flex items-center justify-between">
+              <div className="mt-5 flex min-h-[60px] items-center justify-between rounded-[14px] border border-[#8D7CFF] bg-white px-4 py-2.5 shadow-[8px_12px_18px_-10px_rgba(73,43,255,0.42)] sm:mt-5">
                 <div className="flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-[#355BFF]"></span>
-                  <span className="text-xs font-semibold text-slate-800">{t.howItWorks.step2CardTitle}</span>
+                  <span className="size-2.5 rounded-full bg-[#4A29FF]"></span>
+                  <span className="text-[13px] font-medium text-[#252538]">{t.howItWorks.step2CardTitle}</span>
                 </div>
-                <span className="text-xs font-bold text-[#355BFF]">
+                <span className="rounded-[4px] bg-[#F7F6FF] px-2.5 py-1 text-[12px] font-semibold text-[#4A29FF]">
                   {t.howItWorks.step2CardSpeed}
                 </span>
               </div>
             </div>
 
             {/* Step 03: Download Output */}
-            <div className="flex flex-col justify-between">
+            <div className="flex min-w-0 flex-col justify-between">
               <div>
                 {/* Number & Top-Right Icon */}
-                <div className="flex items-center justify-between mb-4">
-                  <span className="text-3xl sm:text-4xl font-medium text-slate-900 tracking-tight">
+                <div className="mb-4 flex items-center justify-between">
+                  <span className="text-[40px] font-medium leading-none tracking-[-0.04em] text-[#141414]">
                     03
                   </span>
-                  <div className="w-8 h-8 rounded-full bg-[#EEF4FF] flex items-center justify-center text-[#355BFF]">
-                    <ImageIcon className="w-4 h-4 stroke-[2.2]" />
+                  <div className="flex size-10 items-center justify-center rounded-full bg-[#F1F2F7] text-[#4A29FF]">
+                    <ImageIcon className="size-[18px] stroke-[2.2]" />
                   </div>
                 </div>
 
                 {/* Title */}
-                <h3 className="text-lg sm:text-xl font-bold text-[#355BFF] mb-2 tracking-tight">
+                <h3 className="mb-2 text-[23px] font-bold leading-7 tracking-[-0.025em] text-[#4A29FF]">
                   {step3Title}
                 </h3>
 
                 {/* Description */}
-                <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                <p className="text-[16px] leading-[1.45] text-[#202020]">
                   {step3Desc}
                 </p>
               </div>
 
               {/* Bottom Preview Pill Card */}
-              <div className="mt-8 p-4 bg-white rounded-2xl border border-blue-200/80 neon-border-glow shadow-[0_4px_16px_rgba(53,91,255,0.12)] hover:shadow-[0_6px_20px_rgba(53,91,255,0.18)] transition-all flex items-center justify-between gap-2">
+              <div className="mt-5 flex min-h-[60px] items-center justify-between gap-2 rounded-[14px] border border-[#8D7CFF] bg-white px-4 py-2.5 shadow-[8px_12px_18px_-10px_rgba(73,43,255,0.42)] sm:mt-5">
                 <div className="flex items-center gap-2 truncate">
-                  <Check className="w-4 h-4 text-[#355BFF] stroke-[2.5] shrink-0" />
-                  <span className="text-xs font-semibold text-slate-800 truncate">{withFormat(t.howItWorks.step3CardTitle)}</span>
+                  <Check className="size-[17px] shrink-0 stroke-[2.5] text-[#4A29FF]" />
+                  <span className="truncate text-[13px] font-medium text-[#252538]">{withFormat(t.howItWorks.step3CardTitle)}</span>
                 </div>
-                <button className="btn-gradient-border bg-[#355BFF] hover:bg-blue-700 text-white text-[11px] font-semibold px-4 py-1.5 rounded-full shadow-xs transition-colors shrink-0 cursor-pointer">
+                <button type="button" className="btn-gradient-border shrink-0 cursor-pointer rounded-full bg-[#4A29FF] px-4 py-1 text-[11px] font-semibold text-white shadow-[0_3px_7px_rgba(74,41,255,0.3)] transition-colors hover:bg-[#3518dc] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#4A29FF]">
                   {t.howItWorks.step3CardAction}
                 </button>
               </div>
