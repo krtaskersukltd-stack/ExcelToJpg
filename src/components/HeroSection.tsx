@@ -112,11 +112,16 @@ export default function HeroSection({
     setCloudModalOpen(true);
   };
 
-  const handleCloudImportSuccess = (name: string, size: string, source: string, targetUrl?: string) => {
+  const handleCloudImportSuccess = (name: string, size: string, source: string, targetUrl?: string, fileBlob?: File | null) => {
     setSelectedFileName(name);
     setSelectedFileSize(size);
-    setSelectedFile(null);
-    setSelectedUrl(targetUrl || null);
+    if (fileBlob) {
+      setSelectedFile(fileBlob);
+      setSelectedUrl(null);
+    } else {
+      setSelectedFile(null);
+      setSelectedUrl(targetUrl || null);
+    }
     if (toolConfig.actionType === "reverse_excel") {
       setFileToExcelOpen(true);
     } else {
@@ -225,30 +230,28 @@ export default function HeroSection({
                   </button>
 
                   {/* Google Drive Integration */}
-                  <a
-                    href="https://drive.google.com/drive/my-drive"
-                    target="_blank"
-                    rel="noopener noreferrer"
+                  <button
+                    type="button"
+                    onClick={() => openCloudModal("gdrive")}
                     className="flex flex-col items-center justify-center p-1.5 hover:bg-white/80 rounded-xl transition-colors group cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#355BFF] focus-visible:ring-offset-2"
-                    title={`${t.hero.googleDrive} — open in a new tab`}
-                    aria-label={`${t.hero.googleDrive} — open in a new tab`}
+                    title={t.hero.googleDrive}
+                    aria-label={t.hero.googleDrive}
                   >
                     <GoogleDriveIcon className="w-6 h-6 group-hover:scale-110 transition-transform" />
                     <span className="text-[10px] font-medium text-slate-700 mt-0.5">{t.hero.googleDrive}</span>
-                  </a>
+                  </button>
 
                   {/* Dropbox Integration */}
-                  <a
-                    href="https://www.dropbox.com/home"
-                    target="_blank"
-                    rel="noopener noreferrer"
+                  <button
+                    type="button"
+                    onClick={() => openCloudModal("dropbox")}
                     className="flex flex-col items-center justify-center p-1.5 hover:bg-white/80 rounded-xl transition-colors group cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0061FF] focus-visible:ring-offset-2"
-                    title={`${t.hero.dropbox} — open in a new tab`}
-                    aria-label={`${t.hero.dropbox} — open in a new tab`}
+                    title={t.hero.dropbox}
+                    aria-label={t.hero.dropbox}
                   >
                     <DropboxIcon className="w-6 h-6 group-hover:scale-110 transition-transform" />
                     <span className="text-[10px] font-medium text-slate-700 mt-0.5">{t.hero.dropbox}</span>
-                  </a>
+                  </button>
 
                   {/* Direct Link Chain Icon (Allows entering Google Drive / URL link) */}
                   <button 
