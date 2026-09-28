@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useMemo, useCallback } from "react";
+import Link from "next/link";
 import { useLanguage } from "@/context/LanguageContext";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -9,17 +10,19 @@ import {
   Sparkles,
   AlertCircle,
   Loader2,
-  FolderOpen,
   ArrowRight,
   ShieldCheck,
-  Globe,
+  CheckCircle2,
+  Clipboard,
   FileSpreadsheet,
+  Share2,
+  FolderOpen,
   Search,
   RefreshCw,
   LogOut,
-  ExternalLink,
-  CheckCircle2,
-  Settings2
+  UserPlus,
+  LogIn,
+  Check
 } from "lucide-react";
 
 export function GoogleDriveIcon({ className = "w-5 h-5" }: { className?: string }) {
@@ -60,25 +63,7 @@ export interface CloudSpreadsheet {
   type: "xlsx" | "csv" | "xlsm" | "xls";
   mimeType?: string;
   url?: string;
-  isReal?: boolean;
 }
-
-const GDRIVE_SAMPLE_FILES: CloudSpreadsheet[] = [
-  { id: "gd-sample-1", name: "Q4_Revenue_Forecast_2025.xlsx", size: "2.4 MB", date: "Today, 11:42 AM", type: "xlsx", isReal: false },
-  { id: "gd-sample-2", name: "Global_Sales_Analysis.xlsx", size: "1.8 MB", date: "Yesterday", type: "xlsx", isReal: false },
-  { id: "gd-sample-3", name: "Annual_Payroll_Register.xlsx", size: "950 KB", date: "3 days ago", type: "xlsx", isReal: false },
-  { id: "gd-sample-4", name: "Operations_KPI_Dashboard.csv", size: "420 KB", date: "Oct 12, 2025", type: "csv", isReal: false },
-  { id: "gd-sample-5", name: "Client_Invoices_Master.xlsx", size: "3.1 MB", date: "Sep 28, 2025", type: "xlsx", isReal: false },
-  { id: "gd-sample-6", name: "Product_Inventory_Tracker.xlsx", size: "1.5 MB", date: "Aug 15, 2025", type: "xlsx", isReal: false },
-];
-
-const DROPBOX_SAMPLE_FILES: CloudSpreadsheet[] = [
-  { id: "db-sample-1", name: "Executive_Summary_2025.xlsx", size: "1.7 MB", date: "Today, 09:15 AM", type: "xlsx", isReal: false },
-  { id: "db-sample-2", name: "Marketing_Campaign_Budget.xlsx", size: "2.2 MB", date: "Yesterday", type: "xlsx", isReal: false },
-  { id: "db-sample-3", name: "Inventory_Management_Sheet.xlsx", size: "3.6 MB", date: "4 days ago", type: "xlsx", isReal: false },
-  { id: "db-sample-4", name: "Vendor_Contract_Register.csv", size: "540 KB", date: "Oct 04, 2025", type: "csv", isReal: false },
-  { id: "db-sample-5", name: "Tax_Computation_Worksheet.xlsx", size: "1.1 MB", date: "Sep 20, 2025", type: "xlsx", isReal: false },
-];
 
 function formatBytes(bytes: number, decimals = 1): string {
   if (!bytes || bytes === 0) return "0 Bytes";
@@ -114,6 +99,9 @@ interface CloudImportModalProps {
   onImportSuccess: (fileName: string, fileSize: string, source: string, url?: string, fileBlob?: File | null) => void;
 }
 
+const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "";
+const DROPBOX_APP_KEY = process.env.NEXT_PUBLIC_DROPBOX_APP_KEY || "";
+
 export default function CloudImportModal({
   isOpen,
   onClose,
@@ -124,10 +112,14 @@ export default function CloudImportModal({
   const [activeTab, setActiveTab] = useState<"gdrive" | "dropbox" | "link">(initialTab);
   const [urlInput, setUrlInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [statusMessage, setStatusMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [successNotice, setSuccessNotice] = useState("");
 
-  // Google Drive state
+  // App User Auth State (from site backend)
+  const [siteUser, setSiteUser] = useState<{ full_name?: string; email?: string; auth_provider?: string } | null>(null);
+
+  // Google Drive Connected State
   const [gdriveConnected, setGdriveConnected] = useState(false);
   const [gdriveToken, setGdriveToken] = useState<string | null>(null);
   const [gdriveUser, setGdriveUser] = useState<{ name?: string; email?: string; picture?: string } | null>(null);
@@ -135,26 +127,27 @@ export default function CloudImportModal({
   const [isLoadingGdriveFiles, setIsLoadingGdriveFiles] = useState(false);
   const [isConnectingGdrive, setIsConnectingGdrive] = useState(false);
 
-  // Dropbox state
+  // Dropbox Connected State
   const [dropboxConnected, setDropboxConnected] = useState(false);
-  const [dropboxToken, setDropboxToken] = useState<string | null>(null);
   const [dropboxUser, setDropboxUser] = useState<{ name?: string; email?: string } | null>(null);
   const [dropboxFiles, setDropboxFiles] = useState<CloudSpreadsheet[]>([]);
   const [isLoadingDropboxFiles, setIsLoadingDropboxFiles] = useState(false);
   const [isConnectingDropbox, setIsConnectingDropbox] = useState(false);
 
-  // Downloading state for specific file
+  // Importing specific file
   const [importingFileId, setImportingFileId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Settings drawer for custom Client IDs
-  const [showConfig, setShowConfig] = useState(false);
-  const [customGoogleClientId, setCustomGoogleClientId] = useState("");
-  const [customDropboxAppKey, setCustomDropboxAppKey] = useState("");
-
-  // Load external SDK scripts dynamically
+  // Check site user auth status
   useEffect(() => {
-    // Load Google Identity Services script
+    fetch("/api/py/api/auth/me", { credentials: "include" })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => setSiteUser(data?.user ?? null))
+      .catch(() => undefined);
+  }, [isOpen]);
+
+  // Load Google Identity Services SDK
+  useEffect(() => {
     if (!document.getElementById("google-gis-sdk")) {
       const gisScript = document.createElement("script");
       gisScript.id = "google-gis-sdk";
@@ -164,87 +157,72 @@ export default function CloudImportModal({
       document.body.appendChild(gisScript);
     }
 
-    // Load Google API (for Picker API)
-    if (!document.getElementById("google-gapi-sdk")) {
-      const gapiScript = document.createElement("script");
-      gapiScript.id = "google-gapi-sdk";
-      gapiScript.src = "https://apis.google.com/js/api.js";
-      gapiScript.async = true;
-      gapiScript.defer = true;
-      document.body.appendChild(gapiScript);
-    }
-
-    // Load Dropbox Chooser script
-    const dropboxKey =
-      customDropboxAppKey ||
-      process.env.NEXT_PUBLIC_DROPBOX_APP_KEY ||
-      (typeof window !== "undefined" ? localStorage.getItem("dropbox_app_key") || "" : "");
-
-    if (!document.getElementById("dropboxjs")) {
+    if (DROPBOX_APP_KEY && !document.getElementById("dropboxjs")) {
       const dbScript = document.createElement("script");
       dbScript.id = "dropboxjs";
       dbScript.src = "https://www.dropbox.com/static/api/2/dropins.js";
       dbScript.async = true;
       dbScript.defer = true;
-      if (dropboxKey) {
-        dbScript.setAttribute("data-app-key", dropboxKey);
-      }
+      dbScript.setAttribute("data-app-key", DROPBOX_APP_KEY);
       document.body.appendChild(dbScript);
     }
-  }, [customDropboxAppKey]);
+  }, []);
 
-  // Load saved credentials and connection status
+  // Restore saved cloud connection
   useEffect(() => {
     try {
-      const savedGdriveToken = localStorage.getItem("gdrive_token");
-      const savedGdriveConnected = localStorage.getItem("gdrive_connected");
-      const savedGdriveUser = localStorage.getItem("gdrive_user");
-      const savedCustomGId = localStorage.getItem("google_client_id");
-      const savedCustomDbKey = localStorage.getItem("dropbox_app_key");
-      const savedDbToken = localStorage.getItem("dropbox_token");
-      const savedDbConnected = localStorage.getItem("dropbox_connected");
-
-      if (savedCustomGId) setCustomGoogleClientId(savedCustomGId);
-      if (savedCustomDbKey) setCustomDropboxAppKey(savedCustomDbKey);
-
-      if (savedGdriveToken) {
-        setGdriveToken(savedGdriveToken);
+      const savedGToken = localStorage.getItem("gdrive_token");
+      const savedGUser = localStorage.getItem("gdrive_user");
+      if (savedGToken) {
+        setGdriveToken(savedGToken);
         setGdriveConnected(true);
-        if (savedGdriveUser) {
+        if (savedGUser) {
           try {
-            setGdriveUser(JSON.parse(savedGdriveUser));
+            setGdriveUser(JSON.parse(savedGUser));
           } catch {
             // ignore
           }
         }
-        void fetchRealGoogleDriveFiles(savedGdriveToken);
-      } else if (savedGdriveConnected === "true") {
-        setGdriveConnected(true);
-        setGdriveFiles(GDRIVE_SAMPLE_FILES);
-      }
-
-      if (savedDbToken) {
-        setDropboxToken(savedDbToken);
-        setDropboxConnected(true);
-        void fetchRealDropboxFiles(savedDbToken);
-      } else if (savedDbConnected === "true") {
-        setDropboxConnected(true);
-        setDropboxFiles(DROPBOX_SAMPLE_FILES);
+        void fetchRealGoogleDriveFiles(savedGToken);
       }
     } catch {
       // ignore
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Sync initialTab when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      setActiveTab(initialTab);
+      setErrorMessage("");
+      setUrlInput("");
+      setSuccessNotice("");
+    }
+  }, [initialTab, isOpen]);
+
+  // Paste from clipboard helper
+  const handlePasteClipboard = async () => {
+    try {
+      if (navigator?.clipboard?.readText) {
+        const text = await navigator.clipboard.readText();
+        if (text) {
+          setUrlInput(text.trim());
+          setErrorMessage("");
+        }
+      }
+    } catch {
+      // ignore
+    }
+  };
+
   /**
-   * Fetch real files from Google Drive API v3
+   * Fetch Real Files from Google Drive
    */
   const fetchRealGoogleDriveFiles = useCallback(async (token: string) => {
     setIsLoadingGdriveFiles(true);
     setErrorMessage("");
     try {
-      // 1. Fetch user profile
+      // Fetch user profile
       try {
         const userRes = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
           headers: { Authorization: `Bearer ${token}` }
@@ -259,7 +237,7 @@ export default function CloudImportModal({
         // ignore profile error
       }
 
-      // 2. Query spreadsheets from Google Drive
+      // Query spreadsheets from Google Drive
       const query = `trashed=false and (mimeType='application/vnd.google-apps.spreadsheet' or mimeType='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' or mimeType='application/vnd.ms-excel' or mimeType='text/csv' or name contains '.xlsx' or name contains '.csv' or name contains '.xls' or name contains '.xlsm')`;
       const url = `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(query)}&fields=files(id,name,mimeType,size,modifiedTime,webViewLink)&orderBy=modifiedTime desc&pageSize=50`;
 
@@ -269,14 +247,11 @@ export default function CloudImportModal({
 
       if (!res.ok) {
         if (res.status === 401) {
-          setGdriveConnected(false);
-          setGdriveToken(null);
-          localStorage.removeItem("gdrive_token");
-          localStorage.removeItem("gdrive_connected");
-          throw new Error("Google Drive session expired. Please connect again.");
+          handleDisconnectGoogleDrive();
+          throw new Error("Google Drive authorization expired. Please connect again.");
         }
         const errJson = await res.json().catch(() => ({}));
-        throw new Error(errJson.error?.message || `Google Drive API error (${res.status})`);
+        throw new Error(errJson.error?.message || `Google Drive error (${res.status})`);
       }
 
       const data = await res.json();
@@ -299,40 +274,42 @@ export default function CloudImportModal({
           type: fileType,
           mimeType: f.mimeType,
           url: f.webViewLink,
-          isReal: true,
         };
       });
 
-      setGdriveFiles(files.length > 0 ? files : GDRIVE_SAMPLE_FILES);
+      setGdriveFiles(files);
       setGdriveConnected(true);
       localStorage.setItem("gdrive_connected", "true");
     } catch (err: any) {
       setErrorMessage(err.message || "Failed to load Google Drive files");
-      setGdriveFiles(GDRIVE_SAMPLE_FILES);
+      setGdriveFiles([]);
     } finally {
       setIsLoadingGdriveFiles(false);
     }
   }, []);
 
   /**
-   * Connect to Google Drive using Google Identity Services (GIS) Token Client
+   * Connect Google Drive with Google OAuth
    */
   const handleConnectGoogleDrive = () => {
     setIsConnectingGdrive(true);
     setErrorMessage("");
     setSuccessNotice("");
 
-    const effectiveClientId =
-      customGoogleClientId ||
-      process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ||
-      (typeof window !== "undefined" ? localStorage.getItem("google_client_id") || "" : "");
-
-    // If Google GIS client is loaded and client ID exists
     const win = window as any;
-    if (win.google?.accounts?.oauth2 && effectiveClientId && !effectiveClientId.includes("your-client-id")) {
+    const clientId = GOOGLE_CLIENT_ID || (typeof window !== "undefined" ? localStorage.getItem("google_client_id") || "" : "");
+
+    if (!clientId) {
+      // If no client ID configured in env, guide user to sign up or use direct link
+      setIsConnectingGdrive(false);
+      setErrorMessage("To connect your Google Drive directly, please sign in or paste your Google Sheets link below.");
+      return;
+    }
+
+    if (win.google?.accounts?.oauth2) {
       try {
         const tokenClient = win.google.accounts.oauth2.initTokenClient({
-          client_id: effectiveClientId,
+          client_id: clientId,
           scope: "https://www.googleapis.com/auth/drive.readonly https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email",
           callback: async (tokenResponse: any) => {
             setIsConnectingGdrive(false);
@@ -356,23 +333,14 @@ export default function CloudImportModal({
         tokenClient.requestAccessToken({ prompt: "consent" });
         return;
       } catch (err: any) {
-        // fallback to standard connection
-        console.warn("GIS tokenClient error:", err);
+        setIsConnectingGdrive(false);
+        setErrorMessage(`Google authentication initialization failed: ${err.message}`);
+        return;
       }
     }
 
-    // Interactive connection fallback
-    setTimeout(() => {
-      setGdriveConnected(true);
-      setIsConnectingGdrive(false);
-      setGdriveFiles(GDRIVE_SAMPLE_FILES);
-      try {
-        localStorage.setItem("gdrive_connected", "true");
-      } catch {
-        // ignore
-      }
-      setSuccessNotice("Google Drive workspace connected.");
-    }, 700);
+    setIsConnectingGdrive(false);
+    setErrorMessage("Google Identity library is initializing. Please try again in a moment.");
   };
 
   const handleDisconnectGoogleDrive = () => {
@@ -390,312 +358,114 @@ export default function CloudImportModal({
   };
 
   /**
-   * Launch native Google Drive Picker Dialog
+   * Import real file directly from Google Drive
    */
-  const handleOpenGooglePicker = () => {
-    const win = window as any;
-    if (!win.gapi || !gdriveToken) {
-      handleConnectGoogleDrive();
-      return;
-    }
-
-    win.gapi.load("picker", {
-      callback: () => {
-        try {
-          const pickerBuilder = new win.google.picker.PickerBuilder()
-            .addView(win.google.picker.ViewId.SPREADSHEETS)
-            .addView(new win.google.picker.DocsView().setMimeTypes("application/vnd.google-apps.spreadsheet,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv,application/vnd.ms-excel"))
-            .setOAuthToken(gdriveToken)
-            .setCallback((data: any) => {
-              if (data.action === win.google.picker.Action.PICKED) {
-                const doc = data.docs[0];
-                if (doc) {
-                  const isSheet = doc.mimeType === "application/vnd.google-apps.spreadsheet";
-                  const name = isSheet && !doc.name.endsWith(".xlsx") ? `${doc.name}.xlsx` : doc.name;
-                  void handleImportRealFile({
-                    id: doc.id,
-                    name,
-                    size: doc.sizeBytes ? formatBytes(doc.sizeBytes) : "Google Sheet",
-                    date: "Just now",
-                    type: name.endsWith(".csv") ? "csv" : "xlsx",
-                    mimeType: doc.mimeType,
-                    isReal: true,
-                  }, "gdrive");
-                }
-              }
-            });
-
-          const picker = pickerBuilder.build();
-          picker.setVisible(true);
-        } catch (err: any) {
-          setErrorMessage(`Google Picker error: ${err.message}`);
-        }
-      }
-    });
-  };
-
-  /**
-   * Fetch real files from Dropbox API v2
-   */
-  const fetchRealDropboxFiles = useCallback(async (token: string) => {
-    setIsLoadingDropboxFiles(true);
-    setErrorMessage("");
-    try {
-      // Fetch user profile
-      try {
-        const uRes = await fetch("https://api.dropboxapi.com/2/users/get_current_account", {
-          method: "POST",
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        if (uRes.ok) {
-          const u = await uRes.json();
-          const userObj = { name: u.name?.display_name, email: u.email };
-          setDropboxUser(userObj);
-        }
-      } catch {
-        // ignore
-      }
-
-      // Search for spreadsheets in Dropbox
-      const searchRes = await fetch("https://api.dropboxapi.com/2/files/search_v2", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          query: ".xlsx",
-          options: {
-            file_extensions: ["xlsx", "xls", "csv", "xlsm"],
-            max_results: 50
-          }
-        })
-      });
-
-      if (!searchRes.ok) {
-        if (searchRes.status === 401) {
-          setDropboxConnected(false);
-          setDropboxToken(null);
-          localStorage.removeItem("dropbox_token");
-          localStorage.removeItem("dropbox_connected");
-          throw new Error("Dropbox session expired. Please connect again.");
-        }
-        throw new Error(`Dropbox search error (${searchRes.status})`);
-      }
-
-      const data = await searchRes.json();
-      const realFiles: CloudSpreadsheet[] = (data.matches || []).map((m: any) => {
-        const meta = m.metadata?.metadata;
-        const name = meta?.name || "Spreadsheet.xlsx";
-        return {
-          id: meta?.id || meta?.path_lower,
-          name,
-          size: meta?.size ? formatBytes(meta.size) : "Workbook",
-          date: meta?.server_modified ? formatRelativeTime(meta.server_modified) : "Recent",
-          type: name.endsWith(".csv") ? "csv" : "xlsx",
-          url: meta?.path_lower,
-          isReal: true
-        };
-      });
-
-      setDropboxFiles(realFiles.length > 0 ? realFiles : DROPBOX_SAMPLE_FILES);
-      setDropboxConnected(true);
-      localStorage.setItem("dropbox_connected", "true");
-    } catch (err: any) {
-      setErrorMessage(err.message || "Failed to load Dropbox files");
-      setDropboxFiles(DROPBOX_SAMPLE_FILES);
-    } finally {
-      setIsLoadingDropboxFiles(false);
-    }
-  }, []);
-
-  /**
-   * Connect to Dropbox using Dropbox Chooser or OAuth
-   */
-  const handleConnectDropbox = () => {
-    setIsConnectingDropbox(true);
-    setErrorMessage("");
-    setSuccessNotice("");
-
-    const win = window as any;
-    // Check if Dropbox Chooser is ready
-    if (win.Dropbox && win.Dropbox.choose) {
-      try {
-        win.Dropbox.choose({
-          success: (files: any[]) => {
-            setIsConnectingDropbox(false);
-            if (files && files.length > 0) {
-              const file = files[0];
-              setDropboxConnected(true);
-              localStorage.setItem("dropbox_connected", "true");
-              // Convert picked file directly
-              void handleImportRealFile({
-                id: file.id || file.link,
-                name: file.name,
-                size: file.bytes ? formatBytes(file.bytes) : "Spreadsheet",
-                date: "Selected file",
-                type: file.name.endsWith(".csv") ? "csv" : "xlsx",
-                url: file.link,
-                isReal: true,
-              }, "dropbox");
-            }
-          },
-          cancel: () => {
-            setIsConnectingDropbox(false);
-          },
-          linkType: "direct",
-          multiselect: false,
-          extensions: [".xlsx", ".xls", ".csv", ".xlsm"]
-        });
-        return;
-      } catch (err: any) {
-        console.warn("Dropbox.choose error:", err);
-      }
-    }
-
-    // Interactive fallback
-    setTimeout(() => {
-      setDropboxConnected(true);
-      setIsConnectingDropbox(false);
-      setDropboxFiles(DROPBOX_SAMPLE_FILES);
-      try {
-        localStorage.setItem("dropbox_connected", "true");
-      } catch {
-        // ignore
-      }
-      setSuccessNotice("Dropbox connected successfully.");
-    }, 700);
-  };
-
-  const handleDisconnectDropbox = () => {
-    setDropboxConnected(false);
-    setDropboxToken(null);
-    setDropboxUser(null);
-    setDropboxFiles([]);
-    try {
-      localStorage.removeItem("dropbox_token");
-      localStorage.removeItem("dropbox_connected");
-    } catch {
-      // ignore
-    }
-  };
-
-  /**
-   * Download and import real file directly into conversion flow
-   */
-  const handleImportRealFile = async (fileItem: CloudSpreadsheet, sourceKind: "gdrive" | "dropbox") => {
+  const handleImportGoogleFile = async (fileItem: CloudSpreadsheet) => {
+    if (!gdriveToken) return;
     setImportingFileId(fileItem.id);
     setErrorMessage("");
 
     try {
-      let downloadedBlob: Blob | null = null;
-
-      if (sourceKind === "gdrive" && gdriveToken && fileItem.isReal) {
-        // Real Google Drive download
-        let downloadUrl = "";
-        if (fileItem.mimeType === "application/vnd.google-apps.spreadsheet") {
-          downloadUrl = `https://www.googleapis.com/drive/v3/files/${fileItem.id}/export?mimeType=application/vnd.openxmlformats-officedocument.spreadsheetml.sheet`;
-        } else {
-          downloadUrl = `https://www.googleapis.com/drive/v3/files/${fileItem.id}?alt=media`;
-        }
-
-        const res = await fetch(downloadUrl, {
-          headers: { Authorization: `Bearer ${gdriveToken}` }
-        });
-
-        if (!res.ok) {
-          throw new Error(`Google Drive download failed (HTTP ${res.status})`);
-        }
-        downloadedBlob = await res.blob();
-      } else if (sourceKind === "dropbox" && fileItem.url && fileItem.isReal) {
-        // Real Dropbox direct download
-        const downloadUrl = fileItem.url.includes("dl=0") ? fileItem.url.replace("dl=0", "dl=1") : fileItem.url;
-        const res = await fetch(downloadUrl);
-        if (res.ok) {
-          downloadedBlob = await res.blob();
-        }
-      }
-
-      if (downloadedBlob) {
-        const fileObject = new File([downloadedBlob], fileItem.name, {
-          type: downloadedBlob.type || "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        });
-        onImportSuccess(fileItem.name, fileItem.size, sourceKind === "gdrive" ? "Google Drive" : "Dropbox", fileItem.url, fileObject);
+      let downloadUrl = "";
+      if (fileItem.mimeType === "application/vnd.google-apps.spreadsheet") {
+        downloadUrl = `https://www.googleapis.com/drive/v3/files/${fileItem.id}/export?mimeType=application/vnd.openxmlformats-officedocument.spreadsheetml.sheet`;
       } else {
-        // Standard cloud URL or sample file import
-        onImportSuccess(fileItem.name, fileItem.size, sourceKind === "gdrive" ? "Google Drive" : "Dropbox", fileItem.url);
+        downloadUrl = `https://www.googleapis.com/drive/v3/files/${fileItem.id}?alt=media`;
       }
 
+      const res = await fetch(downloadUrl, {
+        headers: { Authorization: `Bearer ${gdriveToken}` }
+      });
+
+      if (!res.ok) {
+        throw new Error(`Google Drive download failed (HTTP ${res.status})`);
+      }
+
+      const blob = await res.blob();
+      const fileObject = new File([blob], fileItem.name, {
+        type: blob.type || "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+      });
+
+      onImportSuccess(fileItem.name, fileItem.size, "Google Drive", fileItem.url, fileObject);
       onClose();
     } catch (err: any) {
-      setErrorMessage(err.message || "Failed to download file from cloud account");
+      setErrorMessage(err.message || "Failed to download spreadsheet from Google Drive.");
     } finally {
       setImportingFileId(null);
     }
   };
 
   /**
-   * Handle Direct Link Import
+   * Universal Cloud Import via Server-Side `/api/cloud-import`
    */
-  const handleUrlImport = async (inputUrl?: string) => {
-    const targetUrl = (inputUrl || urlInput).trim();
-    if (!targetUrl) {
-      setErrorMessage("Please enter a valid link.");
+  const handleImportUrl = async (targetUrl?: string) => {
+    const rawUrl = (targetUrl || urlInput).trim();
+    if (!rawUrl) {
+      setErrorMessage(
+        activeTab === "gdrive"
+          ? "Please paste your Google Drive or Google Sheets link."
+          : activeTab === "dropbox"
+          ? "Please paste your Dropbox file share link."
+          : "Please enter a valid file URL."
+      );
       return;
     }
 
     setErrorMessage("");
     setIsLoading(true);
+    setStatusMessage("Connecting to cloud server...");
 
     try {
-      const parsed = new URL(targetUrl);
-      if (parsed.protocol !== "https:" && parsed.protocol !== "http:") {
-        throw new Error("Unsupported URL protocol");
+      setStatusMessage("Fetching & converting spreadsheet...");
+      const res = await fetch("/api/cloud-import", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: rawUrl })
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || "Failed to import remote file.");
       }
 
-      let fileName = "Cloud_Spreadsheet.xlsx";
-      const fileSize = "Remote file";
-      let source = "URL Link";
+      setStatusMessage("Preparing document for conversion...");
 
-      if (targetUrl.includes("docs.google.com/spreadsheets")) {
-        fileName = "Google_Sheets_Document.xlsx";
-        source = "Google Sheets";
-      } else if (targetUrl.includes("drive.google.com")) {
-        fileName = "Google_Drive_File.xlsx";
-        source = "Google Drive";
-      } else if (targetUrl.includes("dropbox.com")) {
-        fileName = "Dropbox_Shared_Sheet.xlsx";
-        source = "Dropbox";
-      } else {
-        const pathSegments = parsed.pathname.split("/").filter(Boolean);
-        const lastSeg = pathSegments[pathSegments.length - 1];
-        if (lastSeg && /\.(xlsx|xls|csv|xlsm)$/i.test(lastSeg)) {
-          fileName = decodeURIComponent(lastSeg);
-        } else {
-          fileName = "Imported_Dataset.xlsx";
-        }
+      // Convert Base64 payload back to a native File Blob
+      const binaryString = atob(data.base64Data);
+      const bytes = new Uint8Array(binaryString.length);
+      for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
       }
+
+      const fileBlob = new File([bytes], data.fileName, {
+        type: data.mimeType || "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+      });
+
+      // Pass directly to the converter
+      onImportSuccess(
+        data.fileName,
+        formatBytes(data.sizeBytes),
+        data.source || "Cloud Import",
+        rawUrl,
+        fileBlob
+      );
 
       setIsLoading(false);
-      onImportSuccess(fileName, fileSize, source, targetUrl);
       onClose();
-    } catch {
+    } catch (err: any) {
       setIsLoading(false);
-      setErrorMessage("Could not fetch file from the provided URL. Please check permissions or direct link.");
+      setStatusMessage("");
+      setErrorMessage(
+        err.message || "Could not access the remote file. Please make sure the link is publicly viewable."
+      );
     }
   };
 
   const filteredGdriveFiles = useMemo(() => {
-    const list = gdriveFiles.length > 0 ? gdriveFiles : GDRIVE_SAMPLE_FILES;
-    if (!searchQuery.trim()) return list;
-    return list.filter((f) => f.name.toLowerCase().includes(searchQuery.toLowerCase()));
+    if (!searchQuery.trim()) return gdriveFiles;
+    return gdriveFiles.filter((f) => f.name.toLowerCase().includes(searchQuery.toLowerCase()));
   }, [gdriveFiles, searchQuery]);
-
-  const filteredDropboxFiles = useMemo(() => {
-    const list = dropboxFiles.length > 0 ? dropboxFiles : DROPBOX_SAMPLE_FILES;
-    if (!searchQuery.trim()) return list;
-    return list.filter((f) => f.name.toLowerCase().includes(searchQuery.toLowerCase()));
-  }, [dropboxFiles, searchQuery]);
 
   if (!isOpen) return null;
 
@@ -717,7 +487,7 @@ export default function CloudImportModal({
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.96, y: 15 }}
           transition={{ type: "spring", duration: 0.35, bounce: 0.15 }}
-          className="relative w-full max-w-2xl bg-white rounded-3xl shadow-2xl border border-slate-100 overflow-hidden z-10 flex flex-col my-auto"
+          className="relative w-full max-w-xl bg-white rounded-3xl shadow-2xl border border-slate-100 overflow-hidden z-10 flex flex-col my-auto"
         >
           {/* Header */}
           <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/80">
@@ -729,577 +499,573 @@ export default function CloudImportModal({
               </div>
               <div>
                 <h3 className="text-base font-bold text-slate-900">
-                  {activeTab === "gdrive" && "Import from Google Drive"}
+                  {activeTab === "gdrive" && "Import from Google Drive / Sheets"}
                   {activeTab === "dropbox" && "Import from Dropbox"}
-                  {activeTab === "link" && "Import from Link or Google Drive URL"}
+                  {activeTab === "link" && "Import from Web URL / Cloud Link"}
                 </h3>
                 <p className="text-xs text-slate-500">
-                  Select a spreadsheet or enter a share link to convert to JPG
+                  Connect your account or paste a share link to convert
                 </p>
               </div>
             </div>
 
-            <div className="flex items-center gap-1.5">
-              <button
-                type="button"
-                onClick={() => setShowConfig(!showConfig)}
-                className={`p-2 rounded-full transition-colors cursor-pointer ${
-                  showConfig ? "bg-blue-100 text-blue-700" : "text-slate-400 hover:text-slate-700 hover:bg-slate-100"
-                }`}
-                title="Configure Cloud API Credentials"
-                aria-label="Configure Cloud API Credentials"
-              >
-                <Settings2 className="w-4 h-4" />
-              </button>
-              <button
-                onClick={onClose}
-                className="p-2 text-slate-400 hover:text-slate-700 rounded-full hover:bg-slate-100 transition-colors cursor-pointer"
-                aria-label="Close modal"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={onClose}
+              className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-full transition-colors cursor-pointer"
+              aria-label="Close modal"
+            >
+              <X className="w-5 h-5" />
+            </button>
           </div>
 
-          {/* Credentials Config Drawer (if user wants to customize OAuth Client IDs) */}
-          {showConfig && (
-            <div className="p-4 bg-blue-50/80 border-b border-blue-100 space-y-3 text-xs">
-              <div className="flex items-center justify-between">
-                <span className="font-bold text-slate-800 flex items-center gap-1.5">
-                  <Settings2 className="w-3.5 h-3.5 text-blue-600" />
-                  Custom Cloud OAuth Credentials
-                </span>
-                <button
-                  type="button"
-                  onClick={() => setShowConfig(false)}
-                  className="text-blue-600 hover:underline text-[11px]"
-                >
-                  Done
-                </button>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-[11px] font-medium text-slate-700 mb-1">
-                    Google OAuth Web Client ID
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="e.g. xxxxx.apps.googleusercontent.com"
-                    value={customGoogleClientId}
-                    onChange={(e) => {
-                      setCustomGoogleClientId(e.target.value);
-                      localStorage.setItem("google_client_id", e.target.value);
-                    }}
-                    className="w-full px-2.5 py-1.5 bg-white rounded-lg border border-slate-200 text-xs font-mono"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[11px] font-medium text-slate-700 mb-1">
-                    Dropbox App Key
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="e.g. drop_box_app_key"
-                    value={customDropboxAppKey}
-                    onChange={(e) => {
-                      setCustomDropboxAppKey(e.target.value);
-                      localStorage.setItem("dropbox_app_key", e.target.value);
-                    }}
-                    className="w-full px-2.5 py-1.5 bg-white rounded-lg border border-slate-200 text-xs font-mono"
-                  />
-                </div>
-              </div>
-            </div>
-          )}
-
           {/* Navigation Tabs */}
-          <div className="flex border-b border-slate-100 px-6 pt-3 gap-2 bg-slate-50/30">
+          <div className="px-6 pt-3 border-b border-slate-100 flex gap-2 bg-white">
             <button
-              onClick={() => { setActiveTab("gdrive"); setErrorMessage(""); setSuccessNotice(""); setSearchQuery(""); }}
-              className={`flex items-center gap-2 px-4 py-2.5 text-xs font-semibold rounded-t-xl transition-all border-b-2 cursor-pointer ${activeTab === "gdrive"
-                  ? "border-[#355BFF] text-[#355BFF] bg-white shadow-xs"
-                  : "border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-100/60"
-                }`}
+              type="button"
+              onClick={() => {
+                setActiveTab("gdrive");
+                setErrorMessage("");
+                setSuccessNotice("");
+                setUrlInput("");
+              }}
+              className={`pb-2.5 px-3.5 text-xs font-semibold flex items-center gap-2 border-b-2 transition-all cursor-pointer ${
+                activeTab === "gdrive"
+                  ? "border-[#355BFF] text-[#355BFF]"
+                  : "border-transparent text-slate-500 hover:text-slate-800"
+              }`}
             >
               <GoogleDriveIcon className="w-4 h-4" />
-              <span>{t.cloudImport.gdriveTab}</span>
+              <span>Google Drive</span>
+              {gdriveConnected && <span className="w-2 h-2 rounded-full bg-emerald-500" />}
             </button>
 
             <button
-              onClick={() => { setActiveTab("dropbox"); setErrorMessage(""); setSuccessNotice(""); setSearchQuery(""); }}
-              className={`flex items-center gap-2 px-4 py-2.5 text-xs font-semibold rounded-t-xl transition-all border-b-2 cursor-pointer ${activeTab === "dropbox"
-                  ? "border-[#0061FF] text-[#0061FF] bg-white shadow-xs"
-                  : "border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-100/60"
-                }`}
+              type="button"
+              onClick={() => {
+                setActiveTab("dropbox");
+                setErrorMessage("");
+                setSuccessNotice("");
+                setUrlInput("");
+              }}
+              className={`pb-2.5 px-3.5 text-xs font-semibold flex items-center gap-2 border-b-2 transition-all cursor-pointer ${
+                activeTab === "dropbox"
+                  ? "border-[#0061FF] text-[#0061FF]"
+                  : "border-transparent text-slate-500 hover:text-slate-800"
+              }`}
             >
               <DropboxIcon className="w-4 h-4" />
-              <span>{t.cloudImport.dropboxTab}</span>
+              <span>Dropbox</span>
             </button>
 
             <button
-              onClick={() => { setActiveTab("link"); setErrorMessage(""); setSuccessNotice(""); setSearchQuery(""); }}
-              className={`flex items-center gap-2 px-4 py-2.5 text-xs font-semibold rounded-t-xl transition-all border-b-2 cursor-pointer ${activeTab === "link"
-                  ? "border-[#355BFF] text-[#355BFF] bg-white shadow-xs"
-                  : "border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-100/60"
-                }`}
+              type="button"
+              onClick={() => {
+                setActiveTab("link");
+                setErrorMessage("");
+                setSuccessNotice("");
+                setUrlInput("");
+              }}
+              className={`pb-2.5 px-3.5 text-xs font-semibold flex items-center gap-2 border-b-2 transition-all cursor-pointer ${
+                activeTab === "link"
+                  ? "border-[#355BFF] text-[#355BFF]"
+                  : "border-transparent text-slate-500 hover:text-slate-800"
+              }`}
             >
               <Link2 className="w-4 h-4" />
-              <span>{t.cloudImport.urlTab}</span>
+              <span>Web URL / Direct</span>
             </button>
           </div>
 
           {/* Body Content */}
-          <div className="p-6 space-y-5 max-h-[70vh] overflow-y-auto">
-            {/* Success Banner */}
+          <div className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
+            
+            {/* Success Notification Banner */}
             {successNotice && (
-              <div className="p-3 bg-emerald-50 text-emerald-800 rounded-xl text-xs font-medium flex items-center gap-2 border border-emerald-200">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                <span>{successNotice}</span>
+              <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-2xl text-emerald-800 text-xs flex items-center justify-between gap-2 shadow-xs">
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <span>{successNotice}</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setSuccessNotice("")}
+                  className="text-emerald-700 hover:text-emerald-900 cursor-pointer"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
               </div>
             )}
 
-            {/* Error Banner */}
+            {/* Error Notification Banner */}
             {errorMessage && (
-              <div className="p-3 bg-red-50 text-red-700 rounded-xl text-xs font-medium flex items-center gap-2 border border-red-200">
-                <AlertCircle className="w-4 h-4 shrink-0" />
-                <span>{errorMessage}</span>
-              </div>
+              <motion.div
+                initial={{ opacity: 0, y: -5 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="p-3 bg-amber-50 border border-amber-200 rounded-2xl text-amber-900 text-xs flex items-start justify-between gap-2 shadow-xs"
+              >
+                <div className="flex items-start gap-2">
+                  <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                  <span className="leading-relaxed">{errorMessage}</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setErrorMessage("")}
+                  className="text-amber-700 hover:text-amber-900 shrink-0 cursor-pointer"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </motion.div>
             )}
 
             {/* TAB 1: GOOGLE DRIVE */}
             {activeTab === "gdrive" && (
               <div className="space-y-4">
-                {/* Direct Google Drive URL Input Card */}
-                <div className="p-4 rounded-2xl bg-blue-50/50 border border-blue-100/80 space-y-2.5">
-                  <div className="flex items-center justify-between">
-                    <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                      <Globe className="w-3.5 h-3.5 text-blue-600" />
-                      <span>Paste Google Drive or Google Sheets Link</span>
-                    </label>
-                    <span className="text-[10px] text-blue-600 font-medium">Public or View-accessible</span>
-                  </div>
-
-                  <div className="flex gap-2">
-                    <div className="relative flex-1">
-                      <input
-                        type="url"
-                        placeholder="https://docs.google.com/spreadsheets/d/... or drive.google.com/file/d/..."
-                        value={urlInput}
-                        onChange={(e) => setUrlInput(e.target.value)}
-                        onKeyDown={(e) => e.key === "Enter" && handleUrlImport()}
-                        className="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder:text-slate-400"
-                      />
-                    </div>
-                    <button
-                      onClick={() => handleUrlImport()}
-                      disabled={isLoading || !urlInput.trim()}
-                      className="px-4 py-2.5 bg-[#355BFF] hover:bg-blue-700 disabled:opacity-50 text-white text-xs font-semibold rounded-xl shadow-xs transition-all flex items-center gap-1.5 shrink-0 cursor-pointer"
-                    >
-                      {isLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <ArrowRight className="w-3.5 h-3.5" />}
-                      <span>Import</span>
-                    </button>
-                  </div>
-                </div>
-
-                {/* Google Drive Account Header */}
-                <div className="flex items-center justify-between gap-3 pt-2">
-                  <div className="flex items-center gap-2 text-xs font-semibold text-slate-800">
-                    <FolderOpen className="w-4 h-4 text-blue-600" />
-                    <span>My Google Drive Files</span>
-                    {gdriveConnected ? (
-                      <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[10px] font-bold border border-emerald-200/60 flex items-center gap-1.5">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                        {t.cloudImport.connected}
-                        {gdriveUser?.email && ` (${gdriveUser.email})`}
-                      </span>
-                    ) : (
-                      <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 text-[10px] font-bold">
-                        {t.cloudImport.notConnected}
-                      </span>
-                    )}
-                  </div>
-                  {gdriveConnected && (
-                    <div className="flex items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={() => gdriveToken && fetchRealGoogleDriveFiles(gdriveToken)}
-                        className="text-[11px] text-slate-500 hover:text-blue-600 flex items-center gap-1 font-medium cursor-pointer"
-                        title={t.cloudImport.refreshFiles}
-                      >
-                        <RefreshCw className={`w-3 h-3 ${isLoadingGdriveFiles ? "animate-spin text-blue-600" : ""}`} />
-                        <span>{t.cloudImport.refreshFiles}</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={handleDisconnectGoogleDrive}
-                        className="text-[11px] text-slate-400 hover:text-red-600 flex items-center gap-1 font-medium transition-colors cursor-pointer"
-                        title={t.cloudImport.disconnect}
-                      >
-                        <LogOut className="w-3 h-3" />
-                        <span>{t.cloudImport.disconnect}</span>
-                      </button>
-                    </div>
-                  )}
-                </div>
-
+                
+                {/* 1. Account Connect / Sign-in Card */}
                 {!gdriveConnected ? (
-                  /* When Not Connected: Box with prominent "Connect Google Drive" button */
-                  <div className="border border-slate-200 rounded-2xl bg-gradient-to-b from-slate-50/90 to-blue-50/30 p-6 text-center space-y-3.5 shadow-2xs">
-                    <div className="w-12 h-12 rounded-2xl bg-white border border-slate-200/80 shadow-xs flex items-center justify-center mx-auto">
-                      <GoogleDriveIcon className="w-6 h-6" />
+                  <div className="p-4 rounded-2xl bg-gradient-to-br from-blue-50/70 via-indigo-50/40 to-white border border-blue-100 space-y-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-white shadow-xs border border-blue-100 flex items-center justify-center shrink-0">
+                          <GoogleDriveIcon className="w-6 h-6" />
+                        </div>
+                        <div>
+                          <h4 className="text-xs font-bold text-slate-900">
+                            Connect your Google Account
+                          </h4>
+                          <p className="text-[11px] text-slate-500">
+                            Sign in with Google to browse and import your Google Drive files directly.
+                          </p>
+                        </div>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-sm font-bold text-slate-800">{t.cloudImport.listingUnavailable}</p>
-                      <p className="mt-1 text-xs leading-relaxed text-slate-500 max-w-sm mx-auto">{t.cloudImport.connectGdrive}</p>
+
+                    <div className="flex flex-col sm:flex-row items-center gap-2 pt-1">
+                      {/* Direct Google Sign In Button */}
+                      <button
+                        type="button"
+                        onClick={handleConnectGoogleDrive}
+                        disabled={isConnectingGdrive}
+                        className="w-full sm:w-auto px-4 py-2 bg-[#355BFF] hover:bg-blue-700 disabled:opacity-50 text-white text-xs font-semibold rounded-xl shadow-xs transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95"
+                      >
+                        {isConnectingGdrive ? (
+                          <>
+                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                            <span>Connecting...</span>
+                          </>
+                        ) : (
+                          <>
+                            <GoogleDriveIcon className="w-3.5 h-3.5" />
+                            <span>Continue with Google</span>
+                          </>
+                        )}
+                      </button>
+
+                      {/* Create Free Account button */}
+                      <Link
+                        href="/signup"
+                        onClick={onClose}
+                        className="w-full sm:w-auto px-3.5 py-2 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-xs font-medium rounded-xl transition-colors flex items-center justify-center gap-1.5"
+                      >
+                        <UserPlus className="w-3.5 h-3.5 text-blue-600" />
+                        <span>Create Account</span>
+                      </Link>
                     </div>
-                    <button
-                      type="button"
-                      onClick={handleConnectGoogleDrive}
-                      disabled={isConnectingGdrive}
-                      className="inline-flex items-center justify-center gap-2 px-6 py-2.5 bg-white hover:bg-slate-50 text-slate-800 hover:text-slate-900 border border-slate-300 font-semibold text-xs rounded-xl shadow-xs hover:shadow-md transition-all cursor-pointer active:scale-98"
-                    >
-                      {isConnectingGdrive ? (
-                        <>
-                          <Loader2 className="w-4 h-4 text-blue-600 animate-spin" />
-                          <span>{t.cloudImport.fetching}</span>
-                        </>
-                      ) : (
-                        <>
-                          <GoogleDriveIcon className="w-4 h-4" />
-                          <span>{t.cloudImport.connectGoogleDrive}</span>
-                        </>
-                      )}
-                    </button>
                   </div>
                 ) : (
-                  /* When Connected: File Listing & Search Explorer */
-                  <div className="border border-slate-200/90 rounded-2xl bg-white overflow-hidden shadow-xs">
-                    <div className="p-3 bg-slate-50/70 border-b border-slate-100 flex items-center gap-2">
-                      <div className="relative flex-1">
-                        <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                        <input
-                          type="text"
-                          value={searchQuery}
-                          onChange={(e) => setSearchQuery(e.target.value)}
-                          placeholder={t.cloudImport.searchFiles}
-                          className="w-full text-xs pl-8 pr-3 py-1.5 bg-white rounded-lg border border-slate-200 text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                        />
+                  /* Connected Google Drive State */
+                  <div className="space-y-3">
+                    {/* User Profile Bar */}
+                    <div className="p-3 bg-blue-50/70 border border-blue-100 rounded-2xl flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        {gdriveUser?.picture ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={gdriveUser.picture}
+                            alt=""
+                            className="w-8 h-8 rounded-full border border-blue-200 shrink-0"
+                          />
+                        ) : (
+                          <div className="w-8 h-8 rounded-full bg-[#355BFF] text-white flex items-center justify-center font-bold text-xs shrink-0">
+                            {gdriveUser?.name ? gdriveUser.name[0] : "G"}
+                          </div>
+                        )}
+                        <div className="min-w-0">
+                          <p className="text-xs font-bold text-slate-900 truncate">
+                            {gdriveUser?.name || "Google Account Connected"}
+                          </p>
+                          <p className="text-[11px] text-slate-500 truncate">
+                            {gdriveUser?.email || "Google Drive"}
+                          </p>
+                        </div>
                       </div>
-                      {gdriveToken && (
+
+                      <div className="flex items-center gap-1.5">
                         <button
                           type="button"
-                          onClick={handleOpenGooglePicker}
-                          className="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 text-[11px] font-semibold rounded-lg transition-colors flex items-center gap-1.5 shrink-0 cursor-pointer"
-                          title="Open Native Google Drive Picker"
+                          onClick={() => gdriveToken && fetchRealGoogleDriveFiles(gdriveToken)}
+                          className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-white rounded-lg transition-colors cursor-pointer"
+                          title="Refresh Files"
                         >
-                          <ExternalLink className="w-3 h-3" />
-                          <span>{t.cloudImport.openGooglePicker}</span>
+                          <RefreshCw className={`w-3.5 h-3.5 ${isLoadingGdriveFiles ? "animate-spin text-blue-600" : ""}`} />
                         </button>
-                      )}
+                        <button
+                          type="button"
+                          onClick={handleDisconnectGoogleDrive}
+                          className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-white rounded-lg transition-colors cursor-pointer"
+                          title="Disconnect Google Drive"
+                        >
+                          <LogOut className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     </div>
 
-                    {isLoadingGdriveFiles ? (
-                      <div className="p-8 text-center text-xs text-slate-500 flex flex-col items-center justify-center gap-2">
-                        <Loader2 className="w-5 h-5 text-blue-600 animate-spin" />
-                        <span>{t.cloudImport.loadingFiles}</span>
-                      </div>
-                    ) : filteredGdriveFiles.length === 0 ? (
-                      <div className="p-8 text-center text-xs text-slate-400">
-                        {t.cloudImport.noFilesFound}
-                      </div>
-                    ) : (
-                      <div className="divide-y divide-slate-100 max-h-60 overflow-y-auto">
-                        {filteredGdriveFiles.map((f) => (
-                          <div
-                            key={f.id}
-                            className="p-3 flex items-center justify-between gap-3 hover:bg-blue-50/40 transition-colors group"
-                          >
-                            <div className="flex items-center gap-2.5 min-w-0">
-                              <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center justify-center shrink-0">
-                                <FileSpreadsheet className="w-4 h-4" />
-                              </div>
-                              <div className="min-w-0">
-                                <p className="text-xs font-semibold text-slate-800 truncate group-hover:text-blue-600 transition-colors">
-                                  {f.name}
-                                </p>
-                                <div className="flex items-center gap-2 text-[10px] text-slate-400 mt-0.5">
-                                  <span className="px-1.5 py-0.2 bg-slate-100 text-slate-600 rounded text-[9px] uppercase font-bold">
-                                    {f.type}
-                                  </span>
-                                  <span>{f.size}</span>
-                                  <span>•</span>
-                                  <span>{f.date}</span>
+                    {/* Search & File Browser */}
+                    <div className="relative">
+                      <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                      <input
+                        type="text"
+                        placeholder="Search your Google Drive spreadsheets..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="w-full text-xs pl-8 pr-4 py-2 rounded-xl border border-slate-200 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-slate-400"
+                      />
+                    </div>
+
+                    {/* Google Drive Files List */}
+                    <div className="border border-slate-200/80 rounded-2xl overflow-hidden bg-white shadow-2xs">
+                      {isLoadingGdriveFiles ? (
+                        <div className="py-8 flex flex-col items-center justify-center gap-2 text-slate-500 text-xs">
+                          <Loader2 className="w-5 h-5 animate-spin text-[#355BFF]" />
+                          <span>Loading your spreadsheets...</span>
+                        </div>
+                      ) : filteredGdriveFiles.length === 0 ? (
+                        <div className="py-8 text-center space-y-1.5">
+                          <FileSpreadsheet className="w-7 h-7 text-slate-300 mx-auto" />
+                          <p className="text-xs font-semibold text-slate-700">
+                            {searchQuery ? "No matching spreadsheets found." : "No spreadsheets found in your Google Drive."}
+                          </p>
+                          <p className="text-[11px] text-slate-400">
+                            You can paste a Google Sheets share link below.
+                          </p>
+                        </div>
+                      ) : (
+                        <div className="divide-y divide-slate-100 max-h-52 overflow-y-auto">
+                          {filteredGdriveFiles.map((f) => (
+                            <div
+                              key={f.id}
+                              className="p-2.5 flex items-center justify-between gap-2.5 hover:bg-blue-50/40 transition-colors group"
+                            >
+                              <div className="flex items-center gap-2 min-w-0">
+                                <div className="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center justify-center shrink-0">
+                                  <FileSpreadsheet className="w-3.5 h-3.5" />
+                                </div>
+                                <div className="min-w-0">
+                                  <p className="text-xs font-semibold text-slate-800 truncate group-hover:text-blue-600 transition-colors">
+                                    {f.name}
+                                  </p>
+                                  <div className="flex items-center gap-1.5 text-[10px] text-slate-400">
+                                    <span className="px-1 py-0.2 bg-slate-100 text-slate-600 rounded text-[9px] uppercase font-bold">
+                                      {f.type}
+                                    </span>
+                                    <span>{f.size}</span>
+                                    <span>•</span>
+                                    <span>{f.date}</span>
+                                  </div>
                                 </div>
                               </div>
+
+                              <button
+                                type="button"
+                                onClick={() => handleImportGoogleFile(f)}
+                                disabled={importingFileId === f.id}
+                                className="px-2.5 py-1.5 bg-[#355BFF] hover:bg-blue-700 disabled:opacity-50 text-white text-[11px] font-semibold rounded-lg shadow-2xs transition-all flex items-center gap-1 shrink-0 cursor-pointer active:scale-95"
+                              >
+                                {importingFileId === f.id ? (
+                                  <>
+                                    <Loader2 className="w-3 h-3 animate-spin" />
+                                    <span>Importing...</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <span>Import</span>
+                                    <ArrowRight className="w-3 h-3" />
+                                  </>
+                                )}
+                              </button>
                             </div>
-                            <button
-                              type="button"
-                              onClick={() => handleImportRealFile(f, "gdrive")}
-                              disabled={importingFileId === f.id}
-                              className="px-3 py-1.5 bg-[#355BFF] hover:bg-blue-700 disabled:opacity-50 text-white text-[11px] font-semibold rounded-lg shadow-2xs transition-all flex items-center gap-1 shrink-0 cursor-pointer group-hover:shadow-xs active:scale-95"
-                            >
-                              {importingFileId === f.id ? (
-                                <>
-                                  <Loader2 className="w-3 h-3 animate-spin" />
-                                  <span>Downloading...</span>
-                                </>
-                              ) : (
-                                <>
-                                  <span>{t.cloudImport.fetchBtn}</span>
-                                  <ArrowRight className="w-3 h-3" />
-                                </>
-                              )}
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    )}
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 )}
+
+                {/* 2. Instant Link Import Option (No Account Required) */}
+                <div className="pt-2 border-t border-slate-100 space-y-2.5">
+                  <div className="flex items-center justify-between text-xs">
+                    <label className="font-bold text-slate-800 flex items-center gap-1.5">
+                      <Link2 className="w-3.5 h-3.5 text-blue-600" />
+                      <span>Or Paste Google Sheets Share Link</span>
+                    </label>
+                    <span className="text-[10px] text-slate-400">No login required</span>
+                  </div>
+
+                  <div className="relative flex items-center">
+                    <input
+                      type="url"
+                      placeholder="https://docs.google.com/spreadsheets/d/..."
+                      value={urlInput}
+                      onChange={(e) => setUrlInput(e.target.value)}
+                      onKeyDown={(e) => e.key === "Enter" && handleImportUrl()}
+                      disabled={isLoading}
+                      className="w-full text-xs pl-3.5 pr-20 py-2.5 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all placeholder:text-slate-400"
+                    />
+
+                    <div className="absolute right-1.5 flex items-center gap-1">
+                      <button
+                        type="button"
+                        onClick={handlePasteClipboard}
+                        disabled={isLoading}
+                        className="px-2.5 py-1 bg-white hover:bg-slate-100 border border-slate-200 rounded-lg text-[11px] font-medium text-slate-600 flex items-center gap-1 shadow-2xs transition-colors cursor-pointer"
+                        title="Paste from clipboard"
+                      >
+                        <Clipboard className="w-3 h-3 text-slate-500" />
+                        <span>Paste</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => handleImportUrl()}
+                    disabled={isLoading || !urlInput.trim()}
+                    className="w-full py-2.5 bg-[#355BFF] hover:bg-blue-700 disabled:opacity-50 text-white text-xs font-bold rounded-xl shadow-xs transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.99]"
+                  >
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        <span>{statusMessage || "Importing..."}</span>
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="w-3.5 h-3.5" />
+                        <span>Import & Convert Google Sheet</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+
+                {/* 3-Step Guided How-To Card */}
+                <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/70 space-y-2">
+                  <div className="flex items-center gap-1.5 text-[11px] font-bold text-slate-700">
+                    <Share2 className="w-3.5 h-3.5 text-blue-600" />
+                    <span>How to get your Google Sheets link:</span>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-2 text-[10px] text-slate-600">
+                    <div className="p-2 rounded-lg bg-white border border-slate-200/60 space-y-0.5">
+                      <span className="font-bold text-blue-600">1. Open Sheet</span>
+                      <p className="text-slate-500">Open in Google Sheets.</p>
+                    </div>
+                    <div className="p-2 rounded-lg bg-white border border-slate-200/60 space-y-0.5">
+                      <span className="font-bold text-blue-600">2. Click Share</span>
+                      <p className="text-slate-500">Set to &quot;Anyone with link&quot;.</p>
+                    </div>
+                    <div className="p-2 rounded-lg bg-white border border-slate-200/60 space-y-0.5">
+                      <span className="font-bold text-blue-600">3. Paste & Convert</span>
+                      <p className="text-slate-500">Paste above to convert!</p>
+                    </div>
+                  </div>
+                </div>
+
               </div>
             )}
 
             {/* TAB 2: DROPBOX */}
             {activeTab === "dropbox" && (
               <div className="space-y-4">
-                {/* Direct Dropbox URL Input Card */}
-                <div className="p-4 rounded-2xl bg-blue-50/50 border border-blue-100/80 space-y-2.5">
-                  <div className="flex items-center justify-between">
-                    <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                      <DropboxIcon className="w-3.5 h-3.5" />
-                      <span>Paste Dropbox Shared Spreadsheet Link</span>
-                    </label>
-                    <span className="text-[10px] text-[#0061FF] font-medium">Shared or Public Link</span>
-                  </div>
-
-                  <div className="flex gap-2">
-                    <div className="relative flex-1">
-                      <input
-                        type="url"
-                        placeholder="https://www.dropbox.com/s/..."
-                        value={urlInput}
-                        onChange={(e) => setUrlInput(e.target.value)}
-                        onKeyDown={(e) => e.key === "Enter" && handleUrlImport()}
-                        className="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#0061FF] focus:border-transparent placeholder:text-slate-400"
-                      />
-                    </div>
-                    <button
-                      onClick={() => handleUrlImport()}
-                      disabled={isLoading || !urlInput.trim()}
-                      className="px-4 py-2.5 bg-[#0061FF] hover:bg-blue-700 disabled:opacity-50 text-white text-xs font-semibold rounded-xl shadow-xs transition-all flex items-center gap-1.5 shrink-0 cursor-pointer"
-                    >
-                      {isLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <ArrowRight className="w-3.5 h-3.5" />}
-                      <span>Import</span>
-                    </button>
-                  </div>
-                </div>
-
-                {/* Dropbox Account Header */}
-                <div className="flex items-center justify-between gap-3 pt-2">
-                  <div className="flex items-center gap-2 text-xs font-semibold text-slate-800">
-                    <FolderOpen className="w-4 h-4 text-[#0061FF]" />
-                    <span>My Dropbox Spreadsheets</span>
-                    {dropboxConnected ? (
-                      <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[10px] font-bold border border-emerald-200/60 flex items-center gap-1.5">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                        {t.cloudImport.connected}
-                        {dropboxUser?.email && ` (${dropboxUser.email})`}
-                      </span>
-                    ) : (
-                      <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 text-[10px] font-bold">
-                        {t.cloudImport.notConnected}
-                      </span>
-                    )}
-                  </div>
-                  {dropboxConnected && (
-                    <div className="flex items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={() => dropboxToken && fetchRealDropboxFiles(dropboxToken)}
-                        className="text-[11px] text-slate-500 hover:text-[#0061FF] flex items-center gap-1 font-medium cursor-pointer"
-                        title={t.cloudImport.refreshFiles}
-                      >
-                        <RefreshCw className={`w-3 h-3 ${isLoadingDropboxFiles ? "animate-spin text-[#0061FF]" : ""}`} />
-                        <span>{t.cloudImport.refreshFiles}</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={handleDisconnectDropbox}
-                        className="text-[11px] text-slate-400 hover:text-red-600 flex items-center gap-1 font-medium transition-colors cursor-pointer"
-                        title={t.cloudImport.disconnect}
-                      >
-                        <LogOut className="w-3 h-3" />
-                        <span>{t.cloudImport.disconnect}</span>
-                      </button>
-                    </div>
-                  )}
-                </div>
-
-                {!dropboxConnected ? (
-                  /* When Not Connected: Box with prominent "Connect Dropbox" button */
-                  <div className="border border-slate-200 rounded-2xl bg-gradient-to-b from-slate-50/90 to-sky-50/30 p-6 text-center space-y-3.5 shadow-2xs">
-                    <div className="w-12 h-12 rounded-2xl bg-white border border-slate-200/80 shadow-xs flex items-center justify-center mx-auto">
+                
+                {/* 1. Account Connect / Sign-in Card */}
+                <div className="p-4 rounded-2xl bg-gradient-to-br from-sky-50/70 via-blue-50/40 to-white border border-sky-100 space-y-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-white shadow-xs border border-sky-100 flex items-center justify-center shrink-0">
                       <DropboxIcon className="w-6 h-6" />
                     </div>
                     <div>
-                      <p className="text-sm font-bold text-slate-800">{t.cloudImport.listingUnavailable}</p>
-                      <p className="mt-1 text-xs leading-relaxed text-slate-500 max-w-sm mx-auto">{t.cloudImport.connectDropbox}</p>
+                      <h4 className="text-xs font-bold text-slate-900">
+                        Import from Dropbox
+                      </h4>
+                      <p className="text-[11px] text-slate-500">
+                        Paste your Dropbox share link or sign in to import spreadsheets.
+                      </p>
                     </div>
-                    <button
-                      type="button"
-                      onClick={handleConnectDropbox}
-                      disabled={isConnectingDropbox}
-                      className="inline-flex items-center justify-center gap-2 px-6 py-2.5 bg-white hover:bg-slate-50 text-slate-800 hover:text-slate-900 border border-slate-300 font-semibold text-xs rounded-xl shadow-xs hover:shadow-md transition-all cursor-pointer active:scale-98"
-                    >
-                      {isConnectingDropbox ? (
-                        <>
-                          <Loader2 className="w-4 h-4 text-[#0061FF] animate-spin" />
-                          <span>{t.cloudImport.fetching}</span>
-                        </>
-                      ) : (
-                        <>
-                          <DropboxIcon className="w-4 h-4" />
-                          <span>{t.cloudImport.connectDropboxBtn}</span>
-                        </>
-                      )}
-                    </button>
                   </div>
-                ) : (
-                  /* When Connected: Dropbox File Listing & Search */
-                  <div className="border border-slate-200/90 rounded-2xl bg-white overflow-hidden shadow-xs">
-                    <div className="p-3 bg-slate-50/70 border-b border-slate-100 flex items-center gap-2">
-                      <div className="relative flex-1">
-                        <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                        <input
-                          type="text"
-                          value={searchQuery}
-                          onChange={(e) => setSearchQuery(e.target.value)}
-                          placeholder={t.cloudImport.searchFiles}
-                          className="w-full text-xs pl-8 pr-3 py-1.5 bg-white rounded-lg border border-slate-200 text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-[#0061FF]"
-                        />
-                      </div>
-                      <button
-                        type="button"
-                        onClick={handleConnectDropbox}
-                        className="px-3 py-1.5 bg-sky-50 hover:bg-sky-100 text-[#0061FF] text-[11px] font-semibold rounded-lg transition-colors flex items-center gap-1.5 shrink-0 cursor-pointer"
-                        title="Open Dropbox Native Chooser Window"
-                      >
-                        <ExternalLink className="w-3 h-3" />
-                        <span>{t.cloudImport.openDropboxChooser}</span>
-                      </button>
-                    </div>
+                </div>
 
-                    {isLoadingDropboxFiles ? (
-                      <div className="p-8 text-center text-xs text-slate-500 flex flex-col items-center justify-center gap-2">
-                        <Loader2 className="w-5 h-5 text-[#0061FF] animate-spin" />
-                        <span>{t.cloudImport.loadingFiles}</span>
-                      </div>
-                    ) : filteredDropboxFiles.length === 0 ? (
-                      <div className="p-8 text-center text-xs text-slate-400">
-                        {t.cloudImport.noFilesFound}
-                      </div>
-                    ) : (
-                      <div className="divide-y divide-slate-100 max-h-60 overflow-y-auto">
-                        {filteredDropboxFiles.map((f) => (
-                          <div
-                            key={f.id}
-                            className="p-3 flex items-center justify-between gap-3 hover:bg-sky-50/40 transition-colors group"
-                          >
-                            <div className="flex items-center gap-2.5 min-w-0">
-                              <div className="w-8 h-8 rounded-lg bg-sky-50 text-[#0061FF] border border-sky-100 flex items-center justify-center shrink-0">
-                                <FileSpreadsheet className="w-4 h-4" />
-                              </div>
-                              <div className="min-w-0">
-                                <p className="text-xs font-semibold text-slate-800 truncate group-hover:text-[#0061FF] transition-colors">
-                                  {f.name}
-                                </p>
-                                <div className="flex items-center gap-2 text-[10px] text-slate-400 mt-0.5">
-                                  <span className="px-1.5 py-0.2 bg-slate-100 text-slate-600 rounded text-[9px] uppercase font-bold">
-                                    {f.type}
-                                  </span>
-                                  <span>{f.size}</span>
-                                  <span>•</span>
-                                  <span>{f.date}</span>
-                                </div>
-                              </div>
-                            </div>
-                            <button
-                              type="button"
-                              onClick={() => handleImportRealFile(f, "dropbox")}
-                              disabled={importingFileId === f.id}
-                              className="px-3 py-1.5 bg-[#0061FF] hover:bg-blue-700 disabled:opacity-50 text-white text-[11px] font-semibold rounded-lg shadow-2xs transition-all flex items-center gap-1 shrink-0 cursor-pointer group-hover:shadow-xs active:scale-95"
-                            >
-                              {importingFileId === f.id ? (
-                                <>
-                                  <Loader2 className="w-3 h-3 animate-spin" />
-                                  <span>Downloading...</span>
-                                </>
-                              ) : (
-                                <>
-                                  <span>{t.cloudImport.fetchBtn}</span>
-                                  <ArrowRight className="w-3 h-3" />
-                                </>
-                              )}
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            )}
+                {/* 2. Dropbox Link Input */}
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-slate-800 flex items-center justify-between">
+                    <span className="flex items-center gap-1.5">
+                      <DropboxIcon className="w-4 h-4" />
+                      <span>Paste Dropbox File Link</span>
+                    </span>
+                    <span className="text-[11px] font-normal text-slate-400">
+                      Supports .xlsx, .xls, .csv, .xlsm
+                    </span>
+                  </label>
 
-            {/* TAB 3: UNIVERSAL LINK / GOOGLE DRIVE URL */}
-            {activeTab === "link" && (
-              <div className="space-y-4">
-                <div className="p-4 rounded-2xl bg-gradient-to-r from-blue-50 via-indigo-50/50 to-white border border-blue-100 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                      <Link2 className="w-4 h-4 text-blue-600" />
-                      <span>Enter Google Drive, Google Sheets, or Direct File URL</span>
-                    </label>
-                  </div>
-
-                  <div className="space-y-2">
+                  <div className="relative flex items-center">
                     <input
                       type="url"
-                      placeholder="e.g. https://docs.google.com/spreadsheets/d/YOUR_FILE_ID/edit"
+                      placeholder="https://www.dropbox.com/s/..."
                       value={urlInput}
                       onChange={(e) => setUrlInput(e.target.value)}
-                      onKeyDown={(e) => e.key === "Enter" && handleUrlImport()}
-                      className="w-full text-xs px-3.5 py-3 rounded-xl border border-slate-200 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder:text-slate-400 font-mono"
+                      onKeyDown={(e) => e.key === "Enter" && handleImportUrl()}
+                      disabled={isLoading}
+                      className="w-full text-xs pl-3.5 pr-20 py-2.5 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#0061FF] focus:bg-white transition-all placeholder:text-slate-400"
                     />
 
-                    <div className="flex items-center justify-between text-[11px] text-slate-500 pt-1">
-                      <span>Supported: Google Sheets, Google Drive, Dropbox, OneDrive, Web URLs</span>
+                    <div className="absolute right-1.5 flex items-center gap-1">
                       <button
-                        onClick={() => handleUrlImport()}
-                        disabled={isLoading || !urlInput.trim()}
-                        className="px-5 py-2 bg-[#355BFF] hover:bg-blue-700 disabled:opacity-50 text-white font-semibold rounded-xl shadow-md shadow-blue-500/20 transition-all flex items-center gap-1.5 cursor-pointer"
+                        type="button"
+                        onClick={handlePasteClipboard}
+                        disabled={isLoading}
+                        className="px-2.5 py-1 bg-white hover:bg-slate-100 border border-slate-200 rounded-lg text-[11px] font-medium text-slate-600 flex items-center gap-1 shadow-2xs transition-colors cursor-pointer"
+                        title="Paste from clipboard"
                       >
-                        {isLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
-                        <span>Import & Convert</span>
+                        <Clipboard className="w-3 h-3 text-slate-500" />
+                        <span>Paste</span>
                       </button>
                     </div>
                   </div>
                 </div>
 
-                <div className="pt-2 text-[11px] text-slate-500 flex items-center gap-1.5">
-                  <ShieldCheck className="w-4 h-4 text-emerald-600" />
-                  <span>{t.cloudImport.publicLinksOnly}</span>
+                {/* Convert Button */}
+                <button
+                  type="button"
+                  onClick={() => handleImportUrl()}
+                  disabled={isLoading || !urlInput.trim()}
+                  className="w-full py-2.5 bg-[#0061FF] hover:bg-blue-700 disabled:opacity-50 text-white text-xs font-bold rounded-xl shadow-xs transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.99]"
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      <span>{statusMessage || "Importing..."}</span>
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="w-3.5 h-3.5" />
+                      <span>Import & Convert Dropbox File</span>
+                    </>
+                  )}
+                </button>
+
+                {/* Dropbox 3-step guide */}
+                <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/70 space-y-2">
+                  <div className="flex items-center gap-1.5 text-[11px] font-bold text-slate-700">
+                    <Share2 className="w-3.5 h-3.5 text-[#0061FF]" />
+                    <span>How to get your Dropbox link:</span>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-2 text-[10px] text-slate-600">
+                    <div className="p-2 rounded-lg bg-white border border-slate-200/60 space-y-0.5">
+                      <span className="font-bold text-[#0061FF]">1. Locate File</span>
+                      <p className="text-slate-500">Go to your Dropbox file.</p>
+                    </div>
+                    <div className="p-2 rounded-lg bg-white border border-slate-200/60 space-y-0.5">
+                      <span className="font-bold text-[#0061FF]">2. Copy Link</span>
+                      <p className="text-slate-500">Click &quot;Copy link&quot; or Share.</p>
+                    </div>
+                    <div className="p-2 rounded-lg bg-white border border-slate-200/60 space-y-0.5">
+                      <span className="font-bold text-[#0061FF]">3. Paste & Open</span>
+                      <p className="text-slate-500">Paste above to convert!</p>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            )}
+
+            {/* TAB 3: UNIVERSAL LINK / WEB URL */}
+            {activeTab === "link" && (
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-slate-800 flex items-center justify-between">
+                    <span className="flex items-center gap-1.5">
+                      <Link2 className="w-4 h-4 text-blue-600" />
+                      <span>Enter Any Spreadsheet Web URL</span>
+                    </span>
+                    <span className="text-[11px] font-normal text-slate-400">
+                      Direct .xlsx, .xls, .csv, OneDrive, or S3
+                    </span>
+                  </label>
+
+                  <div className="relative flex items-center">
+                    <input
+                      type="url"
+                      placeholder="https://example.com/reports/financial_q4.xlsx"
+                      value={urlInput}
+                      onChange={(e) => setUrlInput(e.target.value)}
+                      onKeyDown={(e) => e.key === "Enter" && handleImportUrl()}
+                      disabled={isLoading}
+                      className="w-full text-xs pl-3.5 pr-20 py-2.5 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all placeholder:text-slate-400 font-mono"
+                    />
+
+                    <div className="absolute right-1.5 flex items-center gap-1">
+                      <button
+                        type="button"
+                        onClick={handlePasteClipboard}
+                        disabled={isLoading}
+                        className="px-2.5 py-1 bg-white hover:bg-slate-100 border border-slate-200 rounded-lg text-[11px] font-medium text-slate-600 flex items-center gap-1 shadow-2xs transition-colors cursor-pointer"
+                        title="Paste from clipboard"
+                      >
+                        <Clipboard className="w-3 h-3 text-slate-500" />
+                        <span>Paste</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => handleImportUrl()}
+                  disabled={isLoading || !urlInput.trim()}
+                  className="w-full py-2.5 bg-[#355BFF] hover:bg-blue-700 disabled:opacity-50 text-white text-xs font-bold rounded-xl shadow-xs transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.99]"
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      <span>{statusMessage || "Importing..."}</span>
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="w-3.5 h-3.5" />
+                      <span>Import & Convert Spreadsheet</span>
+                    </>
+                  )}
+                </button>
+
+                <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80 text-[11px] text-slate-500 flex items-center gap-2">
+                  <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <span>
+                    Our secure cloud engine connects directly to the URL, reads the worksheet data securely in memory, and immediately renders it in your converter.
+                  </span>
                 </div>
               </div>
             )}
+
           </div>
 
-          {/* Footer security badge */}
-          <div className="px-6 py-3 bg-slate-50 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
+          {/* Footer */}
+          <div className="px-6 py-3.5 bg-slate-50 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
             <div className="flex items-center gap-1.5">
               <ShieldCheck className="w-4 h-4 text-emerald-600" />
               <span>Direct encrypted cloud pipeline • Zero files permanently stored</span>
             </div>
             <button
+              type="button"
               onClick={onClose}
               className="text-slate-600 hover:text-slate-900 font-medium cursor-pointer"
             >
