@@ -206,36 +206,109 @@ def tsv_rows(file_path: str):
     return [list(dataframe.columns)] + dataframe.fillna("").values.tolist()
 
 
+def xml_elem_to_dict(elem):
+    d = {}
+    if elem.attrib:
+        for k, v in elem.attrib.items():
+            clean_k = re.sub(r"\{.*\}", "", str(k))
+            d[clean_k] = v
+    if elem.text and elem.text.strip():
+        text_val = elem.text.strip()
+        if not elem.attrib and len(elem) == 0:
+            return text_val
+        d["value" if not elem.attrib and len(elem) == 0 else "text"] = text_val
+    for child in elem:
+        tag = re.sub(r"\{.*\}", "", str(child.tag))
+        child_val = xml_elem_to_dict(child)
+        if tag in d:
+            if not isinstance(d[tag], list):
+                d[tag] = [d[tag]]
+            d[tag].append(child_val)
+        else:
+            d[tag] = child_val
+    return d
+
+
 def xml_rows(file_path: str):
     try:
-        dataframe = pd.read_xml(file_path)
-        if dataframe is not None and not dataframe.empty:
-            return [list(dataframe.columns)] + dataframe.fillna("").astype(str).values.tolist()
-    except Exception:
-        pass
+        tree = ET.parse(file_path)
+        root = tree.getroot()
+    except Exception as parse_err:
+        raise HTTPException(status_code=422, detail=f"Invalid XML file format: {parse_err}")
 
-    tree = ET.parse(file_path)
-    root = tree.getroot()
-    records = []
+    # 1. Check for SpreadsheetML / HTML table structures (tr / row with cells)
+    rows_elems = [e for e in root.iter() if re.sub(r"\{.*\}", "", str(e.tag)).lower() in ("tr", "row") and len(list(e)) > 0]
+    if len(rows_elems) > 1:
+        table_rows = []
+        for r in rows_elems:
+            cells = []
+            for c in list(r):
+                text = (c.text or "").strip()
+                if not text and len(c) > 0:
+                    text = " ".join((sub.text or "").strip() for sub in c if sub.text)
+                cells.append(text)
+            if any(cells):
+                table_rows.append(cells)
+        if len(table_rows) > 1:
+            return table_rows
+
+    # 2. Check for repeated container elements in the XML tree (e.g. RSS item, book, transaction, voucher)
+    from collections import Counter
+    all_elem_tags = [re.sub(r"\{.*\}", "", str(e.tag)) for e in root.iter() if len(list(e)) > 0 or (e.text and e.text.strip())]
+    tag_freq = Counter(all_elem_tags)
+    root_tag = re.sub(r"\{.*\}", "", str(root.tag))
+    repeated_tags = [tag for tag, count in tag_freq.items() if count > 1 and tag != root_tag]
+    container_tags = [t for t in repeated_tags if any((len(list(e)) > 0 or e.attrib) for e in root.iter() if re.sub(r"\{.*\}", "", str(e.tag)) == t)]
+    target_tags = container_tags if container_tags else repeated_tags
+
+    if target_tags:
+        for candidate_tag in target_tags:
+            matches = [e for e in root.iter() if re.sub(r"\{.*\}", "", str(e.tag)) == candidate_tag]
+            if len(matches) > 1:
+                records = []
+                for m in matches:
+                    rec = xml_elem_to_dict(m)
+                    if isinstance(rec, dict):
+                        records.append(rec)
+                    else:
+                        records.append({candidate_tag: rec})
+                if records:
+                    df = pd.json_normalize(records).fillna("")
+                    df.columns = [re.sub(r"\{.*\}", "", str(c)).replace("#text", "text").replace("@", "") for c in df.columns]
+                    if not df.empty and not all(c == "" for c in df.columns):
+                        return [list(df.columns)] + df.astype(str).values.tolist()
+
+    # 3. Direct children parsing / single root object
     children = list(root)
-    if children and all(len(list(child)) > 0 for child in children):
-        for child in children:
-            record = {re.sub(r"\{.*\}", "", item.tag): (item.text or "").strip() for item in list(child)}
-            if child.attrib:
-                record.update({f"@{key}": value for key, value in child.attrib.items()})
-            if record:
-                records.append(record)
-    if not records:
-        records = [
-            {
-                re.sub(r"\{.*\}", "", root.tag): (root.text or "").strip(),
-                **{f"@{key}": value for key, value in root.attrib.items()},
-            }
-        ]
-    dataframe = pd.DataFrame(records).fillna("")
-    if dataframe.empty:
-        raise HTTPException(status_code=422, detail="No tabular data found in this XML file")
-    return [list(dataframe.columns)] + dataframe.astype(str).values.tolist()
+    if not children:
+        d = xml_elem_to_dict(root)
+        if isinstance(d, dict):
+            df = pd.DataFrame([d]).fillna("")
+            return [list(df.columns)] + df.astype(str).values.tolist()
+        return [["Content"], [str(d)]]
+
+    while len(children) == 1 and len(list(children[0])) > 0:
+        children = list(children[0])
+
+    child_tags = [re.sub(r"\{.*\}", "", str(c.tag)) for c in children]
+    if len(set(child_tags)) == len(child_tags) and all(len(c) == 0 for c in children):
+        rec = xml_elem_to_dict(root)
+        df = pd.DataFrame([rec]).fillna("")
+        return [list(df.columns)] + df.astype(str).values.tolist()
+
+    records = []
+    for c in children:
+        val = xml_elem_to_dict(c)
+        if isinstance(val, dict):
+            records.append(val)
+        else:
+            records.append({re.sub(r"\{.*\}", "", str(c.tag)): val})
+
+    df = pd.json_normalize(records).fillna("")
+    df.columns = [re.sub(r"\{.*\}", "", str(c)).replace("#text", "text").replace("@", "") for c in df.columns]
+    if df.empty:
+        raise HTTPException(status_code=422, detail="No extractable tabular data found in this XML file.")
+    return [list(df.columns)] + df.astype(str).values.tolist()
 
 
 def ods_rows(file_path: str):

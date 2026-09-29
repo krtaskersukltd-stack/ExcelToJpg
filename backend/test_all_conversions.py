@@ -81,15 +81,22 @@ def test_all():
     assert res.status_code == 200 and res.json()["status"] == "success"
     print("✓ TXT to Excel works!")
 
-    # 7. Test XML to Excel
-    xml_bytes = b"<root><item><id>1</id><name>First</name></item><item><id>2</id><name>Second</name></item></root>"
-    res = client.post(
-        "/api/file_to_excel",
-        files={"source_file": ("test.xml", xml_bytes, "text/xml")},
-        data={"source_kind": "xml"}
-    )
-    assert res.status_code == 200 and res.json()["status"] == "success"
-    print("✓ XML to Excel works!")
+    # 7. Test XML to Excel (Diverse Formats)
+    # 7a. Standard element list
+    xml_bytes1 = b"<catalog><book id='1'><title>Python</title><price>29.99</price></book><book id='2'><title>JS</title><price>19.99</price></book></catalog>"
+    res1 = client.post("/api/file_to_excel", files={"source_file": ("books.xml", xml_bytes1, "text/xml")}, data={"source_kind": "xml"})
+    assert res1.status_code == 200 and res1.json()["status"] == "success"
+
+    # 7b. SpreadsheetML table
+    xml_bytes2 = b"<Workbook><Worksheet><Table><Row><Cell><Data>ColA</Data></Cell><Cell><Data>ColB</Data></Cell></Row><Row><Cell><Data>Val1</Data></Cell><Cell><Data>Val2</Data></Cell></Row></Table></Worksheet></Workbook>"
+    res2 = client.post("/api/file_to_excel", files={"source_file": ("table.xml", xml_bytes2, "text/xml")}, data={"source_kind": "xml"})
+    assert res2.status_code == 200 and res2.json()["status"] == "success"
+
+    # 7c. Attribute-based XML
+    xml_bytes3 = b"<inventory><item id='101' sku='ABC' qty='50'/><item id='102' sku='XYZ' qty='25'/></inventory>"
+    res3 = client.post("/api/file_to_excel", files={"source_file": ("attrs.xml", xml_bytes3, "text/xml")}, data={"source_kind": "xml"})
+    assert res3.status_code == 200 and res3.json()["status"] == "success"
+    print("✓ XML to Excel works (Elements, SpreadsheetML & Attributes)!")
 
     # 8. Test VCF to Excel
     vcf_bytes = b"BEGIN:VCARD\nVERSION:3.0\nFN:John Doe\nTEL:+123456789\nEMAIL:john@example.com\nEND:VCARD\n"
