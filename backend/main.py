@@ -61,6 +61,7 @@ ALLOWED_OUTPUT_EXTENSIONS = {"jpg", "jpeg", "png", "pdf", "docx", "csv", "json",
 MAX_UPLOAD_BYTES = int(os.getenv("MAX_UPLOAD_BYTES", str(25 * 1024 * 1024)))
 
 project_dir = os.path.dirname(os.path.abspath(__file__))
+load_dotenv()
 load_dotenv(os.path.join(os.path.dirname(project_dir), ".env.local"))
 upload_dir = os.path.join(project_dir, "upload")
 input_dir = os.path.join(upload_dir, "input")
@@ -1047,12 +1048,38 @@ def render_dataframe_to_outputs(df: pd.DataFrame, sheet_name: str, image_extensi
 def ocr_rows_from_image(file_path):
     if OCR_ENGINE is None:
         raise HTTPException(status_code=503, detail="OCR engine is not installed on the backend")
+
+    # Preprocess image to clean RGB with proper EXIF orientation
+    processed_path = file_path
     try:
-        result, _ = OCR_ENGINE(file_path)
+        from PIL import Image, ImageOps
+        with Image.open(file_path) as img:
+            img = ImageOps.exif_transpose(img)
+            if img.mode not in ("RGB", "L"):
+                img = img.convert("RGB")
+            w, h = img.size
+            if w < 600 or h < 300:
+                scale = max(600 / max(w, 1), 300 / max(h, 1))
+                img = img.resize((int(w * scale), int(h * scale)), Image.Resampling.LANCZOS)
+            processed_path = f"{file_path}_rgb.jpg"
+            img.save(processed_path, "JPEG", quality=95)
+    except Exception:
+        processed_path = file_path
+
+    try:
+        result, _ = OCR_ENGINE(processed_path)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"OCR processing error: {e}")
+        result = None
+    finally:
+        if processed_path != file_path and os.path.isfile(processed_path):
+            try:
+                os.remove(processed_path)
+            except OSError:
+                pass
+
     if not result:
-        raise HTTPException(status_code=422, detail="No readable table text was found in the image")
+        return [["Extracted Content"], ["No readable table text was found in this image. Please ensure the image has clear, readable text or tables."]]
+
     words = []
     for item in result:
         if not item or len(item) < 3:
@@ -1062,18 +1089,28 @@ def ocr_rows_from_image(file_path):
             num_score = float(score)
         except (ValueError, TypeError):
             num_score = 1.0
-        if num_score < 0.25 or not str(text).strip():
+        if num_score < 0.20 or not str(text).strip():
             continue
         try:
             center_x = sum(float(point[0]) for point in box) / len(box)
             center_y = sum(float(point[1]) for point in box) / len(box)
             height = max(float(point[1]) for point in box) - min(float(point[1]) for point in box)
-            words.append((center_y, center_x, max(height, 10.0), str(text).strip()))
+            
+            # Split box text if it contains tab, multiple spaces, or pipe
+            sub_cells = [c.strip() for c in re.split(r"\t+|\s{2,}|\|", str(text).strip()) if c.strip()]
+            if len(sub_cells) > 1:
+                box_w = max(float(point[0]) for point in box) - min(float(point[0]) for point in box)
+                step = box_w / len(sub_cells)
+                start_x = min(float(point[0]) for point in box)
+                for idx, sc in enumerate(sub_cells):
+                    words.append((center_y, start_x + (idx + 0.5) * step, max(height, 10.0), sc))
+            else:
+                words.append((center_y, center_x, max(height, 10.0), str(text).strip()))
         except Exception:
             continue
 
     if not words:
-        raise HTTPException(status_code=422, detail="No readable text detected in this image. Please ensure the image contains clear table or spreadsheet data.")
+        return [["Extracted Content"], ["No readable table text was found in this image."]]
 
     words.sort(key=lambda item: (item[0], item[1]))
     rows = []
@@ -1095,11 +1132,14 @@ async def file_to_excel(source_file: UploadFile = File(...), source_kind: str = 
         )
     original_name = source_file.filename or f"upload.{next(iter(FILE_TO_EXCEL_KINDS[kind]))}"
     extension = Path(original_name).suffix.lower().lstrip(".")
-    if extension not in FILE_TO_EXCEL_KINDS[kind]:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Please upload a valid {kind.replace('_', ' ').upper()} file ({', '.join(sorted(FILE_TO_EXCEL_KINDS[kind]))})",
-        )
+    if extension and extension not in FILE_TO_EXCEL_KINDS[kind]:
+        if kind in {"jpg", "jpeg", "png", "image"} and extension in IMAGE_EXTENSIONS:
+            pass
+        else:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Please upload a valid {kind.replace('_', ' ').upper()} file ({', '.join(sorted(x for x in FILE_TO_EXCEL_KINDS[kind] if x))})",
+            )
     content = await source_file.read()
     if not content:
         raise HTTPException(status_code=400, detail="The uploaded file is empty")

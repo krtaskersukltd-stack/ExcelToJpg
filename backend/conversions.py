@@ -16,23 +16,28 @@ from fastapi import HTTPException
 from openpyxl import Workbook
 from pypdf import PdfReader
 
+from openpyxl.cell.cell import ILLEGAL_CHARACTERS_RE
+
+IMAGE_EXTENSIONS = {"jpg", "jpeg", "png", "webp", "jfif", "bmp", "tiff", "tif", "gif", "avif", ""}
+
 FILE_TO_EXCEL_KINDS = {
-    "jpg": {"jpg", "jpeg"},
-    "jpeg": {"jpg", "jpeg"},
-    "png": {"png"},
+    "jpg": IMAGE_EXTENSIONS,
+    "jpeg": IMAGE_EXTENSIONS,
+    "png": IMAGE_EXTENSIONS,
+    "image": IMAGE_EXTENSIONS,
     "pdf": {"pdf"},
     "bank_statement_pdf": {"pdf"},
-    "csv": {"csv"},
-    "tsv": {"tsv", "txt"},
-    "json": {"json"},
-    "xml": {"xml"},
-    "txt": {"txt", "text", "log"},
-    "text": {"txt", "text", "log"},
-    "notepad": {"txt", "text", "log"},
-    "word": {"docx"},
-    "docx": {"docx"},
+    "csv": {"csv", "txt", "tsv", "log"},
+    "tsv": {"tsv", "txt", "csv", "log"},
+    "json": {"json", "txt", "log"},
+    "xml": {"xml", "txt", "log"},
+    "txt": {"txt", "text", "log", "csv", "tsv"},
+    "text": {"txt", "text", "log", "csv", "tsv"},
+    "notepad": {"txt", "text", "log", "csv", "tsv"},
+    "word": {"docx", "doc"},
+    "docx": {"docx", "doc"},
     "ods": {"ods"},
-    "vcf": {"vcf", "vcard"},
+    "vcf": {"vcf", "vcard", "txt"},
 }
 
 SOURCE_KIND_ALIASES = {
@@ -300,7 +305,13 @@ def rows_to_xlsx(rows, source_name: str, output_dir: str) -> str:
     sheet = workbook.active
     sheet.title = "Extracted Data"
     for row in rows:
-        sheet.append(["" if cell is None else cell for cell in list(row)])
+        cleaned_row = []
+        for cell in list(row):
+            if cell is None:
+                cleaned_row.append("")
+            else:
+                cleaned_row.append(ILLEGAL_CHARACTERS_RE.sub("", str(cell)))
+        sheet.append(cleaned_row)
     workbook.save(os.path.join(output_dir, output_name))
     return output_name
 

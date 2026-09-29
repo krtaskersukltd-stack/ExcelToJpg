@@ -14,4 +14,6 @@ requests
 google-auth
 python-dotenv
 pypdf
+opencv-python-headless
 rapidocr_onnxruntime
+httpx
