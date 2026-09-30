@@ -180,7 +180,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                 </div>
                 {isYearly && (
                   <p className="text-[11px] text-emerald-600 font-semibold">
-                    ${annualTotal}/yr (Save 20%)
+                    ${annualTotal}/yr ()
                   </p>
                 )}
               </div>
