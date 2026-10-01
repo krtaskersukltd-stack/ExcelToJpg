@@ -2,6 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useLanguage } from "@/context/LanguageContext";
 
 export default function Footer() {
@@ -15,8 +16,17 @@ export default function Footer() {
         <div className="bg-white rounded-[28px] sm:rounded-[36px] p-6 sm:p-10 lg:p-12 border-2 border-blue-400/50 shadow-[0_12px_45px_rgba(53,91,255,0.12)]">
           <div className="grid grid-cols-1 md:grid-cols-12 gap-8 lg:gap-10">
             
-            {/* Left Column: Description & Social Icons */}
+            {/* Left Column: Brand Logo, Description & Social Icons */}
             <div className="md:col-span-5 space-y-5">
+              <Link href="/" className="inline-flex items-center group">
+                <Image
+                  src="/icons/logo.png"
+                  alt="Excel To JPG"
+                  width={157}
+                  height={39}
+                  className="h-8 sm:h-9 w-auto object-contain transition-transform duration-200 group-hover:scale-105 drop-shadow-xs"
+                />
+              </Link>
               <p className="text-xs sm:text-sm text-slate-700 font-normal leading-relaxed max-w-xs">
                 {t.footer.description}
               </p>

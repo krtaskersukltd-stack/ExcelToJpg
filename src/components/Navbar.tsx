@@ -78,14 +78,14 @@ export default function Navbar({
         {/* Left: Brand Logo */}
         <div className="flex items-center lg:justify-self-start">
           <Link href="/" className="group inline-flex items-center">
-            <div className="relative h-14 sm:h-14 w-auto flex items-center transition-transform duration-200 group-hover:scale-105">
+            <div className="relative h-10 sm:h-12 w-auto flex items-center transition-transform duration-200 group-hover:scale-105">
               <Image
-                src="/logo.png"
+                src="/icons/logo.png"
                 alt="Excel To JPG"
-                width={176}
-                height={217}
+                width={157}
+                height={39}
                 priority
-                className="h-12 sm:h-16 w-auto object-contain drop-shadow-xs"
+                className="h-8 sm:h-9 w-auto object-contain drop-shadow-xs"
               />
             </div>
           </Link>

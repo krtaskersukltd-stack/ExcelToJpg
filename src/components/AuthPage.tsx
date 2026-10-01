@@ -189,12 +189,12 @@ export default function AuthPage({ mode }: { mode: AuthMode }) {
           {/* Top: Site Official Logo */}
           <Link href="/" className="relative z-10 inline-flex items-center transition-opacity hover:opacity-95 group">
             <Image
-              src="/logo.png"
+              src="/icons/logo.png"
               alt="Excel To JPG"
-              width={176}
-              height={217}
+              width={157}
+              height={39}
               priority
-              className="h-16 xl:h-20 w-auto object-contain drop-shadow-md transition-transform duration-200 group-hover:scale-105"
+              className="h-10 xl:h-12 w-auto object-contain drop-shadow-md transition-transform duration-200 group-hover:scale-105"
             />
           </Link>
 
@@ -246,12 +246,12 @@ export default function AuthPage({ mode }: { mode: AuthMode }) {
             {/* Site logo — form header (all screen sizes) */}
             <Link href="/" className="mb-8 inline-flex items-center group">
               <Image
-                src="/logo.png"
+                src="/icons/logo.png"
                 alt="Excel To JPG"
-                width={176}
-                height={217}
+                width={157}
+                height={39}
                 priority
-                className="h-14 sm:h-16 w-auto object-contain drop-shadow-xs transition-transform duration-200 group-hover:scale-105"
+                className="h-9 sm:h-11 w-auto object-contain drop-shadow-xs transition-transform duration-200 group-hover:scale-105"
               />
             </Link>
 
