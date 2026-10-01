@@ -92,7 +92,7 @@ export default function Navbar({
         </div>
 
         {/* Center: Floating Pill Navigation (Desktop) */}
-        <nav className="hidden lg:flex lg:justify-self-center items-center gap-0.5 p-1.5 bg-white/85 backdrop-blur-xl rounded-full border border-slate-200/80 neon-border-glow shadow-xs hover:shadow-[0_4px_24px_rgba(59,130,246,0.18)] transition-all">
+        <nav className="hidden lg:flex lg:justify-self-center items-center gap-0.5 p-1.5 bg-[#F7F8FC] backdrop-blur-xl rounded-full border border-slate-200/80 neon-border-glow shadow-xs hover:shadow-[0_4px_24px_rgba(59,130,246,0.18)] transition-all">
           {(
             [
               { tool: "excel-jpg" as const, format: "jpg" as const, label: t.nav.excelToJpg },
@@ -226,7 +226,7 @@ export default function Navbar({
 
           {/* Desktop: Pricing + Login + Language */}
           <div className="hidden lg:flex items-center gap-3">
-            <div className="flex items-center gap-1.5 p-1.5 bg-white/85 backdrop-blur-xl rounded-full border border-slate-200/80 neon-border-glow shadow-xs hover:shadow-[0_4px_24px_rgba(59,130,246,0.18)] transition-all">
+            <div className="flex items-center gap-1.5 p-1.5 bg-[#F7F8FC] backdrop-blur-xl rounded-full border border-slate-200/80 neon-border-glow shadow-xs hover:shadow-[0_4px_24px_rgba(59,130,246,0.18)] transition-all">
               <Link 
                 href="/pricing" 
                 className="flex items-center gap-1.5 px-4 py-2 text-xs font-medium text-slate-800 hover:text-blue-600 hover:bg-slate-50/70 rounded-full transition-colors"
@@ -255,7 +255,7 @@ export default function Navbar({
             >
               <button
                 onClick={() => setIsLangOpen((prev) => !prev)}
-                className="flex h-10 items-center gap-1.5 text-xs font-semibold text-slate-800 hover:text-blue-600 px-4 rounded-full border border-slate-200/80 bg-white/90 hover:bg-white transition-all shadow-xs cursor-pointer"
+                className="flex h-10 items-center gap-1.5 text-xs font-semibold text-slate-800 hover:text-blue-600 px-4 rounded-full border border-slate-200/80 bg-[#F7F8FC] hover:bg-[#EFF1F8] transition-all shadow-xs cursor-pointer"
               >
                 <Globe className="w-3.5 h-3.5 text-blue-600" />
                 <span>{language}</span>

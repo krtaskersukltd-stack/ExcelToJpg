@@ -59,7 +59,13 @@ export default function HowItWorks({ activeTool = "excel-jpg" }: { activeTool?: 
       <div className="mx-auto max-w-[1248px] px-4 sm:px-6">
         
         {/* Section Header */}
-        <div className="mb-7 text-center sm:mb-6">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5 }}
+          className="mb-7 text-center sm:mb-6"
+        >
           <h2 className="text-[28px] font-bold leading-[1.2] tracking-[-0.035em] text-[#141414] sm:text-[34px]">
             {isFormula ? (
               <>How to Generate <span className="text-[#4A29FF]">Excel Formulas</span>?</>
@@ -74,27 +80,33 @@ export default function HowItWorks({ activeTool = "excel-jpg" }: { activeTool?: 
               ? "Generate accurate, high-performance formulas in seconds."
               : withFormat(t.howItWorks.subtitle)}
           </p>
-        </div>
+        </motion.div>
 
         {/* Large Single White Container Card Holding All 3 Steps */}
         <motion.div
           initial={{ opacity: 0, y: 25 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
           className="rounded-[22px] bg-[#F6F7FB] px-6 py-8 sm:px-10 sm:py-10 lg:px-10 lg:py-10"
         >
           <div className="grid grid-cols-1 gap-10 md:grid-cols-3 md:gap-12 lg:gap-[108px]">
             
             {/* Step 01: Upload Excel */}
-            <div className="flex min-w-0 flex-col justify-between">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.45, delay: 0.15 }}
+              className="group flex min-w-0 flex-col justify-between"
+            >
               <div>
                 {/* Number & Top-Right Icon */}
                 <div className="mb-4 flex items-center justify-between">
                   <span className="text-[40px] font-medium leading-none tracking-[-0.04em] text-[#141414]">
                     01
                   </span>
-                  <div className="flex size-10 items-center justify-center rounded-full bg-[#F1F2F7] text-[#4A29FF]">
+                  <div className="flex size-10 items-center justify-center rounded-full bg-[#F1F2F7] text-[#4A29FF] transition-all duration-300 group-hover:scale-110 group-hover:bg-[#EAE8FF] group-hover:shadow-[0_4px_12px_rgba(74,41,255,0.25)]">
                     <FileUp className="size-[18px] stroke-[2.2]" />
                   </div>
                 </div>
@@ -111,8 +123,8 @@ export default function HowItWorks({ activeTool = "excel-jpg" }: { activeTool?: 
               </div>
 
               {/* Bottom Preview Pill Card */}
-              <div className="mt-5 flex min-h-[60px] items-center gap-3 rounded-[14px] border border-[#8D7CFF] bg-white px-4 py-2.5 shadow-[8px_12px_18px_-10px_rgba(73,43,255,0.42)] sm:mt-5">
-                <div className="flex size-8 shrink-0 items-center justify-center rounded-[4px] bg-[#EEECFF] text-[#4A29FF]">
+              <div className="neon-border-glow mt-5 flex min-h-[60px] cursor-pointer items-center gap-3 rounded-[14px] border border-[#8D7CFF] bg-white px-4 py-2.5 shadow-[8px_12px_18px_-10px_rgba(73,43,255,0.42)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_16px_30px_-6px_rgba(74,41,255,0.45)] sm:mt-5">
+                <div className="flex size-8 shrink-0 items-center justify-center rounded-[4px] bg-[#EEECFF] text-[#4A29FF] transition-transform duration-300 group-hover:scale-110">
                   <FileText className="size-[17px] stroke-[2.2]" />
                 </div>
                 <div className="truncate">
@@ -120,17 +132,23 @@ export default function HowItWorks({ activeTool = "excel-jpg" }: { activeTool?: 
                   <p className="text-[12px] text-[#55566A]">{t.howItWorks.step1CardSize} • {t.howItWorks.step1CardStatus}</p>
                 </div>
               </div>
-            </div>
+            </motion.div>
 
             {/* Step 02: Convert Your Sheet */}
-            <div className="flex min-w-0 flex-col justify-between">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.45, delay: 0.27 }}
+              className="group flex min-w-0 flex-col justify-between"
+            >
               <div>
                 {/* Number & Top-Right Icon */}
                 <div className="mb-4 flex items-center justify-between">
                   <span className="text-[40px] font-medium leading-none tracking-[-0.04em] text-[#141414]">
                     02
                   </span>
-                  <div className="flex size-10 items-center justify-center rounded-full bg-[#F1F2F7] text-[#4A29FF]">
+                  <div className="flex size-10 items-center justify-center rounded-full bg-[#F1F2F7] text-[#4A29FF] transition-all duration-300 group-hover:scale-110 group-hover:bg-[#EAE8FF] group-hover:shadow-[0_4px_12px_rgba(74,41,255,0.25)]">
                     <RefreshCw className="size-[18px] stroke-[2.2]" />
                   </div>
                 </div>
@@ -147,26 +165,32 @@ export default function HowItWorks({ activeTool = "excel-jpg" }: { activeTool?: 
               </div>
 
               {/* Bottom Preview Pill Card */}
-              <div className="mt-5 flex min-h-[60px] items-center justify-between rounded-[14px] border border-[#8D7CFF] bg-white px-4 py-2.5 shadow-[8px_12px_18px_-10px_rgba(73,43,255,0.42)] sm:mt-5">
+              <div className="neon-border-glow mt-5 flex min-h-[60px] cursor-pointer items-center justify-between rounded-[14px] border border-[#8D7CFF] bg-white px-4 py-2.5 shadow-[8px_12px_18px_-10px_rgba(73,43,255,0.42)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_16px_30px_-6px_rgba(74,41,255,0.45)] sm:mt-5">
                 <div className="flex items-center gap-2">
-                  <span className="size-2.5 rounded-full bg-[#4A29FF]"></span>
+                  <span className="size-2.5 rounded-full bg-[#4A29FF] animate-pulse"></span>
                   <span className="text-[13px] font-medium text-[#252538]">{t.howItWorks.step2CardTitle}</span>
                 </div>
-                <span className="rounded-[4px] bg-[#F7F6FF] px-2.5 py-1 text-[12px] font-semibold text-[#4A29FF]">
+                <span className="rounded-[4px] bg-[#F7F6FF] px-2.5 py-1 text-[12px] font-semibold text-[#4A29FF] transition-transform duration-300 group-hover:scale-105">
                   {t.howItWorks.step2CardSpeed}
                 </span>
               </div>
-            </div>
+            </motion.div>
 
             {/* Step 03: Download Output */}
-            <div className="flex min-w-0 flex-col justify-between">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.45, delay: 0.39 }}
+              className="group flex min-w-0 flex-col justify-between"
+            >
               <div>
                 {/* Number & Top-Right Icon */}
                 <div className="mb-4 flex items-center justify-between">
                   <span className="text-[40px] font-medium leading-none tracking-[-0.04em] text-[#141414]">
                     03
                   </span>
-                  <div className="flex size-10 items-center justify-center rounded-full bg-[#F1F2F7] text-[#4A29FF]">
+                  <div className="flex size-10 items-center justify-center rounded-full bg-[#F1F2F7] text-[#4A29FF] transition-all duration-300 group-hover:scale-110 group-hover:bg-[#EAE8FF] group-hover:shadow-[0_4px_12px_rgba(74,41,255,0.25)]">
                     <ImageIcon className="size-[18px] stroke-[2.2]" />
                   </div>
                 </div>
@@ -183,16 +207,16 @@ export default function HowItWorks({ activeTool = "excel-jpg" }: { activeTool?: 
               </div>
 
               {/* Bottom Preview Pill Card */}
-              <div className="mt-5 flex min-h-[60px] items-center justify-between gap-2 rounded-[14px] border border-[#8D7CFF] bg-white px-4 py-2.5 shadow-[8px_12px_18px_-10px_rgba(73,43,255,0.42)] sm:mt-5">
+              <div className="neon-border-glow mt-5 flex min-h-[60px] cursor-pointer items-center justify-between gap-2 rounded-[14px] border border-[#8D7CFF] bg-white px-4 py-2.5 shadow-[8px_12px_18px_-10px_rgba(73,43,255,0.42)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_16px_30px_-6px_rgba(74,41,255,0.45)] sm:mt-5">
                 <div className="flex items-center gap-2 truncate">
-                  <Check className="size-[17px] shrink-0 stroke-[2.5] text-[#4A29FF]" />
+                  <Check className="size-[17px] shrink-0 stroke-[2.5] text-[#4A29FF] transition-transform duration-300 group-hover:scale-110" />
                   <span className="truncate text-[13px] font-medium text-[#252538]">{withFormat(t.howItWorks.step3CardTitle)}</span>
                 </div>
-                <button type="button" className="btn-gradient-border shrink-0 cursor-pointer rounded-full bg-[#4A29FF] px-4 py-1 text-[11px] font-semibold text-white shadow-[0_3px_7px_rgba(74,41,255,0.3)] transition-colors hover:bg-[#3518dc] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#4A29FF]">
+                <button type="button" className="btn-gradient-border shrink-0 cursor-pointer rounded-full bg-[#4A29FF] px-4 py-1 text-[11px] font-semibold text-white shadow-[0_3px_7px_rgba(74,41,255,0.3)] transition-all duration-200 hover:bg-[#3518dc] hover:scale-105 active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#4A29FF]">
                   {t.howItWorks.step3CardAction}
                 </button>
               </div>
-            </div>
+            </motion.div>
 
           </div>
         </motion.div>
