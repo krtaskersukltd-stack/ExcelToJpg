@@ -51,33 +51,39 @@ function PngFileIcon({ className = "" }: { className?: string }) {
 /* 2. Excel File Icon (Green with 3D Overlap) */
 function ExcelFileIcon({ className = "" }: { className?: string }) {
   return (
-    <svg viewBox="0 0 58 68" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg viewBox="0 0 54 68" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
       {/* Back Green Sheet with Fold */}
       <path
-        d="M16 4C13.79 4 12 5.79 12 8V60C12 62.21 13.79 64 16 64H50C52.21 64 54 62.21 54 60V18L40 4H16Z"
+        d="M6 0C2.686 0 0 2.686 0 6V62C0 65.314 2.686 68 6 68H48C51.314 68 54 65.314 54 62V16L38 0H6Z"
         fill="#107C41"
       />
       <path
-        d="M40 4V14C40 16.21 41.79 18 44 18H54L40 4Z"
+        d="M38 0V12C38 14.209 39.791 16 42 16H54L38 0Z"
         fill="#FFFFFF"
-        fillOpacity="0.9"
+        fillOpacity="0.95"
       />
+      {/* Spreadsheet Grid Lines on the Right */}
+      <rect x="34" y="24" width="13" height="2.5" rx="1.25" fill="#FFFFFF" fillOpacity="0.5" />
+      <rect x="34" y="31" width="13" height="2.5" rx="1.25" fill="#FFFFFF" fillOpacity="0.5" />
+      <rect x="34" y="38" width="13" height="2.5" rx="1.25" fill="#FFFFFF" fillOpacity="0.5" />
+      <rect x="34" y="45" width="13" height="2.5" rx="1.25" fill="#FFFFFF" fillOpacity="0.5" />
+
       {/* Front Excel Square with X */}
       <rect
-        x="2"
-        y="13"
-        width="38"
-        height="42"
-        rx="6"
+        x="3"
+        y="17"
+        width="30"
+        height="34"
+        rx="5"
         fill="#22C55E"
-        style={{ filter: "drop-shadow(0 3px 6px rgba(0, 0, 0, 0.2))" }}
+        style={{ filter: "drop-shadow(0 3px 6px rgba(0, 0, 0, 0.22))" }}
       />
       <text
-        x="21"
+        x="18"
         y="42"
         fill="#FFFFFF"
         fontFamily="system-ui, -apple-system, sans-serif"
-        fontSize="24"
+        fontSize="21"
         fontWeight="900"
         textAnchor="middle"
       >
@@ -299,7 +305,7 @@ export default function ProductsRibbon({ onSelectTool }: { onSelectTool?: (tool:
               mouseX.set(Infinity);
               setHoveredId(null);
             }}
-            className="relative max-w-full px-3.5 sm:px-10 py-3 sm:py-4 rounded-2xl sm:rounded-3xl bg-white/90 backdrop-blur-md border border-indigo-200/70 neon-border-glow shadow-[0_10px_30px_-5px_rgba(99,102,241,0.12),0_2px_8px_rgba(0,0,0,0.02)] hover:shadow-[0_14px_36px_-5px_rgba(99,102,241,0.22)] transition-all flex items-center justify-center gap-2 sm:gap-6"
+            className="relative max-w-full px-3.5 sm:px-10 py-3 sm:py-4 rounded-2xl sm:rounded-3xl bg-[#F7F8FC] border border-indigo-200/70 neon-border-glow shadow-[0_10px_30px_-5px_rgba(99,102,241,0.12),0_2px_8px_rgba(0,0,0,0.02)] hover:shadow-[0_14px_36px_-5px_rgba(99,102,241,0.22)] transition-all flex items-center justify-center gap-2 sm:gap-6"
           >
             
 

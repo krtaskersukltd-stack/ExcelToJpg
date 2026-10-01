@@ -129,7 +129,7 @@ export default function ContactPage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4, delay: 0.05 }}
-                className="bg-white rounded-2xl p-6 border border-slate-200/80 neon-border-glow shadow-xs hover:shadow-md transition-all flex flex-col justify-between group"
+                className="bg-[#F7F8FC] rounded-2xl p-6 border border-slate-200/80 neon-border-glow shadow-xs hover:shadow-md transition-all flex flex-col justify-between group"
               >
                 <div>
                   <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
@@ -151,7 +151,7 @@ export default function ContactPage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4, delay: 0.12 }}
-                className="bg-white rounded-2xl p-6 border border-slate-200/80 neon-border-glow shadow-xs hover:shadow-md transition-all flex flex-col justify-between group"
+                className="bg-[#F7F8FC] rounded-2xl p-6 border border-slate-200/80 neon-border-glow shadow-xs hover:shadow-md transition-all flex flex-col justify-between group"
               >
                 <div>
                   <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
@@ -173,7 +173,7 @@ export default function ContactPage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4, delay: 0.19 }}
-                className="bg-white rounded-2xl p-6 border border-slate-200/80 neon-border-glow shadow-xs hover:shadow-md transition-all flex flex-col justify-between group"
+                className="bg-[#F7F8FC] rounded-2xl p-6 border border-slate-200/80 neon-border-glow shadow-xs hover:shadow-md transition-all flex flex-col justify-between group"
               >
                 <div>
                   <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
@@ -194,7 +194,7 @@ export default function ContactPage() {
 
           {/* Interactive Contact Form Container Card */}
           <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 mb-20">
-            <div className="bg-white rounded-[28px] sm:rounded-[36px] border border-slate-200/80 p-6 sm:p-10 lg:p-12 shadow-[0_12px_45px_rgba(53,91,255,0.06)] grid grid-cols-1 lg:grid-cols-12 gap-10">
+            <div className="bg-[#F7F8FC] rounded-[28px] sm:rounded-[36px] border border-slate-200/80 p-6 sm:p-10 lg:p-12 shadow-[0_12px_45px_rgba(53,91,255,0.06)] grid grid-cols-1 lg:grid-cols-12 gap-10">
               
               {/* Form Left Details */}
               <div className="lg:col-span-5 space-y-6">

@@ -32,7 +32,7 @@ export default function AccountPage() {
 
   return (
     <main className="grid min-h-screen place-items-center bg-[#f7f8ff] p-6">
-      <section className="w-full max-w-lg rounded-[32px] border border-indigo-100 bg-white p-8 shadow-[0_24px_70px_rgba(61,73,245,.12)]">
+      <section className="w-full max-w-lg rounded-[32px] border border-indigo-100 bg-[#F7F8FC] p-8 shadow-[0_24px_70px_rgba(61,73,245,.12)]">
         <div className="mb-8 flex items-center justify-between"><Link href="/" className="font-heading text-xl font-semibold">Excel To JPG</Link><span className="rounded-full bg-green-50 px-3 py-1 text-xs font-semibold text-green-700">{user.auth_provider === "google" ? "Google account" : "Signed in"}</span></div>
         <h1 className="font-heading text-4xl">Welcome, <span className="text-[#3d49f5]">{user.full_name}</span></h1>
         <dl className="mt-8 space-y-4 rounded-3xl bg-slate-50 p-6 text-sm">

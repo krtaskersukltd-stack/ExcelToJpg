@@ -82,13 +82,13 @@ export default function HowItWorks({ activeTool = "excel-jpg" }: { activeTool?: 
           </p>
         </motion.div>
 
-        {/* Large Single White Container Card Holding All 3 Steps */}
+        {/* Large Single Container Card Holding All 3 Steps */}
         <motion.div
           initial={{ opacity: 0, y: 25 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5, delay: 0.1 }}
-          className="rounded-[22px] bg-[#F6F7FB] px-6 py-8 sm:px-10 sm:py-10 lg:px-10 lg:py-10"
+          className="rounded-[22px] bg-[#F7F8FC] px-6 py-8 sm:px-10 sm:py-10 lg:px-10 lg:py-10"
         >
           <div className="grid grid-cols-1 gap-10 md:grid-cols-3 md:gap-12 lg:gap-[108px]">
             
@@ -123,7 +123,7 @@ export default function HowItWorks({ activeTool = "excel-jpg" }: { activeTool?: 
               </div>
 
               {/* Bottom Preview Pill Card */}
-              <div className="neon-border-glow mt-5 flex min-h-[60px] cursor-pointer items-center gap-3 rounded-[14px] border border-[#8D7CFF] bg-white px-4 py-2.5 shadow-[8px_12px_18px_-10px_rgba(73,43,255,0.42)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_16px_30px_-6px_rgba(74,41,255,0.45)] sm:mt-5">
+              <div className="neon-border-glow mt-5 flex min-h-[60px] cursor-pointer items-center gap-3 rounded-[14px] border border-[#8D7CFF] bg-[#F7F8FC] px-4 py-2.5 shadow-[8px_12px_18px_-10px_rgba(73,43,255,0.42)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_16px_30px_-6px_rgba(74,41,255,0.45)] sm:mt-5">
                 <div className="flex size-8 shrink-0 items-center justify-center rounded-[4px] bg-[#EEECFF] text-[#4A29FF] transition-transform duration-300 group-hover:scale-110">
                   <FileText className="size-[17px] stroke-[2.2]" />
                 </div>
@@ -165,7 +165,7 @@ export default function HowItWorks({ activeTool = "excel-jpg" }: { activeTool?: 
               </div>
 
               {/* Bottom Preview Pill Card */}
-              <div className="neon-border-glow mt-5 flex min-h-[60px] cursor-pointer items-center justify-between rounded-[14px] border border-[#8D7CFF] bg-white px-4 py-2.5 shadow-[8px_12px_18px_-10px_rgba(73,43,255,0.42)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_16px_30px_-6px_rgba(74,41,255,0.45)] sm:mt-5">
+              <div className="neon-border-glow mt-5 flex min-h-[60px] cursor-pointer items-center justify-between rounded-[14px] border border-[#8D7CFF] bg-[#F7F8FC] px-4 py-2.5 shadow-[8px_12px_18px_-10px_rgba(73,43,255,0.42)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_16px_30px_-6px_rgba(74,41,255,0.45)] sm:mt-5">
                 <div className="flex items-center gap-2">
                   <span className="size-2.5 rounded-full bg-[#4A29FF] animate-pulse"></span>
                   <span className="text-[13px] font-medium text-[#252538]">{t.howItWorks.step2CardTitle}</span>
@@ -207,7 +207,7 @@ export default function HowItWorks({ activeTool = "excel-jpg" }: { activeTool?: 
               </div>
 
               {/* Bottom Preview Pill Card */}
-              <div className="neon-border-glow mt-5 flex min-h-[60px] cursor-pointer items-center justify-between gap-2 rounded-[14px] border border-[#8D7CFF] bg-white px-4 py-2.5 shadow-[8px_12px_18px_-10px_rgba(73,43,255,0.42)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_16px_30px_-6px_rgba(74,41,255,0.45)] sm:mt-5">
+              <div className="neon-border-glow mt-5 flex min-h-[60px] cursor-pointer items-center justify-between gap-2 rounded-[14px] border border-[#8D7CFF] bg-[#F7F8FC] px-4 py-2.5 shadow-[8px_12px_18px_-10px_rgba(73,43,255,0.42)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_16px_30px_-6px_rgba(74,41,255,0.45)] sm:mt-5">
                 <div className="flex items-center gap-2 truncate">
                   <Check className="size-[17px] shrink-0 stroke-[2.5] text-[#4A29FF] transition-transform duration-300 group-hover:scale-110" />
                   <span className="truncate text-[13px] font-medium text-[#252538]">{withFormat(t.howItWorks.step3CardTitle)}</span>

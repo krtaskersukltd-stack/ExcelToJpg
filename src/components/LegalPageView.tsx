@@ -73,7 +73,7 @@ export default function LegalPageView({ pageId }: { pageId: LegalPageId }) {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.4, delay: i * 0.08 }}
-                  className="bg-white rounded-2xl p-5 border border-slate-200/80 neon-border-glow shadow-xs hover:shadow-md transition-all flex flex-col justify-between"
+                  className="bg-[#F7F8FC] rounded-2xl p-5 border border-slate-200/80 neon-border-glow shadow-xs hover:shadow-md transition-all flex flex-col justify-between"
                 >
                   <div className={`w-10 h-10 rounded-xl ${pillar.bg} ${pillar.color} flex items-center justify-center mb-3.5`}>
                     <pillar.icon className="w-5 h-5" />
@@ -89,7 +89,7 @@ export default function LegalPageView({ pageId }: { pageId: LegalPageId }) {
 
           {/* Main Document Content Container */}
           <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
-            <div className="bg-white rounded-[28px] sm:rounded-[36px] border border-slate-200/80 p-6 sm:p-10 lg:p-12 shadow-[0_12px_45px_rgba(53,91,255,0.06)] space-y-10 text-slate-700">
+            <div className="bg-[#F7F8FC] rounded-[28px] sm:rounded-[36px] border border-slate-200/80 p-6 sm:p-10 lg:p-12 shadow-[0_12px_45px_rgba(53,91,255,0.06)] space-y-10 text-slate-700">
               
               {pageConfig.sections.map((sec) => (
                 <React.Fragment key={sec.number}>

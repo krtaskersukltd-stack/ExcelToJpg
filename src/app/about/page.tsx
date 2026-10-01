@@ -122,7 +122,7 @@ export default function AboutPage() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.4, delay: i * 0.08 }}
-                  className="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200/80 neon-border-glow shadow-xs hover:shadow-md transition-all flex flex-col justify-between text-left"
+                  className="bg-[#F7F8FC] rounded-2xl p-5 sm:p-6 border border-slate-200/80 neon-border-glow shadow-xs hover:shadow-md transition-all flex flex-col justify-between text-left"
                 >
                   <div className={`w-10 h-10 rounded-xl ${stat.bg} ${stat.color} flex items-center justify-center mb-4`}>
                     <stat.icon className="w-5 h-5" />
@@ -146,7 +146,7 @@ export default function AboutPage() {
                 initial={{ opacity: 0, x: -15 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.5 }}
-                className="bg-white rounded-[28px] sm:rounded-[32px] p-8 border border-blue-200/80 neon-border-glow shadow-[0_12px_45px_rgba(53,91,255,0.06)] flex flex-col justify-between"
+                className="bg-[#F7F8FC] rounded-[28px] sm:rounded-[32px] p-8 border border-blue-200/80 neon-border-glow shadow-[0_12px_45px_rgba(53,91,255,0.06)] flex flex-col justify-between"
               >
                 <div>
                   <div className="w-12 h-12 rounded-2xl bg-blue-50 text-[#355BFF] flex items-center justify-center mb-5">
@@ -171,7 +171,7 @@ export default function AboutPage() {
                 initial={{ opacity: 0, x: 15 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.5 }}
-                className="bg-white rounded-[28px] sm:rounded-[32px] p-8 border border-blue-200/80 neon-border-glow shadow-[0_12px_45px_rgba(53,91,255,0.06)] flex flex-col justify-between"
+                className="bg-[#F7F8FC] rounded-[28px] sm:rounded-[32px] p-8 border border-blue-200/80 neon-border-glow shadow-[0_12px_45px_rgba(53,91,255,0.06)] flex flex-col justify-between"
               >
                 <div>
                   <div className="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center mb-5">
@@ -238,7 +238,7 @@ export default function AboutPage() {
               ].map((pillar, i) => (
                 <div
                   key={pillar.title}
-                  className="bg-white rounded-2xl p-6 border border-slate-200/80 neon-border-glow shadow-xs hover:shadow-md transition-all flex gap-4 items-start"
+                  className="bg-[#F7F8FC] rounded-2xl p-6 border border-slate-200/80 neon-border-glow shadow-xs hover:shadow-md transition-all flex gap-4 items-start"
                 >
                   <div className={`w-11 h-11 rounded-xl ${pillar.bg} ${pillar.color} flex items-center justify-center shrink-0`}>
                     <pillar.icon className="w-5 h-5" />

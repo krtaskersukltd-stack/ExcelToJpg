@@ -138,7 +138,7 @@ export default function HeroSection({
   };
 
   return (
-    <section id="tools" className="relative pt-28 sm:pt-36 pb-16 overflow-hidden bg-gradient-to-b from-[#FAFBFD] via-[#F4F8FE] to-[#FAFBFD]">
+    <section id="tools" className="relative pt-28 sm:pt-36 pb-16 overflow-hidden ">
       <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
         
         {/* Main Headline */}
@@ -168,7 +168,7 @@ export default function HeroSection({
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
-            className={`relative rounded-[24px] sm:rounded-[36px] p-4 sm:p-8 transition-all duration-300 bg-white border-2 overflow-hidden ${
+            className={`relative rounded-[24px] sm:rounded-[36px] p-4 sm:p-8 transition-all duration-300 bg-[#F7F8FC] border-2 overflow-hidden ${
               isDragging
                 ? "border-[#355BFF] shadow-[0_12px_45px_rgba(53,91,255,0.25)] scale-[1.01]"
                 : "border-blue-400/50 shadow-[0_12px_45px_rgba(53,91,255,0.12)]"
@@ -279,7 +279,7 @@ export default function HeroSection({
             </div>
 
             {/* Bottom Row Guarantees (Clean separate footer bar) */}
-            <div className="pt-4 mt-2 border-t border-slate-100 flex flex-wrap items-center justify-center sm:justify-between gap-2.5 sm:gap-3 text-xs text-slate-600 relative z-10 bg-white">
+            <div className="pt-4 mt-2 border-t border-slate-200/60 flex flex-wrap items-center justify-center sm:justify-between gap-2.5 sm:gap-3 text-xs text-slate-600 relative z-10 bg-[#F7F8FC]">
               <div className="flex items-center gap-1.5">
                 <ShieldCheck className="w-4 h-4 text-[#355BFF]" />
                 <span>{t.hero.maxFileSize}</span>

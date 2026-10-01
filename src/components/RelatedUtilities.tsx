@@ -52,7 +52,7 @@ export default function RelatedUtilities({ onSelectTool }: { onSelectTool?: (too
                 role="button"
                 tabIndex={0}
                 onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") onSelectTool?.(UTILITY_TOOL_IDS[idx]); }}
-                className="cursor-pointer group rounded-2xl p-5 bg-[#F9FBFE] hover:bg-[#F0F6FE] border border-slate-200/70 neon-border-glow shadow-xs hover:shadow-md hover:shadow-blue-500/15 transition-all duration-200 flex items-center justify-between gap-4"
+                className="cursor-pointer group rounded-2xl p-5 bg-[#F7F8FC] hover:bg-[#EEF2FC] border border-slate-200/70 neon-border-glow shadow-xs hover:shadow-md hover:shadow-blue-500/15 transition-all duration-200 flex items-center justify-between gap-4"
               >
                 <div className="flex items-center gap-3.5 min-w-0">
                   {/* Badge Icon */}
@@ -74,8 +74,19 @@ export default function RelatedUtilities({ onSelectTool }: { onSelectTool?: (too
                 </div>
 
                 {/* Arrow button */}
-                <div className="w-8 h-8 rounded-full bg-white border border-slate-200/80 text-slate-400 group-hover:text-blue-600 group-hover:border-blue-300 flex items-center justify-center shrink-0 transition-colors">
-                  <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+                <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-colors">
+                    <svg
+    width="16"
+    height="16"
+    viewBox="0 0 16 16"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path
+      d="M12.175 9H0V7H12.175L6.575 1.4L8 0L16 8L8 16L6.575 14.6L12.175 9Z"
+      fill="#454556"
+    />
+  </svg>
                 </div>
               </motion.div>
             );

@@ -224,13 +224,13 @@ export default function FeatureCards() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.45, delay: idx * 0.12 }}
-              className="relative rounded-[32px] p-6 sm:p-7 bg-white border border-[#DCE4FE] neon-border-glow shadow-[0_12px_36px_-6px_rgba(53,91,255,0.10),0_2px_8px_rgba(0,0,0,0.02)] hover:shadow-[0_20px_45px_-8px_rgba(53,91,255,0.20)] hover:-translate-y-1.5 transition-all duration-300 flex flex-col items-center"
+              className="relative rounded-[32px] p-6 sm:p-7 bg-[#F7F8FC] border border-[#DCE4FE] neon-border-glow shadow-[0_12px_36px_-6px_rgba(53,91,255,0.10),0_2px_8px_rgba(0,0,0,0.02)] hover:shadow-[0_20px_45px_-8px_rgba(53,91,255,0.20)] hover:-translate-y-1.5 transition-all duration-300 flex flex-col items-center"
             >
               {/* Top Graphic Card Mockup */}
               <div className="w-full">{card.graphic}</div>
 
               {/* Floating Center Circle Icon Badge */}
-              <div className="w-14 h-14 rounded-full bg-white shadow-[0_8px_24px_rgba(53,91,255,0.18)] border-2 border-[#DCE4FE] flex items-center justify-center -mt-7 mb-4 relative z-10 mx-auto">
+              <div className="w-14 h-14 rounded-full bg-[#F7F8FC] shadow-[0_8px_24px_rgba(53,91,255,0.18)] border-2 border-[#DCE4FE] flex items-center justify-center -mt-7 mb-4 relative z-10 mx-auto">
                 {card.centerIcon}
               </div>
 

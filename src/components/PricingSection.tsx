@@ -63,7 +63,7 @@ export const PricingSection: React.FC = () => {
 
           {/* Billing Switcher Toggle (Monthly / Yearly) */}
           <div className="mt-8 flex justify-center items-center">
-            <div className="inline-flex items-center gap-2 p-1 bg-white rounded-full shadow-[0_10px_25px_-5px_rgba(56,88,246,0.18),0_4px_10px_rgba(0,0,0,0.03)] border border-blue-100/80">
+            <div className="inline-flex items-center gap-2 p-1 bg-[#F7F8FC] rounded-full shadow-[0_10px_25px_-5px_rgba(56,88,246,0.18),0_4px_10px_rgba(0,0,0,0.03)] border border-blue-100/80">
               {/* Monthly Button */}
               <button
                 type="button"

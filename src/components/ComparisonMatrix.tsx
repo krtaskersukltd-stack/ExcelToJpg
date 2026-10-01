@@ -35,7 +35,7 @@ export default function ComparisonMatrix({ activeTool = "excel-jpg" }: { activeT
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5 }}
-            className="rounded-[24px] sm:rounded-[36px] p-4 sm:p-8 bg-white border-2 border-blue-400/50 shadow-[0_12px_45px_rgba(53,91,255,0.12)] flex flex-col justify-between"
+            className="rounded-[24px] sm:rounded-[36px] p-4 sm:p-8 bg-[#F7F8FC] border-2 border-blue-400/50 shadow-[0_12px_45px_rgba(53,91,255,0.12)] flex flex-col justify-between"
           >
             <div>
               {/* Top Capsule Pill Header Bar */}
@@ -106,7 +106,7 @@ export default function ComparisonMatrix({ activeTool = "excel-jpg" }: { activeT
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: 0.1 }}
-            className="rounded-[24px] sm:rounded-[36px] p-4 sm:p-8 bg-white border-2 border-blue-400/50 shadow-[0_12px_45px_rgba(53,91,255,0.12)] flex flex-col justify-between"
+            className="rounded-[24px] sm:rounded-[36px] p-4 sm:p-8 bg-[#F7F8FC] border-2 border-blue-400/50 shadow-[0_12px_45px_rgba(53,91,255,0.12)] flex flex-col justify-between"
           >
             <div>
               {/* Top Capsule Pill Header Bar */}

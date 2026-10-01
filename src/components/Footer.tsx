@@ -12,8 +12,8 @@ export default function Footer() {
     <footer className="bg-[#FAFBFD] pt-12 pb-8 relative overflow-hidden min-h-[50vh]">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         
-        {/* Main White Footer Container Card */}
-        <div className="bg-white rounded-[28px] sm:rounded-[36px] p-6 sm:p-10 lg:p-12 border-2 border-blue-400/50 shadow-[0_12px_45px_rgba(53,91,255,0.12)]">
+        {/* Main Footer Container Card */}
+        <div className="bg-[#F7F8FC] rounded-[28px] sm:rounded-[36px] p-6 sm:p-10 lg:p-12 border-2 border-blue-400/50 shadow-[0_12px_45px_rgba(53,91,255,0.12)]">
           <div className="grid grid-cols-1 md:grid-cols-12 gap-8 lg:gap-10">
             
             {/* Left Column: Brand Logo, Description & Social Icons */}

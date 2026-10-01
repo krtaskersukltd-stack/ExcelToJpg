@@ -39,7 +39,7 @@ export default function FaqSection() {
                 key={faqId}
                 initial={false}
                 animate={{
-                  backgroundColor: isOpen ? "#FFFFFF" : "rgba(255, 255, 255, 0)",
+                  backgroundColor: isOpen ? "#F7F8FC" : "rgba(255, 255, 255, 0)",
                 }}
                 className={`rounded-[17px] transition-all duration-300 ${
                   isOpen
