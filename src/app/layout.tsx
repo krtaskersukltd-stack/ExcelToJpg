@@ -48,7 +48,7 @@ export default function RootLayout({
         />
         <meta name="robots" content="noindex"></meta>
       </head>
-      <body className="font-sans antialiased bg-[#FAFBFD] text-slate-900 selection:bg-blue-600 selection:text-white min-h-screen overflow-x-clip">
+      <body className="font-sans antialiased text-slate-900 selection:bg-blue-600 selection:text-white min-h-screen overflow-x-clip">
         <LanguageProvider>
           {children}
         </LanguageProvider>

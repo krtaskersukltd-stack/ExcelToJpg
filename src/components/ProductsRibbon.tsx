@@ -284,7 +284,7 @@ export default function ProductsRibbon({ onSelectTool }: { onSelectTool?: (tool:
   const mouseX = useMotionValue(Infinity);
 
   return (
-    <section id="products" className="py-14 sm:py-20 relative bg-[#FAFBFD] overflow-visible">
+    <section id="products" className="py-14 sm:py-20 relative bg-[#FFFFFF] overflow-visible">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 flex flex-col items-center">
         
         {/* Section Heading */}
@@ -305,7 +305,7 @@ export default function ProductsRibbon({ onSelectTool }: { onSelectTool?: (tool:
               mouseX.set(Infinity);
               setHoveredId(null);
             }}
-            className="relative max-w-full px-3.5 sm:px-10 py-3 sm:py-4 rounded-2xl sm:rounded-3xl bg-[#F7F8FC] border border-indigo-200/70 neon-border-glow shadow-[0_10px_30px_-5px_rgba(99,102,241,0.12),0_2px_8px_rgba(0,0,0,0.02)] hover:shadow-[0_14px_36px_-5px_rgba(99,102,241,0.22)] transition-all flex items-center justify-center gap-2 sm:gap-6"
+            className="relative max-w-full px-3.5 sm:px-10 py-3 sm:py-4 rounded-2xl sm:rounded-3xlbg-[#bg-[# border border-indigo-200/70 neon-border-glow shadow-[0_10px_30px_-5px_rgba(99,102,241,0.12),0_2px_8px_rgba(0,0,0,0.02)] hover:shadow-[0_14px_36px_-5px_rgba(99,102,241,0.22)] transition-all flex items-center justify-center gap-2 sm:gap-6"
           >
             
 

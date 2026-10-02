@@ -13,35 +13,42 @@ export default function ComparisonMatrix({ activeTool = "excel-jpg" }: { activeT
   const displayLabel = toolConfig.titleHighlight || label;
 
   return (
-    <section className="py-20 bg-[#FAFBFD] relative">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section className="py-20 bg-[#FFFFFF] relative overflow-hidden">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         
-        {/* Section Heading */}
-        <div className="text-center space-y-3 mb-14">
+        {/* Section Heading with Entrance Animation */}
+        <motion.div
+          initial={{ opacity: 0, y: 22 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-60px" }}
+          transition={{ duration: 0.5, ease: "easeOut" }}
+          className="text-center space-y-3 mb-14"
+        >
           <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 tracking-tight">
             {t.comparison.titlePrefix} <span className="text-[#355BFF]">{displayLabel}</span>
           </h2>
           <p className="text-sm sm:text-base text-slate-500 max-w-2xl mx-auto">
             {withFormat(t.comparison.subtitle).replace(/JPG/g, displayLabel)}
           </p>
-        </div>
+        </motion.div>
 
         {/* Comparison Dual Cards Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
           
-          {/* Left Card: SOURCE Editable Excel (.xlsx) */}
+          {/* Left Card: SOURCE Editable Excel (.xlsx) - Only Outer Container has neon-border-glow */}
           <motion.div
-            initial={{ opacity: 0, y: 25 }}
+            initial={{ opacity: 0, y: 28 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5 }}
-            className="rounded-[24px] sm:rounded-[36px] p-4 sm:p-8 bg-[#F7F8FC] border-2 border-blue-400/50 shadow-[0_12px_45px_rgba(53,91,255,0.12)] flex flex-col justify-between"
+            viewport={{ once: true, margin: "-40px" }}
+            whileHover={{ y: -6, transition: { duration: 0.28, ease: "easeOut" } }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+            className="neon-border-glow rounded-[24px] sm:rounded-[36px] p-5 sm:p-8 bg-[#F7F8FC] border-2 border-blue-400/50 shadow-[0_12px_45px_rgba(53,91,255,0.10)] hover:shadow-[0_22px_55px_rgba(53,91,255,0.22)] hover:border-[#355BFF] transition-all duration-300 flex flex-col justify-between cursor-pointer"
           >
             <div>
-              {/* Top Capsule Pill Header Bar */}
+              {/* Top Capsule Pill Header Bar (Clean, no neon border) */}
               <div className="p-1.5 sm:p-1.5 bg-white rounded-2xl sm:rounded-full border border-blue-200/70 shadow-[0_2px_12px_rgba(59,130,246,0.06)] flex flex-wrap sm:flex-nowrap items-center justify-between gap-1.5 sm:gap-2">
                 <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-                  <span className="shrink-0 px-2.5 sm:px-3.5 py-1 bg-[#355BFF] text-white text-[10px] sm:text-[11px] font-bold rounded-full uppercase tracking-wider">
+                  <span className="shrink-0 px-2.5 sm:px-3.5 py-1 bg-[#355BFF] text-white text-[10px] sm:text-[11px] font-bold rounded-full uppercase tracking-wider shadow-sm">
                     {t.comparison.sourceBadge}
                   </span>
                   <span className="text-xs sm:text-base font-bold text-slate-900 truncate">
@@ -53,7 +60,7 @@ export default function ComparisonMatrix({ activeTool = "excel-jpg" }: { activeT
                 </span>
               </div>
 
-              {/* Inner Data Card Container */}
+              {/* Inner Data Card Container (Spreadsheet Mock - Clean, no neon border) */}
               <div className="rounded-2xl border border-slate-200/80 bg-white shadow-[0_4px_20px_rgba(0,0,0,0.03)] p-4 sm:p-6 my-4 sm:my-6">
                 {/* Card Top Row Header */}
                 <div className="flex items-center justify-between text-xs pb-1">
@@ -100,19 +107,20 @@ export default function ComparisonMatrix({ activeTool = "excel-jpg" }: { activeT
             </div>
           </motion.div>
 
-          {/* Right Card: OUTPUT Pixel-Perfect JPG (.jpg) */}
+          {/* Right Card: OUTPUT Pixel-Perfect JPG (.jpg) - Only Outer Container has neon-border-glow */}
           <motion.div
-            initial={{ opacity: 0, y: 25 }}
+            initial={{ opacity: 0, y: 28 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: 0.1 }}
-            className="rounded-[24px] sm:rounded-[36px] p-4 sm:p-8 bg-[#F7F8FC] border-2 border-blue-400/50 shadow-[0_12px_45px_rgba(53,91,255,0.12)] flex flex-col justify-between"
+            viewport={{ once: true, margin: "-40px" }}
+            whileHover={{ y: -6, transition: { duration: 0.28, ease: "easeOut" } }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="neon-border-glow rounded-[24px] sm:rounded-[36px] p-5 sm:p-8 bg-[#F7F8FC] border-2 border-blue-400/50 shadow-[0_12px_45px_rgba(53,91,255,0.10)] hover:shadow-[0_22px_55px_rgba(53,91,255,0.22)] hover:border-[#355BFF] transition-all duration-300 flex flex-col justify-between cursor-pointer"
           >
             <div>
-              {/* Top Capsule Pill Header Bar */}
+              {/* Top Capsule Pill Header Bar (Clean, no neon border) */}
               <div className="p-1.5 sm:p-1.5 bg-white rounded-2xl sm:rounded-full border border-blue-200/70 shadow-[0_2px_12px_rgba(59,130,246,0.06)] flex flex-wrap sm:flex-nowrap items-center justify-between gap-1.5 sm:gap-2">
                 <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-                  <span className="shrink-0 px-2.5 sm:px-3.5 py-1 bg-[#355BFF] text-white text-[10px] sm:text-[11px] font-bold rounded-full uppercase tracking-wider">
+                  <span className="shrink-0 px-2.5 sm:px-3.5 py-1 bg-[#355BFF] text-white text-[10px] sm:text-[11px] font-bold rounded-full uppercase tracking-wider shadow-sm">
                     {t.comparison.outputBadge}
                   </span>
                   <span className="text-xs sm:text-base font-bold text-slate-900 truncate">
@@ -124,7 +132,7 @@ export default function ComparisonMatrix({ activeTool = "excel-jpg" }: { activeT
                 </span>
               </div>
 
-              {/* Inner Data Card Container */}
+              {/* Inner Data Card Container (Rendered Output Mock - Clean, no neon border) */}
               <div className="rounded-2xl border border-slate-200/80 bg-white shadow-[0_4px_20px_rgba(0,0,0,0.03)] p-4 sm:p-6 my-4 sm:my-6">
                 {/* Card Top Row Header */}
                 <div className="flex items-center justify-between text-xs pb-1">

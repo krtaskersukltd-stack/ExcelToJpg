@@ -2,7 +2,6 @@
 
 import React from "react";
 import { motion } from "framer-motion";
-import { ArrowRight } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { ConverterToolId, UTILITY_TOOL_IDS } from "@/lib/converter-tools";
 
@@ -41,18 +40,20 @@ export default function RelatedUtilities({ onSelectTool }: { onSelectTool?: (too
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {t.utilities.tools.map((item, idx) => {
             const meta = metaList[idx] || metaList[0];
+            const toolId = UTILITY_TOOL_IDS[idx];
+            const href = `/${toolId}`;
             return (
-              <motion.div
+              <motion.a
                 key={item.title}
+                href={href}
+                target="_blank"
+                rel="noopener noreferrer"
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
+                whileHover={{ y: -4, transition: { duration: 0.25 } }}
                 transition={{ duration: 0.4, delay: idx * 0.08 }}
-                onClick={() => onSelectTool?.(UTILITY_TOOL_IDS[idx])}
-                role="button"
-                tabIndex={0}
-                onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") onSelectTool?.(UTILITY_TOOL_IDS[idx]); }}
-                className="cursor-pointer group rounded-2xl p-5 bg-[#F7F8FC] hover:bg-[#EEF2FC] border border-slate-200/70 neon-border-glow shadow-xs hover:shadow-md hover:shadow-blue-500/15 transition-all duration-200 flex items-center justify-between gap-4"
+                className="cursor-pointer group rounded-2xl p-5 bg-[#F7F8FC] hover:bg-[#EEF2FC] border border-slate-200/70 neon-border-glow shadow-xs hover:shadow-md hover:shadow-blue-500/15 transition-all duration-200 flex items-center justify-between gap-4 no-underline"
               >
                 <div className="flex items-center gap-3.5 min-w-0">
                   {/* Badge Icon */}
@@ -74,21 +75,21 @@ export default function RelatedUtilities({ onSelectTool }: { onSelectTool?: (too
                 </div>
 
                 {/* Arrow button */}
-                <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-colors">
-                    <svg
-    width="16"
-    height="16"
-    viewBox="0 0 16 16"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
-  >
-    <path
-      d="M12.175 9H0V7H12.175L6.575 1.4L8 0L16 8L8 16L6.575 14.6L12.175 9Z"
-      fill="#454556"
-    />
-  </svg>
+                <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-transform group-hover:translate-x-1">
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 16 16"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M12.175 9H0V7H12.175L6.575 1.4L8 0L16 8L8 16L6.575 14.6L12.175 9Z"
+                      fill="#454556"
+                    />
+                  </svg>
                 </div>
-              </motion.div>
+              </motion.a>
             );
           })}
         </div>

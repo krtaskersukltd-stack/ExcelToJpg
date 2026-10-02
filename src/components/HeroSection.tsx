@@ -20,7 +20,7 @@ import { ConverterToolId, getToolConfig } from "@/lib/converter-tools";
 /* Exact Cloud Upload Icon matching user's uploaded icon */
 function CustomCloudUploadIcon({ className = "w-7 h-7 text-[#355BFF]" }: { className?: string }) {
   return (
-    <svg viewBox="0 0 28 24" fill="none" className={className} xmlns="http://www.w3.org/2000/svg">
+    <svg viewBox="0 0 31 25" fill="none" className={className} xmlns="http://www.w3.org/2000/svg">
       <path
         d="M8.5 21.5H6.5C3.74 21.5 1.5 19.26 1.5 16.5C1.5 13.97 3.39 11.87 5.89 11.54C6.54 6.74 10.63 3 15.5 3C19.98 3 23.73 6.18 24.73 10.45C26.91 11.08 28.5 13.1 28.5 15.5C28.5 18.81 25.81 21.5 22.5 21.5H19.5"
         stroke="currentColor"
@@ -138,7 +138,7 @@ export default function HeroSection({
   };
 
   return (
-    <section id="tools" className="relative pt-28 sm:pt-36 pb-16 overflow-hidden ">
+    <section id="tools" className="relative pt-28 bg-[#FFFFFF] sm:pt-36 pb-16 overflow-hidden ">
       <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
         
         {/* Main Headline */}
@@ -195,7 +195,7 @@ export default function HeroSection({
                   onClick={handleMainActionClick}
                   className="cursor-pointer group mb-3"
                 >
-                  <div className="w-14 h-14 rounded-2xl bg-[#DEE7FF] flex items-center justify-center text-[#355BFF] shadow-xs group-hover:scale-105 group-hover:bg-[#D4E0FF] transition-all duration-200">
+                  <div className="w-14 h-14 rounded-2xl bg-[#DEE7FF]  flex items-center justify-center text-[#355BFF] shadow-xs group-hover:scale-105 group-hover:bg-[#D4E0FF] transition-all duration-200">
                     <CustomCloudUploadIcon className="w-7 h-7 text-[#355BFF]" />
                   </div>
                 </div>

@@ -55,7 +55,7 @@ export default function HowItWorks({ activeTool = "excel-jpg" }: { activeTool?: 
     : "Instantly download individual sheet images or grab all worksheets bundled into a clean ZIP file.";
 
   return (
-    <section id="about" className="relative bg-[#FAFBFD] py-16 sm:py-20">
+    <section id="about" className="relative bg-[#FFFFFF] py-16 sm:py-20">
       <div className="mx-auto max-w-[1248px] px-4 sm:px-6">
         
         {/* Section Header */}

@@ -15,7 +15,7 @@ export default function FaqSection() {
   };
 
   return (
-    <section id="faq" className="relative overflow-hidden bg-[#FAFBFD] py-16 sm:py-20 lg:py-24">
+    <section id="faq" className="relative bg-[#FFFFFF] overflow-hidden py-16 sm:py-20 lg:py-24">
       <div className="mx-auto max-w-[870px] px-4 sm:px-6">
         
         {/* Section Heading */}

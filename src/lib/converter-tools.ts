@@ -59,6 +59,20 @@ export const PRODUCT_TOOL_IDS: ConverterToolId[] = [
   "png-excel", "excel-jpg", "csv-excel", "pdf-excel", "formula", "jpg-excel",
 ];
 
+export function resolveToolSlug(slug: string): ConverterToolId | null {
+  if (!slug) return null;
+  const clean = slug.toLowerCase().trim();
+  if (NAV_TOOL_IDS.includes(clean as ConverterToolId)) {
+    return clean as ConverterToolId;
+  }
+  const withoutTo = clean.replace("-to-", "-");
+  if (NAV_TOOL_IDS.includes(withoutTo as ConverterToolId)) {
+    return withoutTo as ConverterToolId;
+  }
+  return null;
+}
+
+
 export const FORWARD_FORMATS: Partial<Record<ConverterToolId, OutputFormat>> = {
   "excel-jpg": "jpg",
   "excel-png": "png",

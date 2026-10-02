@@ -3,6 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { motion } from "framer-motion";
 import { useLanguage } from "@/context/LanguageContext";
 
 export default function Footer() {
@@ -13,7 +14,14 @@ export default function Footer() {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Main Footer Container Card */}
-        <div className="bg-[#F7F8FC] rounded-[28px] sm:rounded-[36px] p-6 sm:p-10 lg:p-12 border-2 border-blue-400/50 shadow-[0_12px_45px_rgba(53,91,255,0.12)]">
+        <motion.div
+          initial={{ opacity: 0, y: 25 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          whileHover={{ y: -4, transition: { duration: 0.28, ease: "easeOut" } }}
+          transition={{ duration: 0.5 }}
+          className="neon-border-glow bg-[#F7F8FC] rounded-[28px] sm:rounded-[36px] p-6 sm:p-10 lg:p-12 border-2 border-blue-400/50 shadow-[0_12px_45px_rgba(53,91,255,0.12)] hover:shadow-[0_22px_55px_rgba(53,91,255,0.22)] hover:border-[#355BFF] transition-all duration-300"
+        >
           <div className="grid grid-cols-1 md:grid-cols-12 gap-8 lg:gap-10">
             
             {/* Left Column: Brand Logo, Description & Social Icons */}
@@ -131,7 +139,7 @@ export default function Footer() {
               <Link href="/terms" className="hover:text-blue-600 transition-colors">{t.footer.terms}</Link>
             </div>
           </div>
-        </div>
+        </motion.div>
 
         {/* Giant Watermark Typography matching Figma screenshot */}
         <div className="mt-8 sm:mt-12 text-center select-none pointer-events-none">

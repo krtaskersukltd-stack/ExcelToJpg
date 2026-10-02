@@ -28,6 +28,25 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const [language, setLanguageState] = useState<Language>("EN");
 
   useEffect(() => {
+    if (typeof window !== "undefined" && typeof (window as unknown as { CSS?: { registerProperty?: (def: unknown) => void } }).CSS?.registerProperty === "function") {
+      try {
+        (window as unknown as { CSS: { registerProperty: (def: unknown) => void } }).CSS.registerProperty({
+          name: "--border-angle",
+          syntax: "<angle>",
+          inherits: false,
+          initialValue: "0deg",
+        });
+      } catch {}
+      try {
+        (window as unknown as { CSS: { registerProperty: (def: unknown) => void } }).CSS.registerProperty({
+          name: "--auth-border-angle",
+          syntax: "<angle>",
+          inherits: false,
+          initialValue: "0deg",
+        });
+      } catch {}
+    }
+
     try {
       const saved = localStorage.getItem("app_language") as Language | null;
       if (saved && (saved === "EN" || saved === "ES" || saved === "FR" || saved === "DE" || saved === "JA" || saved === "ZH")) {

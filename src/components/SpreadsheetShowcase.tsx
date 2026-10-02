@@ -22,7 +22,7 @@ export default function SpreadsheetShowcase({ activeTool = "excel-jpg" }: { acti
   };
 
   return (
-    <section className="py-20 sm:py-24 relative bg-[#FAFBFD] overflow-hidden">
+    <section className="py-20 sm:py-24 relative bg-[#FFFFFF] overflow-hidden">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Section Heading */}
